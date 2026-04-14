@@ -164,6 +164,7 @@ export function build(
     s.accentColour = colorInput.value;
     customDot.style.background = colorInput.value;
     await onChange();
+    redisplay?.();
   });
   customDot.addEventListener("click", () => colorInput.click());
 }
