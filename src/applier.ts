@@ -45,6 +45,10 @@ function hexToHsl(hex: string): string {
   return `${Math.round(h * 360)}, ${Math.round(s * 100)}%, ${Math.round(l * 100)}%`;
 }
 
+function sanitizeHex(hex: string): string {
+  return /^#[0-9a-fA-F]{6}$/.test(hex) ? hex : '#e5b32a';
+}
+
 function getOrCreateStyleEl(): HTMLStyleElement {
   let el = document.getElementById(STYLE_ID) as HTMLStyleElement | null;
   if (!el) {
@@ -80,8 +84,8 @@ export function apply(s: TegenlichtSettings): void {
   --anp-border-radius: ${s.borderRadius}px;
   --anp-border-padding: ${s.borderPadding}px;
   --anp-table-width-pct: ${s.tableWidthPct}%;
-  --color-accent: ${s.accentColour};
-  --color-accent-hsl: ${hexToHsl(s.accentColour)};
+  --color-accent: ${sanitizeHex(s.accentColour)};
+  --color-accent-hsl: ${hexToHsl(sanitizeHex(s.accentColour))};
   --anp-inline-title-vis: ${s.inlineTitle ? 'block' : 'none'};
 }
 ${s.showRibbon ? '' : '.workspace-ribbon { display: none !important; }'}
@@ -97,7 +101,7 @@ ${s.showVaultName ? '' : '.nav-folder.mod-root > .nav-folder-title .nav-folder-t
 
   // Tab style: remove all, add current
   ALL_TAB_CLASSES.forEach(c => document.body.classList.remove(c));
-  document.body.classList.add(s.tabStyle || 'anp-default-tab');
+  document.body.classList.add((s.tabStyle?.trim() || 'anp-default-tab'));
 
   // Rainbow folders: exactly one of the two classes active
   document.body.classList.remove(RAINBOW_ON, RAINBOW_OFF);
@@ -132,4 +136,16 @@ ${s.showVaultName ? '' : '.nav-folder.mod-root > .nav-folder-title .nav-folder-t
 
 export function remove(): void {
   document.getElementById(STYLE_ID)?.remove();
+  ALL_FLAVOUR_CLASSES.forEach(c => document.body.classList.remove(c));
+  ALL_TAB_CLASSES.forEach(c => document.body.classList.remove(c));
+  document.body.classList.remove(
+    RAINBOW_ON, RAINBOW_OFF,
+    'anp-no-highlight', 'anp-current-line',
+    'anp-current-line-border', 'anp-current-line-border-only',
+  );
+  ['anp-file-icons', 'anp-collapse-folders', 'anp-colorful-frame',
+   'anp-custom-vault-toggle', 'anp-custom-checkboxes', 'rainbow-tags',
+   'anp-button-metadata-toggle', 'anp-codeblock-numbers', 'anp-floating-header',
+   'anp-toggle-scrollbars', 'anp-hide-status-bar',
+  ].forEach(c => document.body.classList.remove(c));
 }
