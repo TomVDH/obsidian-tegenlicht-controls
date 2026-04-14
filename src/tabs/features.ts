@@ -1,9 +1,176 @@
-// src/tabs/features.ts
 import TegenlichtControlsPlugin from "../main";
+import { TegenlichtSettings } from "../settings";
+
+type BoolKey = {
+  [K in keyof TegenlichtSettings]: TegenlichtSettings[K] extends boolean ? K : never
+}[keyof TegenlichtSettings];
+
+interface ToggleItem {
+  key: BoolKey;
+  label: string;
+  desc?: string;
+  previewId?: string;
+}
+
+interface SelectItem {
+  kind: "select";
+  key: keyof TegenlichtSettings;
+  label: string;
+  options: { label: string; value: string }[];
+}
+
+type GroupItem = ToggleItem | SelectItem;
+
+interface FeatureGroup {
+  icon: string;
+  label: string;
+  items: GroupItem[];
+}
+
+const GROUPS: FeatureGroup[] = [
+  {
+    icon: "🗂", label: "Workspace",
+    items: [
+      { key: "rainbowFileBrowser", label: "Rainbow file browser", desc: "Colour-coded folders in the file tree", previewId: "rainbow-file-browser" },
+      { key: "fileIcons",          label: "File icons",           desc: "Icons per file type",                  previewId: "file-icons" },
+      { key: "collapseFolderIcons",label: "Collapse folder icons",desc: "Custom icons for collapsed folders" },
+      { key: "colorfulFrame",      label: "Colorful frame",       desc: "Accent-coloured window frame" },
+      { key: "customVaultTitle",   label: "Custom vault title" },
+    ],
+  },
+  {
+    icon: "🧩", label: "Elements",
+    items: [
+      { key: "customCheckboxes", label: "Custom checkboxes", previewId: "custom-checkboxes" },
+      { key: "cardsMinimal",     label: "Cards (minimal)",   desc: "Card-style note previews", previewId: "cards-minimal" },
+      { key: "rainbowTags",      label: "Rainbow tags",      previewId: "rainbow-tags" },
+      { key: "metadataButton",   label: "Metadata button" },
+      { key: "metadataMods",     label: "Metadata mods",     desc: "Frontmatter display tweaks" },
+    ],
+  },
+  {
+    icon: "✏️", label: "Editor",
+    items: [
+      { key: "inlineTitle",         label: "Inline title",          desc: "Show note title inline at the top" },
+      { key: "activeLineHighlight", label: "Active line highlight",  desc: "Highlight the current cursor line" },
+      { key: "codeblockLineNumbers",label: "Codeblock line numbers", desc: "Line numbers inside code blocks" },
+      { key: "floatingTitle",       label: "Floating title",         desc: "Float the vault title in the nav" },
+      {
+        kind: "select" as const,
+        key: "tabStyle" as keyof TegenlichtSettings,
+        label: "Tab style",
+        options: [
+          { label: "Default",           value: "anp-default-tab" },
+          { label: "Depth",             value: "anp-depth-tab-toggle" },
+          { label: "Minimalistic",      value: "anp-mini-tab-toggle" },
+          { label: "Safari (Animated)", value: "anp-alternate-tab-toggle" },
+          { label: "Safari (Vanilla)",  value: "anp-safari-tab-toggle" },
+        ],
+      },
+    ],
+  },
+  {
+    icon: "👁", label: "Show / Hide",
+    items: [
+      { key: "showRibbon",     label: "Ribbon" },
+      { key: "showScrollbars", label: "Scrollbars" },
+      { key: "showStatusBar",  label: "Status bar" },
+      { key: "showVaultName",  label: "Vault name" },
+    ],
+  },
+  {
+    icon: "🔌", label: "Plugin support",
+    items: [
+      { key: "itsCallouts", label: "ITS Theme callouts" },
+      { key: "kanban",      label: "Kanban" },
+      { key: "calendar",    label: "Calendar" },
+    ],
+  },
+];
+
+function buildToggleRow(
+  container: HTMLElement,
+  item: ToggleItem,
+  plugin: TegenlichtControlsPlugin,
+  onChange: () => Promise<void>,
+): void {
+  const row = container.createDiv("tc-feat-row");
+  const info = row.createDiv("tc-feat-info");
+  info.createSpan({ text: item.label, cls: "tc-feat-name" });
+  if (item.desc) info.createDiv({ text: item.desc, cls: "tc-feat-desc" });
+
+  const toggle = row.createDiv("tc-toggle");
+  if (plugin.settings[item.key]) toggle.addClass("tc-toggle--on");
+  toggle.addEventListener("click", async () => {
+    (plugin.settings[item.key] as boolean) = !(plugin.settings[item.key] as boolean);
+    toggle.toggleClass("tc-toggle--on", plugin.settings[item.key] as boolean);
+    await onChange();
+    if (item.previewId) {
+      const img = container.querySelector<HTMLImageElement>(
+        `[data-preview-id="${item.previewId}"]`,
+      );
+      if (img) {
+        const state = plugin.settings[item.key] ? "on" : "off";
+        img.src = `app://obsidian.md/plugins/tegenlicht-controls/assets/previews/${item.previewId}-${state}.png`;
+      }
+    }
+  });
+
+  if (item.previewId) {
+    const previewWrap = container.createDiv("tc-feat-preview");
+    const img = previewWrap.createEl("img", { cls: "tc-feat-preview-img" });
+    img.setAttribute("data-preview-id", item.previewId);
+    const state = plugin.settings[item.key] ? "on" : "off";
+    img.src = `app://obsidian.md/plugins/tegenlicht-controls/assets/previews/${item.previewId}-${state}.png`;
+    img.alt = `${item.label} (${state})`;
+  }
+}
+
+function buildSelectRow(
+  container: HTMLElement,
+  item: SelectItem,
+  plugin: TegenlichtControlsPlugin,
+  onChange: () => Promise<void>,
+): void {
+  const row = container.createDiv("tc-feat-row");
+  row.createSpan({ text: item.label, cls: "tc-feat-name" });
+  const select = row.createEl("select", { cls: "tc-feat-select" });
+  item.options.forEach(opt => {
+    const o = select.createEl("option", { text: opt.label, value: opt.value });
+    if ((plugin.settings[item.key] as string) === opt.value) o.selected = true;
+  });
+  select.addEventListener("change", async () => {
+    (plugin.settings as unknown as Record<string, unknown>)[item.key as string] = select.value;
+    await onChange();
+  });
+}
+
 export function build(
   containerEl: HTMLElement,
   plugin: TegenlichtControlsPlugin,
-  onChange: () => Promise<void>
+  onChange: () => Promise<void>,
 ): void {
-  containerEl.createEl("p", { text: "Features — coming soon" });
+  GROUPS.forEach(group => {
+    const groupEl = containerEl.createDiv("tc-feat-group tc-feat-group--open");
+
+    const header = groupEl.createDiv("tc-feat-header");
+    const title  = header.createDiv("tc-feat-title");
+    title.createSpan({ text: group.icon, cls: "tc-feat-icon" });
+    title.createSpan({ text: ` ${group.label}` });
+    const meta = header.createDiv("tc-feat-meta");
+    meta.createSpan({ text: String(group.items.length), cls: "tc-feat-badge" });
+    meta.createSpan({ text: "▶", cls: "tc-feat-chevron" });
+    header.addEventListener("click", () =>
+      groupEl.toggleClass("tc-feat-group--open", !groupEl.hasClass("tc-feat-group--open")),
+    );
+
+    const body = groupEl.createDiv("tc-feat-body");
+    group.items.forEach(item => {
+      if ("kind" in item && item.kind === "select") {
+        buildSelectRow(body, item, plugin, onChange);
+      } else {
+        buildToggleRow(body, item as ToggleItem, plugin, onChange);
+      }
+    });
+  });
 }
