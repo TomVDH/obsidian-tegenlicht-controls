@@ -42,7 +42,7 @@ export class TegenlichtSettingsTab extends PluginSettingTab {
     const onChange = () => this.plugin.saveSettings();
 
     switch (this.activeTab) {
-      case "appearance": buildAppearance(content, this.plugin, onChange); break;
+      case "appearance": buildAppearance(content, this.plugin, onChange, this.display.bind(this)); break;
       case "typography": buildTypography(content, this.plugin, onChange); break;
       case "layout":     buildLayout(content, this.plugin, onChange);     break;
       case "features":   buildFeatures(content, this.plugin, onChange);   break;
