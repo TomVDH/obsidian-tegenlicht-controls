@@ -1,6 +1,6 @@
 # Tegenlicht Controls
 
-A polished settings UI for the [Tegenlicht](https://github.com/tomlinson/obsidian-tegenlicht-theme) theme for Obsidian.
+A polished settings UI for the [Tegenlicht](https://github.com/TomVDH/obsidian-tegenlicht-theme) theme for Obsidian.
 
 The theme owns the rendering. This plugin owns the **settings panel**: tab bar, accordions, swatch pickers, sliders, font pickers (with Google Fonts on demand), live mini-Obsidian typography preview, and a quick panel for one-click flavour switching.
 
@@ -60,7 +60,7 @@ styles.css           # all UI styles for the settings panel + body-class-driven 
 
 ## Companion theme
 
-This plugin assumes [Tegenlicht](https://github.com/tomlinson/obsidian-tegenlicht-theme) is installed and active. The plugin flips body classes and writes CSS vars; the theme's CSS responds to them.
+This plugin assumes [Tegenlicht](https://github.com/TomVDH/obsidian-tegenlicht-theme) is installed and active. The plugin flips body classes and writes CSS vars; the theme's CSS responds to them.
 
 Without the theme: Catppuccin flavours, font pickers, and typography sliders still work because they target Obsidian's own variables. Theme-specific features (rainbow folders, callouts, tab styles) need the theme's CSS to render.
 

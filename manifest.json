@@ -5,6 +5,6 @@
   "minAppVersion": "1.6.0",
   "description": "Visual settings companion for the Tegenlicht theme — Low Countries flavour swatches, per-role font pickers with Google Fonts support, background effects (frosted glass / transparency), film-grain noise, heading-size sliders, and a live mini-Obsidian typography preview.",
   "author": "Tom",
-  "authorUrl": "https://github.com/tomlinson",
+  "authorUrl": "https://github.com/TomVDH",
   "isDesktopOnly": false
 }
