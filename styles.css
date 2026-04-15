@@ -2484,10 +2484,40 @@ body.tc-density-spacious {
   padding-right: 12px;
 }
 
-/* Icon stroke weight — affects every Lucide icon in the chrome */
+/* Icon stroke weight — affects every Lucide icon in the chrome. Exposed
+   to users as "Icon intensity" in the Appearance tab. */
 body.tc-icon-stroke-thin    { --icon-stroke: 1px;    --icon-stroke-width: 1px; }
 body.tc-icon-stroke-regular { --icon-stroke: 1.75px; --icon-stroke-width: 1.75px; }
 body.tc-icon-stroke-bold    { --icon-stroke: 2.5px;  --icon-stroke-width: 2.5px; }
+
+/* Icon-stroke colour override — applied only when the user sets a colour
+   via the Icon-intensity swatch. When unset (theme default), --tc-icon-color
+   isn't defined, so `color: var(--tc-icon-color, currentColor)` falls back
+   to whatever the theme/Obsidian assigns. Targets every Lucide svg in the
+   workspace chrome: ribbon, nav pane, tabs, toolbar, settings icons. */
+body .workspace .svg-icon {
+  color: var(--tc-icon-color, currentColor);
+  stroke: var(--tc-icon-color, currentColor);
+}
+
+/* Segment pill-select + colour swatch on one row (Icon intensity). Pills
+   hug the left, swatch sits flush right with a small gap between them. */
+.tc-settings .tc-seg-with-color {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+}
+.tc-settings .tc-seg-with-color .pickr {
+  display: inline-flex;
+  align-items: center;
+}
+.tc-settings .tc-seg-with-color .pickr .pcr-button {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  border: 1px solid var(--background-modifier-border);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+}
 
 /* Corner radius — drives Obsidian's --radius-* scale + our own card radius.
    Values follow Tom's intent: Subtle ≈ 5% of element, Rounded ≈ 15%. */

@@ -370,9 +370,22 @@ ${s.caretColourEnabled ? `.cm-cursor { border-left-color: ${caretClr} !important
   ALL_BG_CLASSES.forEach(c => document.body.classList.remove(c));
   document.body.classList.add(`tc-bg-${s.backgroundStyle || 'solid'}`);
 
-  // Icon stroke weight
+  // Icon stroke weight (exposed as "Icon intensity" in the UI)
   ALL_ICON_STROKE_CLASSES.forEach(c => document.body.classList.remove(c));
   document.body.classList.add(`tc-icon-stroke-${s.iconStroke || 'regular'}`);
+
+  // Icon-stroke colour override. Empty string = use theme default (the
+  // CSS var is cleared so Obsidian / theme rules take back over). A
+  // set hex value writes --tc-icon-color, which styles.css applies to
+  // every Lucide SVG's stroke. Reset to '' on flavour change so each
+  // theme gets its own default until the user explicitly opts in.
+  // Check raw value first — sanitizeHex returns an accent fallback for
+  // empty input, which would make this always-true.
+  if (s.iconColour && /^#[0-9a-fA-F]{6}$/.test(s.iconColour)) {
+    document.body.style.setProperty('--tc-icon-color', s.iconColour);
+  } else {
+    document.body.style.removeProperty('--tc-icon-color');
+  }
 
   // Corner radius — migrate legacy 'pill' saved value forward to 'rounded'
   ALL_RADIUS_CLASSES.forEach(c => document.body.classList.remove(c));

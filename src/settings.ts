@@ -17,7 +17,12 @@ export interface TegenlichtSettings {
   // the applier reads it ONLY when fontPairing yields no usable stack.
   // No UI exposes it directly anymore; lives here for back-compat saves.
   interfaceFont: string; // 'system' | 'inter' | 'ia-duo'
-  iconStroke: string;    // 'thin' | 'regular' | 'bold'
+  iconStroke: string;    // 'thin' | 'regular' | 'bold' — aka "Icon intensity"
+  // Optional icon-stroke override colour. Empty string = use the theme
+  // default. Paired with iconStroke as "Icon intensity" in the UI so Tom
+  // can tint Lucide icons without fighting the pill picker. Resets to ''
+  // whenever the user switches flavour — pick-a-theme, get-its-default.
+  iconColour: string;
   cornerRadius: string;  // 'sharp' | 'subtle' | 'rounded'
   editorMood: string;    // experimental: 'minimal' | 'warm' | 'cool'
 
@@ -143,6 +148,7 @@ export const DEFAULT_SETTINGS: TegenlichtSettings = {
   uiDensity: 'comfortable',
   interfaceFont: 'system',
   iconStroke: 'regular',
+  iconColour: '',
   cornerRadius: 'subtle',
   editorMood: 'minimal',
 

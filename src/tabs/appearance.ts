@@ -72,6 +72,70 @@ function buildDivider(container: HTMLElement): void {
 // buildSegmentSetting now lives in ./_shared so the Editing tab can
 // share the same pill-picker helper without duplication.
 
+/** Segment picker + colour swatch on one row. Pills on the left for the
+ *  discrete choice, a compact Pickr swatch on the right for a free-form
+ *  colour. Used for "Icon intensity": weight (pills) + tint (swatch).
+ *
+ *  The swatch's `clear`/cancel semantics aren't wired — flavour-change
+ *  callbacks handle the reset flow instead by zeroing the saved colour. */
+function buildSegmentWithColor(
+  container: HTMLElement,
+  name: string,
+  desc: string,
+  options: { label: string; value: string }[],
+  currentSegment: string,
+  onSegmentChange: (value: string) => Promise<void>,
+  colour: {
+    getColor: () => string;                 // '' = theme default
+    setColor: (hex: string) => void;        // '' = reset to default
+    defaultColor: string;                   // shown in Pickr when getColor() is ''
+    onColorChange: () => Promise<void>;
+  },
+): Pickr {
+  const setting = new Setting(container).setName(name).setDesc(desc);
+  const wrap = setting.controlEl.createDiv("tc-seg-with-color");
+
+  // Pills (identical markup to buildSegmentSetting so CSS just works).
+  const group = wrap.createDiv("tc-seg");
+  const buttons = new Map<string, HTMLElement>();
+  options.forEach(o => {
+    const btn = group.createEl("button", { text: o.label, cls: "tc-seg-btn" });
+    if (o.value === currentSegment) btn.addClass("tc-seg-btn--active");
+    btn.addEventListener("click", async () => {
+      if (btn.hasClass("tc-seg-btn--active")) return;
+      buttons.forEach(b => b.removeClass("tc-seg-btn--active"));
+      btn.addClass("tc-seg-btn--active");
+      await onSegmentChange(o.value);
+    });
+    buttons.set(o.value, btn);
+  });
+
+  // Pickr swatch on the right. When the saved colour is empty we seed
+  // Pickr with the theme default so the swatch visibly reflects reality.
+  const pickerEl = wrap.createDiv("pickr tc-seg-color-picker");
+  const pickr = Pickr.create({
+    el: pickerEl,
+    container: container.closest('.modal-content') as HTMLElement ?? document.body,
+    theme: 'nano',
+    default: colour.getColor() || colour.defaultColor,
+    lockOpacity: true,
+    components: {
+      preview: true,
+      hue: true,
+      opacity: false,
+      interaction: { hex: true, input: true, save: true, cancel: true },
+    },
+  });
+  pickr.on('save', (c: Pickr.HSVaColor | null, instance: Pickr) => {
+    if (!c) return;
+    colour.setColor(c.toHEXA().toString().slice(0, 7));
+    instance.hide();
+    colour.onColorChange();
+  });
+  pickr.on('cancel', (instance: Pickr) => instance.hide());
+  return pickr;
+}
+
 /** Native Obsidian Setting row with dropdown for multi-option controls. */
 function buildDropdownSetting(
   container: HTMLElement,
@@ -287,13 +351,21 @@ export function build(
   // Base flavours + a "+" swatch at the end that folds the extended grid
   // out below. Clicking + opens; clicking × (rotated +) closes. No
   // dedicated toggle row — the interaction lives in the swatch strip.
+  // Shared flavour-pick handler — assigns the chosen class AND resets any
+  // per-flavour overrides (currently just iconColour) so picking a theme
+  // always lands at that theme's defaults. Tom can re-tint after switching.
+  const pickFlavour = async (kind: 'dark' | 'light', cls: string) => {
+    if (kind === 'dark') s.darkFlavour = cls;
+    else                 s.lightFlavour = cls;
+    s.iconColour = '';
+    await refresh();
+  };
+
   const darkSetting = new Setting(themeBody)
     .setName("Dark flavour")
     .setDesc("Applied when Obsidian is in dark mode");
   const darkInlineWrap = darkSetting.controlEl.createDiv("tc-swatch-grid-inline");
-  buildSwatchGrid(darkInlineWrap, DARK_BASE, s.darkFlavour, async cls => {
-    s.darkFlavour = cls; await refresh();
-  });
+  buildSwatchGrid(darkInlineWrap, DARK_BASE, s.darkFlavour, cls => pickFlavour('dark', cls));
   appendPlusSwatch(darkInlineWrap, s.showExtendedDark, async () => {
     s.showExtendedDark = !s.showExtendedDark;
     await refresh();
@@ -301,13 +373,9 @@ export function build(
   if (s.showExtendedDark) {
     const darkExtWrap = themeBody.createDiv("tc-swatch-grid-wrap tc-swatch-grouped");
     darkExtWrap.createSpan({ text: "Tegenlicht", cls: "tc-swatch-group-label" });
-    buildSwatchGrid(darkExtWrap, DARK_EXTENDED_TC, s.darkFlavour, async cls => {
-      s.darkFlavour = cls; await refresh();
-    });
+    buildSwatchGrid(darkExtWrap, DARK_EXTENDED_TC, s.darkFlavour, cls => pickFlavour('dark', cls));
     darkExtWrap.createSpan({ text: "AnuPuccin", cls: "tc-swatch-group-label" });
-    buildSwatchGrid(darkExtWrap, DARK_EXTENDED_ANP, s.darkFlavour, async cls => {
-      s.darkFlavour = cls; await refresh();
-    });
+    buildSwatchGrid(darkExtWrap, DARK_EXTENDED_ANP, s.darkFlavour, cls => pickFlavour('dark', cls));
   }
 
   // ── Light Flavours ─────────────────────────────────────
@@ -315,9 +383,7 @@ export function build(
     .setName("Light flavour")
     .setDesc("Applied when Obsidian is in light mode");
   const lightInlineWrap = lightSetting.controlEl.createDiv("tc-swatch-grid-inline");
-  buildSwatchGrid(lightInlineWrap, LIGHT_BASE, s.lightFlavour, async cls => {
-    s.lightFlavour = cls; await refresh();
-  });
+  buildSwatchGrid(lightInlineWrap, LIGHT_BASE, s.lightFlavour, cls => pickFlavour('light', cls));
   appendPlusSwatch(lightInlineWrap, s.showExtendedLight, async () => {
     s.showExtendedLight = !s.showExtendedLight;
     await refresh();
@@ -325,13 +391,9 @@ export function build(
   if (s.showExtendedLight) {
     const lightExtWrap = themeBody.createDiv("tc-swatch-grid-wrap tc-swatch-grouped");
     lightExtWrap.createSpan({ text: "Tegenlicht", cls: "tc-swatch-group-label" });
-    buildSwatchGrid(lightExtWrap, LIGHT_EXTENDED_TC, s.lightFlavour, async cls => {
-      s.lightFlavour = cls; await refresh();
-    });
+    buildSwatchGrid(lightExtWrap, LIGHT_EXTENDED_TC, s.lightFlavour, cls => pickFlavour('light', cls));
     lightExtWrap.createSpan({ text: "AnuPuccin", cls: "tc-swatch-group-label" });
-    buildSwatchGrid(lightExtWrap, LIGHT_EXTENDED_ANP, s.lightFlavour, async cls => {
-      s.lightFlavour = cls; await refresh();
-    });
+    buildSwatchGrid(lightExtWrap, LIGHT_EXTENDED_ANP, s.lightFlavour, cls => pickFlavour('light', cls));
   }
 
   // Background-effect pill and Native-translucency toggle were REMOVED.
@@ -383,8 +445,13 @@ export function build(
     async v => { s.uiDensity = v; await refresh(); },
   );
 
-  buildSegmentSetting(interfaceCard,
-    "Icon stroke", "Line weight of every Lucide icon in the chrome",
+  // Icon intensity — combined pill-select (weight) + colour swatch (tint).
+  // Colour swatch writes to `iconColour`, which the applier turns into the
+  // `--tc-icon-color` CSS var. Flavour switching resets `iconColour` to ''
+  // so each theme gets its natural Lucide colour until Tom opts in again.
+  pickrs.push(buildSegmentWithColor(
+    interfaceCard,
+    "Icon intensity", "Weight + tint of every Lucide icon in the chrome",
     [
       { label: "Thin",    value: "thin" },
       { label: "Regular", value: "regular" },
@@ -392,7 +459,13 @@ export function build(
     ],
     s.iconStroke,
     async v => { s.iconStroke = v; await refresh(); },
-  );
+    {
+      getColor:      () => s.iconColour,
+      setColor:      v  => { s.iconColour = v; },
+      defaultColor:  getComputedStyle(document.body).getPropertyValue('--text-normal').trim() || '#cdd6f4',
+      onColorChange: refresh,
+    },
+  ));
 
   buildSegmentSetting(interfaceCard,
     "Corner radius", "Roundness of buttons, cards, and inputs",
