@@ -1,6 +1,7 @@
 import { Setting } from "obsidian";
 import TegenlichtControlsPlugin from "../main";
 import { buildEditingPreview } from "../preview-sample";
+import { buildSegmentSetting } from "./_shared";
 
 // Session-scoped accordion state — same pattern as the Appearance and
 // Typography tabs so flipping a toggle doesn't snap sections shut.
@@ -57,7 +58,7 @@ export function build(
 
   new Setting(readingBody)
     .setName("Inline title")
-    .setDesc("Show the note's filename as an H1 above the content")
+    .setDesc("Show the filename as an H1 above the note")
     .addToggle(t => t
       .setValue(s.inlineTitle)
       .onChange(async v => { s.inlineTitle = v; await onChange(); })
@@ -65,7 +66,7 @@ export function build(
 
   new Setting(readingBody)
     .setName("Floating title")
-    .setDesc("Inline title floats over the top of the note as you scroll")
+    .setDesc("Title floats over the note on scroll")
     .addToggle(t => t
       .setValue(s.floatingTitle)
       .onChange(async v => { s.floatingTitle = v; await onChange(); })
@@ -73,7 +74,7 @@ export function build(
 
   new Setting(readingBody)
     .setName("Custom checkboxes")
-    .setDesc("Replace markdown task checkboxes with the theme's custom set")
+    .setDesc("Themed checkbox set for task lists")
     .addToggle(t => t
       .setValue(s.customCheckboxes)
       .onChange(async v => { s.customCheckboxes = v; await onChange(); })
@@ -81,7 +82,7 @@ export function build(
 
   new Setting(readingBody)
     .setName("Rainbow tags")
-    .setDesc("Colour tags by their first letter so the tag pane stays scannable")
+    .setDesc("Colour tags by first letter")
     .addToggle(t => t
       .setValue(s.rainbowTags)
       .onChange(async v => { s.rainbowTags = v; await onChange(); })
@@ -92,7 +93,7 @@ export function build(
 
   new Setting(codingBody)
     .setName("Codeblock line numbers")
-    .setDesc("Show line numbers down the left edge of every fenced code block")
+    .setDesc("Line numbers in fenced code blocks")
     .addToggle(t => t
       .setValue(s.codeblockLineNumbers)
       .onChange(async v => { s.codeblockLineNumbers = v; await onChange(); })
@@ -113,27 +114,27 @@ export function build(
 
   new Setting(propertiesBody)
     .setName("Boxed Properties panel")
-    .setDesc("Wrap Obsidian's Properties panel in an accent-tinted card — rounded corners, soft gradient backdrop, subtle shadow. Mirrors the frontmatter-beauty snippet aesthetic.")
+    .setDesc("Accent-tinted card around the Properties panel")
     .addToggle(t => t
       .setValue(s.propertiesBoxed)
       .onChange(async v => { s.propertiesBoxed = v; await onChange(); })
     );
 
-  // Tag style — applies globally to every .multi-select-pill Obsidian
-  // paints (Properties, autocomplete, search chips, inline body tags),
-  // independently of the Boxed Properties toggle. The in-settings preview
-  // reacts live because its pills carry both .mini-fm-pill AND
-  // .multi-select-pill classes.
-  new Setting(propertiesBody)
-    .setName("Tag pill style")
-    .setDesc("How multi-select pills render (tags, aliases, cssclass). Applies everywhere Obsidian draws pills — Properties, search results, autocomplete, inline note tags.")
-    .addDropdown(dd => dd
-      .addOption("classic", "Classic — accent tint + matching border")
-      .addOption("ghost",   "Ghost — transparent with accent outline")
-      .addOption("solid",   "Solid — filled accent, text-on-accent")
-      .setValue(s.tagStyle || "classic")
-      .onChange(async v => { s.tagStyle = v; await onChange(); })
-    );
+  // Tag pill style — applies globally (Properties, autocomplete, search
+  // chips, inline body tags), independent of the Boxed toggle. Pill-select
+  // mirrors the Appearance tab pattern for consistency with other picks.
+  buildSegmentSetting(
+    propertiesBody,
+    "Tag pill style",
+    "Applies to every pill Obsidian draws",
+    [
+      { label: "Classic", value: "classic" },
+      { label: "Ghost",   value: "ghost"   },
+      { label: "Solid",   value: "solid"   },
+    ],
+    s.tagStyle || "classic",
+    async v => { s.tagStyle = v; await onChange(); },
+  );
 
   // Forward-looking note for pretty-properties integration.
   const propHint = propertiesBody.createDiv("tc-empty-hint");
@@ -164,7 +165,7 @@ export function build(
   // Future property-styling settings from this tab re-render here live.
   const previewHeader = wrap.createDiv("tc-typo-preview-header");
   previewHeader.createSpan({ text: "Dynamic Preview", cls: "tc-typo-preview-title" });
-  previewHeader.createSpan({ text: "Live Obsidian mock — Properties panel sits above the note body, exactly where editing settings will take effect", cls: "tc-typo-preview-desc" });
+  previewHeader.createSpan({ text: "Live mock — Properties panel above the note body, where editing settings take effect", cls: "tc-typo-preview-desc" });
 
   buildEditingPreview(wrap);
 }

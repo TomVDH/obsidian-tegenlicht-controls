@@ -6,6 +6,7 @@ import {
   DARK_BASE, DARK_EXTENDED, DARK_EXTENDED_TC, DARK_EXTENDED_ANP,
   LIGHT_BASE, LIGHT_EXTENDED, LIGHT_EXTENDED_TC, LIGHT_EXTENDED_ANP,
 } from "../flavours";
+import { buildSegmentSetting } from "./_shared";
 
 // Session-scoped accordion state — survives redisplay() rebuilds so the
 // user's open/closed choice isn't lost every time a setting is changed.
@@ -68,32 +69,8 @@ function buildDivider(container: HTMLElement): void {
   container.createDiv("tc-divider");
 }
 
-/** Segmented pill picker: label + desc on the left, pill group on the right.
- *  Preferred over dropdowns for small option sets (<=4) — visually clearer
- *  and matches the plugin's pill/tab language. */
-function buildSegmentSetting(
-  container: HTMLElement,
-  name: string,
-  desc: string,
-  options: { label: string; value: string }[],
-  current: string,
-  onChange: (value: string) => Promise<void>,
-): void {
-  const setting = new Setting(container).setName(name).setDesc(desc);
-  const group = setting.controlEl.createDiv("tc-seg");
-  const buttons = new Map<string, HTMLElement>();
-  options.forEach(o => {
-    const btn = group.createEl("button", { text: o.label, cls: "tc-seg-btn" });
-    if (o.value === current) btn.addClass("tc-seg-btn--active");
-    btn.addEventListener("click", async () => {
-      if (btn.hasClass("tc-seg-btn--active")) return;
-      buttons.forEach(b => b.removeClass("tc-seg-btn--active"));
-      btn.addClass("tc-seg-btn--active");
-      await onChange(o.value);
-    });
-    buttons.set(o.value, btn);
-  });
-}
+// buildSegmentSetting now lives in ./_shared so the Editing tab can
+// share the same pill-picker helper without duplication.
 
 /** Native Obsidian Setting row with dropdown for multi-option controls. */
 function buildDropdownSetting(
