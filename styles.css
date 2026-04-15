@@ -2364,16 +2364,24 @@ body.tc-radius-rounded .tc-settings .tc-feat-group { border-radius: 14px !import
 .tc-settings .tc-feat-name { font-size: 12px; color: var(--text-normal); }
 .tc-settings .tc-feat-desc { font-size: 10px; color: var(--text-muted); margin-top: 2px; }
 
-/* Toggle switch — stable track colour, independent of border-intensity */
+/* Toggle switch — track uses `--background-modifier-border` so the
+   Border-intensity setting controls its visibility like every other
+   surface. At intensity=none the track fades to transparent (knob only
+   visible); at higher intensities the track paints at the chosen tint. */
 .tc-settings .tc-toggle {
   width: 30px; height: 17px;
   border-radius: 9px;
-  background: rgba(var(--mono-rgb-100, 200, 200, 200), 0.22);
+  background: var(--background-modifier-border);
+  border: 1px solid var(--background-modifier-border);
   position: relative;
   flex-shrink: 0;
   cursor: pointer;
+  transition: background 0.15s ease, border-color 0.15s ease;
 }
-.tc-settings .tc-toggle--on { background: var(--interactive-accent, var(--color-accent, #e5b32a)); }
+.tc-settings .tc-toggle--on {
+  background: var(--interactive-accent, var(--color-accent, #e5b32a));
+  border-color: var(--interactive-accent, var(--color-accent, #e5b32a));
+}
 .tc-settings .tc-toggle::after {
   content: '';
   width: 13px; height: 13px;
@@ -2384,6 +2392,39 @@ body.tc-radius-rounded .tc-settings .tc-feat-group { border-radius: 14px !import
   transition: left 0.12s;
 }
 .tc-settings .tc-toggle--on::after { left: 15px; }
+
+/* Sliders (range inputs) — knob + track borders follow Border intensity.
+   Obsidian's default slider uses hardcoded backgrounds in some builds,
+   so we force explicit `border` rules tied to --background-modifier-border
+   on the WebKit pseudo-elements. At intensity=none the borders vanish. */
+.tc-settings input[type="range"] {
+  background: transparent;
+}
+.tc-settings input[type="range"]::-webkit-slider-runnable-track {
+  background: var(--background-modifier-border);
+  border: 1px solid var(--background-modifier-border);
+  border-radius: 100px;
+  height: 4px;
+}
+.tc-settings input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  background: var(--interactive-accent, var(--color-accent));
+  border: 1.5px solid var(--background-modifier-border);
+  border-radius: 50%;
+  width: 16px;
+  height: 16px;
+  margin-top: -7px; /* centre thumb on 4px track */
+  cursor: grab;
+  transition: transform 0.1s ease, border-color 0.15s ease;
+}
+.tc-settings input[type="range"]::-webkit-slider-thumb:hover {
+  transform: scale(1.08);
+  border-color: var(--background-modifier-border-hover);
+}
+.tc-settings input[type="range"]::-webkit-slider-thumb:active {
+  cursor: grabbing;
+}
 
 /* Feature select */
 .tc-settings .tc-feat-select {

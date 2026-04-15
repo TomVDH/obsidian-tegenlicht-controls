@@ -72,14 +72,13 @@ function buildDivider(container: HTMLElement): void {
 // buildSegmentSetting now lives in ./_shared so the Editing tab can
 // share the same pill-picker helper without duplication.
 
-/** Segment pill-select + a three-dot auto/accent/custom colour trio on
- *  the same row. Mirrors the Accent-colour row's semantic:
- *    - "auto"   → empty string (theme's own default paints the element)
- *    - "accent" → track --color-accent live
- *    - custom   → free-form hex via Pickr
+/** Segment pill-select + an auto / custom colour pair on the same row.
+ *  "Auto" means empty-string (theme's own default paints the element —
+ *  which is already the accent colour for icons and borders, so the
+ *  previous dedicated "accent" dot was redundant). "Custom" opens a
+ *  Pickr for a free-form hex.
  *
- *  Used for "Icon intensity" and "Border intensity" so both gain the
- *  same picker without duplicated boilerplate. */
+ *  Used for "Icon intensity" and "Border intensity". */
 function buildSegmentWithColor(
   container: HTMLElement,
   name: string,
@@ -88,7 +87,7 @@ function buildSegmentWithColor(
   currentSegment: string,
   onSegmentChange: (value: string) => Promise<void>,
   colour: {
-    getValue: () => string;                // '' | 'accent' | '#rrggbb'
+    getValue: () => string;                // '' | '#rrggbb'
     setValue: (v: string) => void;
     onChange: () => Promise<void>;
   },
@@ -114,37 +113,32 @@ function buildSegmentWithColor(
   // Separator between pills and colour dots.
   wrap.createDiv("tc-accent-sep");
 
-  // Three-dot trio — auto / accent / custom. Same classes as the Accent
-  // row so the dot styling (conic gradient for auto, etc.) reuses.
+  // Two-dot pair — auto / custom. Auto is empty (no override, theme
+  // paints its default). Custom is a Pickr-anchored swatch.
   const autoItem = wrap.createDiv("tc-accent-item tc-accent-item--auto");
   const autoDot = autoItem.createDiv("tc-accent-dot tc-accent-dot--auto");
   autoDot.setAttribute("title", "Auto — use theme default");
   autoItem.createSpan({ text: "auto", cls: "tc-accent-caption" });
 
-  const accentItem = wrap.createDiv("tc-accent-item tc-accent-item--accent");
-  const accentDot = accentItem.createDiv("tc-accent-dot tc-accent-dot--accent-track");
-  accentDot.style.background = "var(--color-accent)";
-  accentDot.setAttribute("title", "Accent — track the active accent colour");
-  accentItem.createSpan({ text: "accent", cls: "tc-accent-caption" });
-
   const customItem = wrap.createDiv("tc-accent-item tc-accent-item--custom");
   const customDot = customItem.createDiv("tc-accent-dot tc-accent-dot--custom");
   customItem.createSpan({ text: "cust.", cls: "tc-accent-caption" });
 
-  const setActiveDot = (which: 'auto' | 'accent' | 'custom') => {
-    [autoDot, accentDot, customDot].forEach(d => d.removeClass('tc-accent-dot--active'));
-    ({ auto: autoDot, accent: accentDot, custom: customDot })[which]
-      .addClass('tc-accent-dot--active');
+  const setActiveDot = (which: 'auto' | 'custom') => {
+    [autoDot, customDot].forEach(d => d.removeClass('tc-accent-dot--active'));
+    ({ auto: autoDot, custom: customDot })[which].addClass('tc-accent-dot--active');
   };
 
-  // Seed active state based on current stored value.
+  // Seed active state — treat any unknown non-hex value (including the
+  // legacy 'accent' sentinel) as auto so old saves don't leave the UI
+  // in a limbo state.
   const initial = colour.getValue();
-  const isHex = initial && initial !== 'accent' && /^#[0-9a-fA-F]{6}$/.test(initial);
-  if (!initial)              setActiveDot('auto');
-  else if (initial === 'accent') setActiveDot('accent');
-  else if (isHex) {
+  const isHex = initial && /^#[0-9a-fA-F]{6}$/.test(initial);
+  if (isHex) {
     customDot.style.background = initial;
     setActiveDot('custom');
+  } else {
+    setActiveDot('auto');
   }
 
   autoDot.addEventListener('click', async () => {
@@ -153,15 +147,8 @@ function buildSegmentWithColor(
     setActiveDot('auto');
     await colour.onChange();
   });
-  accentDot.addEventListener('click', async () => {
-    colour.setValue('accent');
-    customDot.style.background = '';
-    setActiveDot('accent');
-    await colour.onChange();
-  });
 
-  // Pickr — anchored on the custom dot, opens only when that dot is
-  // clicked. Clearing from within Pickr flips back to 'auto'.
+  // Pickr — anchored on the custom dot. Clearing flips back to auto.
   const pickr = Pickr.create({
     el: customDot,
     container: container.closest('.modal-content') as HTMLElement ?? document.body,
