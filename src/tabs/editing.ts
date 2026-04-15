@@ -119,6 +119,22 @@ export function build(
       .onChange(async v => { s.propertiesBoxed = v; await onChange(); })
     );
 
+  // Tag style — applies globally to every .multi-select-pill Obsidian
+  // paints (Properties, autocomplete, search chips, inline body tags),
+  // independently of the Boxed Properties toggle. The in-settings preview
+  // reacts live because its pills carry both .mini-fm-pill AND
+  // .multi-select-pill classes.
+  new Setting(propertiesBody)
+    .setName("Tag pill style")
+    .setDesc("How multi-select pills render (tags, aliases, cssclass). Applies everywhere Obsidian draws pills — Properties, search results, autocomplete, inline note tags.")
+    .addDropdown(dd => dd
+      .addOption("classic", "Classic — accent tint + matching border")
+      .addOption("ghost",   "Ghost — transparent with accent outline")
+      .addOption("solid",   "Solid — filled accent, text-on-accent")
+      .setValue(s.tagStyle || "classic")
+      .onChange(async v => { s.tagStyle = v; await onChange(); })
+    );
+
   // Forward-looking note for pretty-properties integration.
   const propHint = propertiesBody.createDiv("tc-empty-hint");
   propHint.createSpan({

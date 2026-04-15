@@ -122,6 +122,11 @@ export interface TegenlichtSettings {
   // the user opts in.
   propertiesBoxed: boolean;
 
+  // Editing — Tag pill style (applies globally to every .multi-select-pill
+  // Obsidian renders: Properties, tag autocomplete, search chips, inline
+  // body tags). Decoupled from propertiesBoxed so Tom can keep the box
+  // treatment off while still restyling tags, or vice versa.
+  tagStyle: string; // 'classic' | 'ghost' | 'solid'
 }
 
 export const DEFAULT_SETTINGS: TegenlichtSettings = {
@@ -225,4 +230,6 @@ export const DEFAULT_SETTINGS: TegenlichtSettings = {
   calendar: false,
 
   propertiesBoxed: false,
+
+  tagStyle: 'classic',
 };

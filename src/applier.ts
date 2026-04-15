@@ -354,6 +354,14 @@ ${s.caretColourEnabled ? `.cm-cursor { border-left-color: ${caretClr} !important
   ALL_DENSITY_CLASSES.forEach(c => document.body.classList.remove(c));
   document.body.classList.add(`tc-density-${s.uiDensity || 'comfortable'}`);
 
+  // Tag pill style — mutually exclusive body class (tc-tags-{style}).
+  // Paints every .multi-select-pill globally so Properties tags, search
+  // chips, and autocomplete pills all render in the same style.
+  ['tc-tags-classic', 'tc-tags-ghost', 'tc-tags-solid'].forEach(c =>
+    document.body.classList.remove(c),
+  );
+  document.body.classList.add(`tc-tags-${s.tagStyle || 'classic'}`);
+
   // Sidebar style
   ALL_SIDEBAR_CLASSES.forEach(c => document.body.classList.remove(c));
   document.body.classList.add(`tc-sidebar-${s.sidebarStyle || 'flat'}`);
@@ -432,5 +440,6 @@ export function remove(): void {
    'anp-custom-vault-toggle', 'anp-custom-checkboxes', 'rainbow-tags',
    'anp-button-metadata-toggle', 'anp-codeblock-numbers', 'anp-floating-header',
    'anp-toggle-scrollbars', 'anp-hide-status-bar', 'tc-fm-boxed',
+   'tc-tags-classic', 'tc-tags-ghost', 'tc-tags-solid',
   ].forEach(c => document.body.classList.remove(c));
 }

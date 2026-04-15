@@ -1503,20 +1503,10 @@ body.tc-fm-boxed .metadata-property-key {
 }
 
 /* ── 3. Pill chips for list-type values (tags, aliases, multi-select)
-   Obsidian renders these via .multi-select-pill — we reskin to an
-   accent-tinted chip with a hairline border. Matches what the snippet
-   does so the visual is identical with the snippet OFF. */
-body.tc-fm-boxed .metadata-property[data-property-key="tags"] .multi-select-pill,
-body.tc-fm-boxed .multi-select-pill {
-  background: color-mix(in srgb, var(--color-accent) 14%, var(--background-secondary)) !important;
-  border: 1px solid color-mix(in srgb, var(--color-accent) 28%, transparent) !important;
-  border-radius: 100px !important;
-  color: var(--text-normal) !important;
-}
-body.tc-fm-boxed .multi-select-pill:hover {
-  background: color-mix(in srgb, var(--color-accent) 22%, var(--background-secondary)) !important;
-  border-color: color-mix(in srgb, var(--color-accent) 40%, transparent) !important;
-}
+   NOTE: Styling for .multi-select-pill now lives in the global
+   "Tag pill styles" section below (driven by `body.tc-tags-{style}`).
+   That system applies globally — Properties, search chips, autocomplete,
+   and inline body tags — instead of being scoped to boxed Properties. */
 
 /* ── 4. Date / number values — mono + accent so they read as data,
    matching what the snippet does for type="date" / "number". */
@@ -1614,6 +1604,75 @@ body.tc-fm-boxed .metadata-properties-heading:not(:hover)::after,
 body.tc-fm-boxed .metadata-container.is-collapsed .metadata-properties-heading:not(:hover)::after {
   opacity: 1 !important;
   visibility: visible !important;
+}
+
+/* ==================================================================
+   Tag pill styles — driven by body.tc-tags-{classic|ghost|solid}.
+   Applies globally to EVERY .multi-select-pill Obsidian renders:
+   Properties (boxed or not), tag autocomplete, search chips, inline
+   body tags. Exactly one tag-style class is on body at a time; the
+   applier guarantees mutual exclusivity.
+
+   Each style also styles the `.mini-fm-pill` used in the in-settings
+   preview so the picker offers a faithful dry-run of what you'll see
+   in real notes.
+   ================================================================== */
+
+/* ── CLASSIC — accent-tinted surface + matching border. The baseline
+   look that the boxed Properties has shipped with until now. */
+body.tc-tags-classic .multi-select-pill,
+body.tc-tags-classic .tc-settings .tc-mini-obsidian .mini-fm-pill {
+  background: color-mix(in srgb, var(--color-accent) 14%, var(--background-secondary)) !important;
+  border: 1px solid color-mix(in srgb, var(--color-accent) 28%, transparent) !important;
+  border-radius: 100px !important;
+  color: var(--text-normal) !important;
+}
+body.tc-tags-classic .multi-select-pill:hover,
+body.tc-tags-classic .tc-settings .tc-mini-obsidian .mini-fm-pill:hover {
+  background: color-mix(in srgb, var(--color-accent) 22%, var(--background-secondary)) !important;
+  border-color: color-mix(in srgb, var(--color-accent) 40%, transparent) !important;
+}
+
+/* ── GHOST — transparent chip, accent outline + accent text. Light,
+   airy, reads as "link" more than "chip". */
+body.tc-tags-ghost .multi-select-pill,
+body.tc-tags-ghost .tc-settings .tc-mini-obsidian .mini-fm-pill {
+  background: transparent !important;
+  border: 1px solid color-mix(in srgb, var(--color-accent) 60%, transparent) !important;
+  border-radius: 100px !important;
+  color: var(--color-accent) !important;
+}
+body.tc-tags-ghost .multi-select-pill:hover,
+body.tc-tags-ghost .tc-settings .tc-mini-obsidian .mini-fm-pill:hover {
+  background: color-mix(in srgb, var(--color-accent) 10%, transparent) !important;
+  border-color: color-mix(in srgb, var(--color-accent) 80%, transparent) !important;
+}
+
+/* ── SOLID — full accent fill, text-on-accent. Loud and declarative,
+   the closest thing to a filled badge. */
+body.tc-tags-solid .multi-select-pill,
+body.tc-tags-solid .tc-settings .tc-mini-obsidian .mini-fm-pill {
+  background: var(--color-accent) !important;
+  border: 1px solid var(--color-accent) !important;
+  border-radius: 100px !important;
+  color: var(--text-on-accent, #fff) !important;
+  font-weight: 500 !important;
+}
+body.tc-tags-solid .multi-select-pill:hover,
+body.tc-tags-solid .tc-settings .tc-mini-obsidian .mini-fm-pill:hover {
+  background: color-mix(in srgb, var(--color-accent) 85%, black) !important;
+  border-color: color-mix(in srgb, var(--color-accent) 85%, black) !important;
+}
+/* Solid style — make the × remove icon legible on the filled surface */
+body.tc-tags-solid .multi-select-pill .multi-select-pill-remove-button,
+body.tc-tags-solid .tc-settings .tc-mini-obsidian .mini-fm-pill-x {
+  color: var(--text-on-accent, #fff) !important;
+  opacity: 0.7 !important;
+}
+body.tc-tags-solid .multi-select-pill:hover .multi-select-pill-remove-button,
+body.tc-tags-solid .tc-settings .tc-mini-obsidian .mini-fm-pill:hover .mini-fm-pill-x {
+  opacity: 1 !important;
+  color: var(--text-on-accent, #fff) !important;
 }
 
 /* Header — label first, count next, chevron pushed flush RIGHT.
