@@ -1,0 +1,636 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Iteration Index — Flavour Candidates — Low Countries Tour</title>
+<style>
+  *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    background: #0a0a0a;
+    color: #aaa;
+    font: 13px/1.5 'SF Mono', 'Cascadia Mono', 'Consolas', monospace;
+    padding: 1.5rem;
+  }
+
+  header { margin-bottom: 1.5rem; display: flex; justify-content: space-between; align-items: baseline; flex-wrap: wrap; gap: 1rem; }
+  h1 { font: 600 15px/1.4 inherit; color: #ccc; }
+  .meta { font-size: 11px; color: #555; }
+  .meta a { color: #7ab; text-decoration: none; }
+  .meta a:hover { color: #adf; }
+
+  .portal-h {
+    margin: 2.4rem 0 0.8rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 1px solid #2a2a2a;
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: 1rem;
+    flex-wrap: wrap;
+  }
+  .portal-h__title { font: 600 12px/1.4 inherit; color: #e6c34a; letter-spacing: 0.14em; text-transform: uppercase; }
+  .portal-h__count { font-size: 10px; color: #555; letter-spacing: 0.1em; text-transform: uppercase; }
+
+  .grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1.2rem;
+  }
+  @media (max-width: 900px) { .grid { grid-template-columns: 1fr; } }
+
+  .iter {
+    background: #141414;
+    border: 1px solid #222;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    position: relative;
+  }
+  .iter__head {
+    display: flex; justify-content: space-between; align-items: baseline;
+    padding: 0.7rem 0.9rem;
+    border-bottom: 1px solid #222;
+    font-size: 11px;
+    letter-spacing: 0.05em;
+    gap: 0.5rem;
+  }
+  .iter__id { color: #ccc; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+  .iter__tag { font-weight: 500; letter-spacing: 0.12em; font-size: 10px; white-space: nowrap; text-transform: uppercase; }
+  .iter__tag.original    { color: #777; }
+  .iter__tag.draft       { color: #8bb6e8; }
+  .iter__tag.star        { color: #f2f0eb; font-weight: 700; letter-spacing: 0.16em; }
+  .iter__tag.locked      { color: #d4a017; font-weight: 700; letter-spacing: 0.16em; }
+  .iter__tag.quarantined { color: #a44; }
+  .iter__tag.quiet       { color: #999; }
+  .iter__tag.og-rich     { color: #c8a34a; }
+  .iter__tag.og-true     { color: #e6c34a; font-weight: 700; }
+  .iter__tag.reset       { color: #d4a017; font-style: italic; }
+
+  .iter.star   { border: 1px solid #4a4a4a; box-shadow: 0 0 0 1px #2a2a2a; }
+  .iter.star .iter__head { background: #1a1a1a; border-bottom-color: #4a4a4a; }
+  .iter.locked { border: 1px solid #4a3815; box-shadow: 0 0 0 1px #2a2010; }
+  .iter.locked .iter__head { background: #1a1612; border-bottom-color: #4a3815; }
+
+  .iter__quote { padding: 0.4rem 0.9rem 0.2rem; color: #888; font-size: 10.5px; font-style: italic; line-height: 1.45; }
+  .iter__note  { padding: 0 0.9rem 0.6rem; color: #555; font-size: 10px; letter-spacing: 0.04em; text-transform: uppercase; line-height: 1.45; }
+  .iter__frame { width: 100%; aspect-ratio: 16 / 10; border: 0; background: #000; display: block; }
+
+  .iter__actions {
+    display: flex; padding: 0.5rem 0.9rem;
+    border-top: 1px solid #222;
+    justify-content: space-between; align-items: center;
+    gap: 0.5rem;
+  }
+  .iter__actions a { color: #7ab; text-decoration: none; font-size: 10.5px; letter-spacing: 0.04em; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .iter__actions a:hover { color: #adf; }
+  .iter__actions button {
+    background: none; border: 1px solid #333; color: #888;
+    padding: 0.25rem 0.6rem; font: inherit; font-size: 10px;
+    letter-spacing: 0.1em; text-transform: uppercase; cursor: pointer;
+    flex-shrink: 0;
+  }
+  .iter__actions button:hover { border-color: #555; color: #ccc; }
+
+  .iter.expanded {
+    position: fixed; inset: 2rem; z-index: 100;
+    box-shadow: 0 30px 80px rgba(0,0,0,0.8);
+  }
+  .iter.expanded .iter__frame { aspect-ratio: auto; flex: 1; height: auto; }
+  .iter.expanded .iter__actions .expand::before { content: '✕ '; }
+
+  .expand-backdrop {
+    position: fixed; inset: 0; background: rgba(0,0,0,0.75);
+    z-index: 99; display: none;
+  }
+  .expand-backdrop.on { display: block; }
+
+  .note-banner {
+    margin: 0 0 1.25rem;
+    padding: 0.75rem 1rem;
+    border: 1px solid #3a2a10;
+    background: #120d05;
+    color: #e6c34a;
+    font: 500 12px/1.5 ui-monospace, monospace;
+    letter-spacing: 0.04em;
+  }
+  .note-banner.info    { border-color: #2a2a3a; background: #0a0d12; color: #adf; }
+  .note-banner.success { border-color: #2a3a1a; background: #0d120a; color: #9bd663; }
+  .note-banner.danger  { border-color: #3a1a1a; background: #120808; color: #e88; }
+  .note-banner strong {
+    text-transform: uppercase;
+    letter-spacing: 0.18em;
+    display: inline-block;
+    margin-right: 0.35em;
+  }
+
+  footer { margin-top: 3rem; color: #444; font-size: 11px; }
+  footer a { color: #7ab; text-decoration: none; }
+  footer a:hover { color: #adf; }
+  kbd { display: inline-block; padding: 0.05rem 0.35rem; border: 1px solid #333; border-radius: 3px; color: #888; font-size: 10px; }
+</style>
+</head>
+<body>
+
+<header>
+  <div>
+    <h1>Iteration Index — Flavour Candidates — Low Countries Tour — 2026-04-14</h1>
+    <div class="meta" style="margin-top:0.3rem;">
+      Curated shortlist · eager-loaded iframes ·
+      <!-- ══════ BEGIN GLOBAL LINKS — replace with manifest.global_links ══════ -->
+      <a href="../../src/tabs/appearance.ts">plugin repo</a>
+      <!-- ══════ END GLOBAL LINKS ══════ -->
+    </div>
+  </div>
+  <div class="meta">
+    <kbd>E</kbd> expand · <kbd>R</kbd> reload all · <kbd>Esc</kbd> collapse
+  </div>
+</header>
+
+<!-- notes banner handled within curated sections -->
+
+<div class="expand-backdrop" id="expand-backdrop"></div>
+
+<!-- Low Countries flavour tour (generated from iteration-shelf.json) -->
+
+<div class="note-banner info">
+  <strong>The tour —</strong> Twenty-six candidate flavours across Flemish, Wallonian and Dutch towns. Mechelen and its night-form Maneblusser sit at the top. Brussels (day + Nacht) is the premium tier. The rest is split by country. Extended Catppuccin lineup stays untouched.
+</div>
+
+<div class="portal-h">
+  <span class="portal-h__title">★★ Apex — Mechelen</span>
+  <span class="portal-h__count">2 candidates · Flagship pair · day + night · top of the plugin</span>
+</div>
+
+<div class="grid">
+
+  <div class="iter locked">
+    <div class="iter__head">
+      <span class="iter__id">Mechelen</span>
+      <span class="iter__tag locked">★ LOCKED</span>
+    </div>
+    <div class="iter__quote">pearl cathedral · red-gold coat of arms.</div>
+    <div class="iter__note">apex · day · FL · pearl stone, mechelen red</div>
+    <iframe class="iter__frame" src="apex-mechelen.html" title="Mechelen" loading="lazy"></iframe>
+    <div class="iter__actions">
+      <a href="apex-mechelen.html">Open → apex-mechelen.html</a>
+      <button class="expand" title="Expand (E)">Expand</button>
+      <button data-src="apex-mechelen.html">Reload</button>
+    </div>
+  </div>
+
+  <div class="iter locked">
+    <div class="iter__head">
+      <span class="iter__id">Maneblusser</span>
+      <span class="iter__tag locked">★ LOCKED</span>
+    </div>
+    <div class="iter__quote">the night they fought the moon.</div>
+    <div class="iter__note">apex · night · FL · moon-silver on indigo</div>
+    <iframe class="iter__frame" src="apex-maneblusser.html" title="Maneblusser" loading="lazy"></iframe>
+    <div class="iter__actions">
+      <a href="apex-maneblusser.html">Open → apex-maneblusser.html</a>
+      <button class="expand" title="Expand (E)">Expand</button>
+      <button data-src="apex-maneblusser.html">Reload</button>
+    </div>
+  </div>
+
+</div>
+
+
+<div class="portal-h">
+  <span class="portal-h__title">★ Premium — Brussels</span>
+  <span class="portal-h__count">2 candidates · Capital pair · day + Nacht</span>
+</div>
+
+<div class="grid">
+
+  <div class="iter star">
+    <div class="iter__head">
+      <span class="iter__id">Brussels</span>
+      <span class="iter__tag star">★ STAR</span>
+    </div>
+    <div class="iter__note">premium · day · BE · mustard gold, stone cream</div>
+    <iframe class="iter__frame" src="premium-brussels.html" title="Brussels" loading="lazy"></iframe>
+    <div class="iter__actions">
+      <a href="premium-brussels.html">Open → premium-brussels.html</a>
+      <button class="expand" title="Expand (E)">Expand</button>
+      <button data-src="premium-brussels.html">Reload</button>
+    </div>
+  </div>
+
+  <div class="iter star">
+    <div class="iter__head">
+      <span class="iter__id">Brussels · Nacht</span>
+      <span class="iter__tag star">★ STAR</span>
+    </div>
+    <div class="iter__note">premium · night · BE · grand-place after dusk</div>
+    <iframe class="iter__frame" src="premium-brussels-nacht.html" title="Brussels · Nacht" loading="lazy"></iframe>
+    <div class="iter__actions">
+      <a href="premium-brussels-nacht.html">Open → premium-brussels-nacht.html</a>
+      <button class="expand" title="Expand (E)">Expand</button>
+      <button data-src="premium-brussels-nacht.html">Reload</button>
+    </div>
+  </div>
+
+</div>
+
+
+<div class="portal-h">
+  <span class="portal-h__title">België — Vlaams + Waals</span>
+  <span class="portal-h__count">17 candidates · Eleven Belgian towns — Flemish and Wallonian, dark and light</span>
+</div>
+
+<div class="grid">
+
+  <div class="iter">
+    <div class="iter__head">
+      <span class="iter__id">Antwerpen</span>
+      <span class="iter__tag original">○ BASELINE</span>
+    </div>
+    <div class="iter__note">FL · dark · port at dusk · deep navy, cobalt edge</div>
+    <iframe class="iter__frame" src="dark-antwerpen.html" title="Antwerpen" loading="lazy"></iframe>
+    <div class="iter__actions">
+      <a href="dark-antwerpen.html">Open → dark-antwerpen.html</a>
+      <button class="expand" title="Expand (E)">Expand</button>
+      <button data-src="dark-antwerpen.html">Reload</button>
+    </div>
+  </div>
+
+  <div class="iter">
+    <div class="iter__head">
+      <span class="iter__id">Leuven</span>
+      <span class="iter__tag original">○ BASELINE</span>
+    </div>
+    <div class="iter__note">FL · dark · university woods · forest green</div>
+    <iframe class="iter__frame" src="dark-leuven.html" title="Leuven" loading="lazy"></iframe>
+    <div class="iter__actions">
+      <a href="dark-leuven.html">Open → dark-leuven.html</a>
+      <button class="expand" title="Expand (E)">Expand</button>
+      <button data-src="dark-leuven.html">Reload</button>
+    </div>
+  </div>
+
+  <div class="iter">
+    <div class="iter__head">
+      <span class="iter__id">Hasselt</span>
+      <span class="iter__tag original">○ BASELINE</span>
+    </div>
+    <div class="iter__note">FL · dark · jenever warmth · copper brown</div>
+    <iframe class="iter__frame" src="dark-hasselt.html" title="Hasselt" loading="lazy"></iframe>
+    <div class="iter__actions">
+      <a href="dark-hasselt.html">Open → dark-hasselt.html</a>
+      <button class="expand" title="Expand (E)">Expand</button>
+      <button data-src="dark-hasselt.html">Reload</button>
+    </div>
+  </div>
+
+  <div class="iter">
+    <div class="iter__head">
+      <span class="iter__id">Gent</span>
+      <span class="iter__tag original">○ BASELINE</span>
+    </div>
+    <div class="iter__note">FL · dark · medieval stone · neutral graphite</div>
+    <iframe class="iter__frame" src="dark-gent.html" title="Gent" loading="lazy"></iframe>
+    <div class="iter__actions">
+      <a href="dark-gent.html">Open → dark-gent.html</a>
+      <button class="expand" title="Expand (E)">Expand</button>
+      <button data-src="dark-gent.html">Reload</button>
+    </div>
+  </div>
+
+  <div class="iter">
+    <div class="iter__head">
+      <span class="iter__id">Aalst</span>
+      <span class="iter__tag original">○ BASELINE</span>
+    </div>
+    <div class="iter__note">FL · dark · carnival nights · deep purple</div>
+    <iframe class="iter__frame" src="dark-aalst.html" title="Aalst" loading="lazy"></iframe>
+    <div class="iter__actions">
+      <a href="dark-aalst.html">Open → dark-aalst.html</a>
+      <button class="expand" title="Expand (E)">Expand</button>
+      <button data-src="dark-aalst.html">Reload</button>
+    </div>
+  </div>
+
+  <div class="iter">
+    <div class="iter__head">
+      <span class="iter__id">Oostende</span>
+      <span class="iter__tag original">○ BASELINE</span>
+    </div>
+    <div class="iter__note">FL · dark · coastal dusk · sand-dark, honey</div>
+    <iframe class="iter__frame" src="dark-oostende.html" title="Oostende" loading="lazy"></iframe>
+    <div class="iter__actions">
+      <a href="dark-oostende.html">Open → dark-oostende.html</a>
+      <button class="expand" title="Expand (E)">Expand</button>
+      <button data-src="dark-oostende.html">Reload</button>
+    </div>
+  </div>
+
+  <div class="iter">
+    <div class="iter__head">
+      <span class="iter__id">Ronse</span>
+      <span class="iter__tag original">○ BASELINE</span>
+    </div>
+    <div class="iter__note">FL · dark · textile heritage · burgundy</div>
+    <iframe class="iter__frame" src="dark-ronse.html" title="Ronse" loading="lazy"></iframe>
+    <div class="iter__actions">
+      <a href="dark-ronse.html">Open → dark-ronse.html</a>
+      <button class="expand" title="Expand (E)">Expand</button>
+      <button data-src="dark-ronse.html">Reload</button>
+    </div>
+  </div>
+
+  <div class="iter">
+    <div class="iter__head">
+      <span class="iter__id">Diest</span>
+      <span class="iter__tag original">○ BASELINE</span>
+    </div>
+    <div class="iter__note">FL · dark · dijle slate · blue-grey</div>
+    <iframe class="iter__frame" src="dark-diest.html" title="Diest" loading="lazy"></iframe>
+    <div class="iter__actions">
+      <a href="dark-diest.html">Open → dark-diest.html</a>
+      <button class="expand" title="Expand (E)">Expand</button>
+      <button data-src="dark-diest.html">Reload</button>
+    </div>
+  </div>
+
+  <div class="iter">
+    <div class="iter__head">
+      <span class="iter__id">Liège</span>
+      <span class="iter__tag original">○ BASELINE</span>
+    </div>
+    <div class="iter__note">WA · dark · steel & ember · iron, ember accent</div>
+    <iframe class="iter__frame" src="dark-liege.html" title="Liège" loading="lazy"></iframe>
+    <div class="iter__actions">
+      <a href="dark-liege.html">Open → dark-liege.html</a>
+      <button class="expand" title="Expand (E)">Expand</button>
+      <button data-src="dark-liege.html">Reload</button>
+    </div>
+  </div>
+
+  <div class="iter">
+    <div class="iter__head">
+      <span class="iter__id">Namur</span>
+      <span class="iter__tag original">○ BASELINE</span>
+    </div>
+    <div class="iter__note">WA · dark · meuse limestone · slate, citadel gold</div>
+    <iframe class="iter__frame" src="dark-namur.html" title="Namur" loading="lazy"></iframe>
+    <div class="iter__actions">
+      <a href="dark-namur.html">Open → dark-namur.html</a>
+      <button class="expand" title="Expand (E)">Expand</button>
+      <button data-src="dark-namur.html">Reload</button>
+    </div>
+  </div>
+
+  <div class="iter">
+    <div class="iter__head">
+      <span class="iter__id">Charleroi</span>
+      <span class="iter__tag original">○ BASELINE</span>
+    </div>
+    <div class="iter__note">WA · dark · coal anthracite · deep black, coke</div>
+    <iframe class="iter__frame" src="dark-charleroi.html" title="Charleroi" loading="lazy"></iframe>
+    <div class="iter__actions">
+      <a href="dark-charleroi.html">Open → dark-charleroi.html</a>
+      <button class="expand" title="Expand (E)">Expand</button>
+      <button data-src="dark-charleroi.html">Reload</button>
+    </div>
+  </div>
+
+  <div class="iter">
+    <div class="iter__head">
+      <span class="iter__id">Brugge</span>
+      <span class="iter__tag original">○ BASELINE</span>
+    </div>
+    <div class="iter__note">FL · light · burgundian gold · ivory</div>
+    <iframe class="iter__frame" src="light-brugge.html" title="Brugge" loading="lazy"></iframe>
+    <div class="iter__actions">
+      <a href="light-brugge.html">Open → light-brugge.html</a>
+      <button class="expand" title="Expand (E)">Expand</button>
+      <button data-src="light-brugge.html">Reload</button>
+    </div>
+  </div>
+
+  <div class="iter">
+    <div class="iter__head">
+      <span class="iter__id">Kortrijk</span>
+      <span class="iter__tag original">○ BASELINE</span>
+    </div>
+    <div class="iter__note">FL · light · flax & linen · soft beige</div>
+    <iframe class="iter__frame" src="light-kortrijk.html" title="Kortrijk" loading="lazy"></iframe>
+    <div class="iter__actions">
+      <a href="light-kortrijk.html">Open → light-kortrijk.html</a>
+      <button class="expand" title="Expand (E)">Expand</button>
+      <button data-src="light-kortrijk.html">Reload</button>
+    </div>
+  </div>
+
+  <div class="iter">
+    <div class="iter__head">
+      <span class="iter__id">Knokke</span>
+      <span class="iter__tag original">○ BASELINE</span>
+    </div>
+    <div class="iter__note">FL · light · coastal mint · seagrass</div>
+    <iframe class="iter__frame" src="light-knokke.html" title="Knokke" loading="lazy"></iframe>
+    <div class="iter__actions">
+      <a href="light-knokke.html">Open → light-knokke.html</a>
+      <button class="expand" title="Expand (E)">Expand</button>
+      <button data-src="light-knokke.html">Reload</button>
+    </div>
+  </div>
+
+  <div class="iter">
+    <div class="iter__head">
+      <span class="iter__id">Lier</span>
+      <span class="iter__tag original">○ BASELINE</span>
+    </div>
+    <div class="iter__note">FL · light · begijnhof walls · warm sand</div>
+    <iframe class="iter__frame" src="light-lier.html" title="Lier" loading="lazy"></iframe>
+    <div class="iter__actions">
+      <a href="light-lier.html">Open → light-lier.html</a>
+      <button class="expand" title="Expand (E)">Expand</button>
+      <button data-src="light-lier.html">Reload</button>
+    </div>
+  </div>
+
+  <div class="iter">
+    <div class="iter__head">
+      <span class="iter__id">Tournai</span>
+      <span class="iter__tag original">○ BASELINE</span>
+    </div>
+    <div class="iter__note">WA · light · cathedral stone · beige, oak</div>
+    <iframe class="iter__frame" src="light-tournai.html" title="Tournai" loading="lazy"></iframe>
+    <div class="iter__actions">
+      <a href="light-tournai.html">Open → light-tournai.html</a>
+      <button class="expand" title="Expand (E)">Expand</button>
+      <button data-src="light-tournai.html">Reload</button>
+    </div>
+  </div>
+
+  <div class="iter">
+    <div class="iter__head">
+      <span class="iter__id">Dinant</span>
+      <span class="iter__tag original">○ BASELINE</span>
+    </div>
+    <div class="iter__note">WA · light · saxophone brass · pale cream</div>
+    <iframe class="iter__frame" src="light-dinant.html" title="Dinant" loading="lazy"></iframe>
+    <div class="iter__actions">
+      <a href="light-dinant.html">Open → light-dinant.html</a>
+      <button class="expand" title="Expand (E)">Expand</button>
+      <button data-src="light-dinant.html">Reload</button>
+    </div>
+  </div>
+
+</div>
+
+
+<div class="portal-h">
+  <span class="portal-h__title">Nederland</span>
+  <span class="portal-h__count">5 candidates · Five Dutch cities — Holland sprinkle</span>
+</div>
+
+<div class="grid">
+
+  <div class="iter">
+    <div class="iter__head">
+      <span class="iter__id">Maastricht</span>
+      <span class="iter__tag original">○ BASELINE</span>
+    </div>
+    <div class="iter__note">NL · light · limestone south · lavender</div>
+    <iframe class="iter__frame" src="light-maastricht.html" title="Maastricht" loading="lazy"></iframe>
+    <div class="iter__actions">
+      <a href="light-maastricht.html">Open → light-maastricht.html</a>
+      <button class="expand" title="Expand (E)">Expand</button>
+      <button data-src="light-maastricht.html">Reload</button>
+    </div>
+  </div>
+
+  <div class="iter">
+    <div class="iter__head">
+      <span class="iter__id">Haarlem</span>
+      <span class="iter__tag original">○ BASELINE</span>
+    </div>
+    <div class="iter__note">NL · light · tulip pink · sakura, rose</div>
+    <iframe class="iter__frame" src="light-haarlem.html" title="Haarlem" loading="lazy"></iframe>
+    <div class="iter__actions">
+      <a href="light-haarlem.html">Open → light-haarlem.html</a>
+      <button class="expand" title="Expand (E)">Expand</button>
+      <button data-src="light-haarlem.html">Reload</button>
+    </div>
+  </div>
+
+  <div class="iter">
+    <div class="iter__head">
+      <span class="iter__id">Delft</span>
+      <span class="iter__tag original">○ BASELINE</span>
+    </div>
+    <div class="iter__note">NL · light · porcelain sky · pale blue</div>
+    <iframe class="iter__frame" src="light-delft.html" title="Delft" loading="lazy"></iframe>
+    <div class="iter__actions">
+      <a href="light-delft.html">Open → light-delft.html</a>
+      <button class="expand" title="Expand (E)">Expand</button>
+      <button data-src="light-delft.html">Reload</button>
+    </div>
+  </div>
+
+  <div class="iter">
+    <div class="iter__head">
+      <span class="iter__id">Utrecht</span>
+      <span class="iter__tag original">○ BASELINE</span>
+    </div>
+    <div class="iter__note">NL · light · dom tower sun · canal cream</div>
+    <iframe class="iter__frame" src="light-utrecht.html" title="Utrecht" loading="lazy"></iframe>
+    <div class="iter__actions">
+      <a href="light-utrecht.html">Open → light-utrecht.html</a>
+      <button class="expand" title="Expand (E)">Expand</button>
+      <button data-src="light-utrecht.html">Reload</button>
+    </div>
+  </div>
+
+  <div class="iter">
+    <div class="iter__head">
+      <span class="iter__id">Amsterdam</span>
+      <span class="iter__tag original">○ BASELINE</span>
+    </div>
+    <div class="iter__note">NL · dark · canal night · tram orange</div>
+    <iframe class="iter__frame" src="dark-amsterdam.html" title="Amsterdam" loading="lazy"></iframe>
+    <div class="iter__actions">
+      <a href="dark-amsterdam.html">Open → dark-amsterdam.html</a>
+      <button class="expand" title="Expand (E)">Expand</button>
+      <button data-src="dark-amsterdam.html">Reload</button>
+    </div>
+  </div>
+
+</div>
+
+<!-- end curated sections -->
+
+<footer>
+  <!-- ══════ BEGIN FOOTER LINKS — replace with manifest.global_links duplicated + cross-links ══════ -->
+  <a href="../../src/tabs/appearance.ts">plugin repo</a> · <span>26 candidates · curated shelf · 2026-04-14</span>
+  <!-- ══════ END FOOTER LINKS ══════ -->
+</footer>
+
+<script>
+  const backdrop = document.getElementById('expand-backdrop');
+
+  /* ───────────────────────────────────────────────────────────────
+     RELOAD BUTTONS — per-card cache-busted reload
+     ─────────────────────────────────────────────────────────────── */
+  document.querySelectorAll('.iter__actions button[data-src]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const src = btn.dataset.src;
+      const iframe = btn.closest('.iter').querySelector('iframe');
+      iframe.src = src + '?r=' + Date.now();
+    });
+  });
+
+  /* ───────────────────────────────────────────────────────────────
+     EXPAND / COLLAPSE
+     ─────────────────────────────────────────────────────────────── */
+  function collapseAll() {
+    document.querySelectorAll('.iter.expanded').forEach(p => p.classList.remove('expanded'));
+    backdrop.classList.remove('on');
+    document.body.style.overflow = '';
+  }
+  document.querySelectorAll('.iter__actions button.expand').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const iter = btn.closest('.iter');
+      const wasExpanded = iter.classList.contains('expanded');
+      collapseAll();
+      if (!wasExpanded) {
+        iter.classList.add('expanded');
+        backdrop.classList.add('on');
+        document.body.style.overflow = 'hidden';
+      }
+    });
+  });
+  backdrop.addEventListener('click', collapseAll);
+
+  /* ───────────────────────────────────────────────────────────────
+     KEYBOARD — R reload all, E expand focused, Esc collapse
+     ─────────────────────────────────────────────────────────────── */
+  document.addEventListener('keydown', (e) => {
+    if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
+
+    if (e.key === 'r' || e.key === 'R') {
+      document.querySelectorAll('.iter iframe').forEach(f => {
+        const src = f.src.split('?')[0].split('#')[0];
+        f.src = src + '?r=' + Date.now();
+      });
+    } else if (e.key === 'e' || e.key === 'E') {
+      // expand the card containing the currently focused element, or the first card
+      const focused = document.activeElement.closest('.iter');
+      const target = focused || document.querySelector('.iter');
+      if (target) {
+        const expandBtn = target.querySelector('.expand');
+        if (expandBtn) expandBtn.click();
+      }
+    } else if (e.key === 'Escape') {
+      collapseAll();
+    }
+  });
+</script>
+
+</body>
+</html>

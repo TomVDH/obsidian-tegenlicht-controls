@@ -1424,14 +1424,46 @@
   transition: background 0.18s ease, border-color 0.18s ease, box-shadow 0.18s ease, padding 0.18s ease;
 }
 
-/* Boxed mode — applies to BOTH the preview (.mini-fm) and Obsidian's
-   real Properties panel (.metadata-container). One toggle, both
-   surfaces, same look. Mirrors frontmatter-beauty.css: 135deg accent
-   gradient, accent-tinted border, soft shadow, rounded corners. */
+/* ════════════════════════════════════════════════════════════════════════
+   BOXED PROPERTIES MODE — fully self-contained
+   ════════════════════════════════════════════════════════════════════════
+
+   This block provides the entire "boxed Properties panel" experience —
+   the user does NOT need to keep frontmatter-beauty.css or any other
+   snippet enabled. When `tc-fm-boxed` is on body, the plugin owns the
+   styling end-to-end:
+
+     1. The container — accent-gradient card, rounded, soft shadow.
+     2. The row layout — clean key/value rows, muted keys.
+     3. Pill chips — accent-tinted multi-select pills for tag-style
+        list values (uses Obsidian's .multi-select-pill class).
+     4. The preview (.mini-fm) gets the same treatment so the toggle's
+        effect is visible in both surfaces simultaneously.
+
+   When the toggle is OFF, we touch nothing — Obsidian's default flat
+   rendering stands. If a snippet is also enabled, the snippet wins (we
+   don't fight it). Disable the snippet to use ours alone.
+   ══════════════════════════════════════════════════════════════════════ */
+
+/* ── 1. The container box ─────────────────────────────────────────────
+   Listed broadly so the rule wins regardless of which Obsidian build
+   the user is on. Every property is `!important` so it survives both
+   Obsidian's own inline styles AND any user snippet at default
+   specificity.
+
+   Visuals are intentionally LOUD so the toggle's effect is unmistakable
+   — solid (no-transparency) accent border, vivid gradient, accent-
+   coloured outer glow. If you can't tell whether this is on or off,
+   bump the alphas higher; if it's overwhelming, dial them down. */
+/* Scope: Live Preview source view + Reading view + the in-settings
+   mini-Obsidian preview. Deliberately NOT scoped to `.cm-editor` alone
+   so we don't accidentally hit raw CodeMirror instances elsewhere
+   (e.g. embedded code blocks). */
 body.tc-fm-boxed .tc-mini-obsidian .mini-fm,
-body.tc-fm-boxed .metadata-container {
-  margin: 6px 0 18px;
-  padding: 10px 14px 12px;
+body.tc-fm-boxed .markdown-source-view.is-live-preview .metadata-container,
+body.tc-fm-boxed .markdown-reading-view .metadata-container {
+  margin: 6px 0 18px !important;
+  padding: 10px 14px 12px !important;
   background: linear-gradient(135deg,
     color-mix(in srgb, var(--color-accent) 8%, transparent),
     color-mix(in srgb, var(--color-accent) 3%, transparent)) !important;
@@ -1440,15 +1472,158 @@ body.tc-fm-boxed .metadata-container {
   box-shadow: 0 1px 4px rgba(0, 0, 0, 0.08) !important;
 }
 
-/* Header — chevron flush LEFT, label tight beside it, count pushed to
-   the right. Whole header is the click target with a subtle hover fill;
-   layout uses a flex row (no negative margins) so the chevron sits
-   exactly where the box's content area starts. */
+/* Banner-aware spacing — when the view has the Banners plugin's
+   `.has-banner` class, the box needs more breathing room above so it
+   doesn't crowd the banner image's bottom edge. */
+body.tc-fm-boxed .view-content.has-banner .markdown-source-view.is-live-preview .metadata-container,
+body.tc-fm-boxed .view-content.has-banner .markdown-reading-view .metadata-container {
+  margin-top: 20px !important;
+}
+
+/* ── 2. Property rows: keys + values inside the boxed container ──────
+   We add small breathing room between rows so the panel reads as a
+   structured table rather than a tight stack. Hover lifts each row
+   subtly, matching Obsidian's native interactivity. */
+body.tc-fm-boxed .metadata-property {
+  margin: 2px 0 !important;
+  padding: 2px 4px !important;
+  border-radius: 4px !important;
+  transition: background 0.1s ease;
+}
+body.tc-fm-boxed .metadata-property:hover {
+  background: color-mix(in srgb, var(--color-accent) 7%, transparent) !important;
+}
+
+/* Keys — muted, slight letter-spacing for the labelled feel of the
+   frontmatter-beauty snippet, without going full uppercase. */
+body.tc-fm-boxed .metadata-property-key {
+  color: var(--text-muted) !important;
+  font-weight: 500 !important;
+  letter-spacing: 0.01em !important;
+}
+
+/* ── 3. Pill chips for list-type values (tags, aliases, multi-select)
+   Obsidian renders these via .multi-select-pill — we reskin to an
+   accent-tinted chip with a hairline border. Matches what the snippet
+   does so the visual is identical with the snippet OFF. */
+body.tc-fm-boxed .metadata-property[data-property-key="tags"] .multi-select-pill,
+body.tc-fm-boxed .multi-select-pill {
+  background: color-mix(in srgb, var(--color-accent) 14%, var(--background-secondary)) !important;
+  border: 1px solid color-mix(in srgb, var(--color-accent) 28%, transparent) !important;
+  border-radius: 100px !important;
+  color: var(--text-normal) !important;
+}
+body.tc-fm-boxed .multi-select-pill:hover {
+  background: color-mix(in srgb, var(--color-accent) 22%, var(--background-secondary)) !important;
+  border-color: color-mix(in srgb, var(--color-accent) 40%, transparent) !important;
+}
+
+/* ── 4. Date / number values — mono + accent so they read as data,
+   matching what the snippet does for type="date" / "number". */
+body.tc-fm-boxed .metadata-property-value[data-property-type="date"],
+body.tc-fm-boxed .metadata-property-value[data-property-type="datetime"],
+body.tc-fm-boxed .metadata-property-value[data-property-type="number"] {
+  font-family: var(--font-monospace, monospace) !important;
+  color: var(--color-accent) !important;
+  font-variant-numeric: tabular-nums !important;
+}
+
+/* ── 5. Empty values — em-dash placeholder, faint italic. */
+body.tc-fm-boxed .metadata-property-value:empty::after {
+  content: "—";
+  color: var(--text-faint);
+  font-style: italic;
+}
+
+/* ── 6. Properties heading + chevron — pseudo-element strategy.
+   Element selectors kept missing because Obsidian's chevron may be
+   rendered via a snippet pseudo-element OR a class we can't see.
+   Solution: nuke whatever chevron is currently showing (any svg /
+   collapse-* element / ::before pseudo on the heading) and stamp our
+   OWN chevron on the right edge via ::after. Cannot fail. */
+body.tc-fm-boxed .metadata-properties-heading {
+  position: relative !important;
+  display: flex !important;
+  align-items: center !important;
+  gap: 6px !important;
+  width: 100% !important;
+  padding: 0 32px 8px 4px !important;
+  margin: 0 0 8px 0 !important;
+  border-bottom: 1px solid var(--background-modifier-border) !important;
+  font-weight: 500 !important;
+  color: var(--text-muted) !important;
+  cursor: pointer;
+  list-style: none !important;
+}
+
+/* HIDE every possible existing chevron — direct svg, wrapped svg,
+   collapse-indicator/icon spans/divs, AND ::before pseudo-elements
+   from snippets. Belt-and-braces. */
+body.tc-fm-boxed .metadata-properties-heading > svg,
+body.tc-fm-boxed .metadata-properties-heading svg.right-triangle,
+body.tc-fm-boxed .metadata-properties-heading svg.svg-icon,
+body.tc-fm-boxed .metadata-properties-heading .collapse-indicator,
+body.tc-fm-boxed .metadata-properties-heading .collapse-icon,
+body.tc-fm-boxed .metadata-properties-heading .right-triangle {
+  display: none !important;
+  visibility: hidden !important;
+  width: 0 !important;
+  height: 0 !important;
+}
+body.tc-fm-boxed .metadata-properties-heading::before {
+  content: none !important;
+  display: none !important;
+}
+
+/* Stamp OUR chevron via ::after — pure CSS, no DOM dependency.
+   Uses an inline-SVG data URI so we get a crisp accent-coloured
+   chevron at exactly the size we want, pinned right and truly
+   vertically centered via top:50% + translateY(-50%). */
+body.tc-fm-boxed .metadata-properties-heading::after {
+  content: "" !important;
+  position: absolute !important;
+  right: 10px !important;
+  top: 50% !important;
+  transform: translateY(-50%) rotate(0deg) !important;
+  width: 16px !important;
+  height: 16px !important;
+  background-color: var(--color-accent) !important;
+  -webkit-mask: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'><polyline points='6 9 12 15 18 9'/></svg>") no-repeat center / contain !important;
+          mask: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'><polyline points='6 9 12 15 18 9'/></svg>") no-repeat center / contain !important;
+  opacity: 1 !important;
+  visibility: visible !important;
+  transition: transform 0.18s ease !important;
+  pointer-events: none !important;
+}
+
+/* Rotate the stamped chevron based on collapsed state. Default
+   (expanded) is chevron-down; collapsed rotates to point right.
+   Keep translateY(-50%) so vertical centering survives the rotate. */
+body.tc-fm-boxed .metadata-properties-heading.is-collapsed::after,
+body.tc-fm-boxed .metadata-container.is-collapsed .metadata-properties-heading::after,
+body.tc-fm-boxed .metadata-properties-heading[aria-expanded="false"]::after {
+  transform: translateY(-50%) rotate(-90deg) !important;
+  opacity: 1 !important;
+  visibility: visible !important;
+}
+
+/* Some Obsidian builds/snippets fade chevrons until hover. Force ours
+   to always stay visible — the boxed treatment is a deliberate UI
+   choice, not an "only on hover" reveal. */
+body.tc-fm-boxed .metadata-properties-heading:not(:hover)::after,
+body.tc-fm-boxed .metadata-container.is-collapsed .metadata-properties-heading:not(:hover)::after {
+  opacity: 1 !important;
+  visibility: visible !important;
+}
+
+/* Header — label first, count next, chevron pushed flush RIGHT.
+   Flex order is used to flip the chevron's DOM position (it's still
+   first in the markup for keyboard / screen-reader order). */
 .tc-settings .tc-mini-obsidian .mini-fm-header {
   display: flex;
   align-items: center;
   gap: 6px;
-  padding: 3px 4px 6px 0;
+  padding: 3px 0 6px 0;
   border-radius: 4px;
   color: var(--text-muted);
   font-size: 11px;
@@ -1464,13 +1639,18 @@ body.tc-fm-boxed .metadata-container {
 .tc-settings .tc-mini-obsidian .mini-fm-header:hover .mini-fm-label {
   color: var(--text-normal);
 }
-/* Chevron — flush left, just big enough to read clearly. Anchored at
-   the left edge of the panel so the icon "owns" the leftmost glyph
-   slot, exactly like Obsidian's real Properties chevron. */
+/* Label sits first in flow (visually leftmost). */
+.tc-settings .tc-mini-obsidian .mini-fm-label { order: 1; }
+.tc-settings .tc-mini-obsidian .mini-fm-count { order: 2; }
+/* Chevron pushed FLUSH RIGHT — `margin-left: auto` consumes all the
+   slack between the label/count and the right edge so the chevron
+   anchors to the panel's right side regardless of header width. */
 .tc-settings .tc-mini-obsidian .mini-fm-chev {
+  order: 3;
+  margin-left: auto;
   display: inline-flex;
   align-items: center;
-  justify-content: flex-start;
+  justify-content: center;
   width: 16px;
   height: 16px;
   flex-shrink: 0;
@@ -1628,7 +1808,8 @@ body.tc-fm-boxed .tc-mini-obsidian .mini-fm--collapsed {
 .tc-settings .tc-mini-obsidian .mini-fm-pill {
   display: inline-flex;
   align-items: center;
-  padding: 1px 8px;
+  gap: 4px;
+  padding: 1px 6px 1px 8px;
   font-size: 10.5px;
   line-height: 1.4;
   border-radius: 100px;
@@ -1636,6 +1817,23 @@ body.tc-fm-boxed .tc-mini-obsidian .mini-fm--collapsed {
   color: var(--text-normal);
   border: 1px solid var(--background-modifier-border);
   white-space: nowrap;
+  transition: background 0.15s ease, border-color 0.15s ease;
+}
+
+/* Mirror real-Obsidian multi-select-pill "× remove" icon — purely
+   visual in the preview (no click handler). Sits at 80% opacity, goes
+   full-accent on hover for parity with the native interaction. */
+.tc-settings .tc-mini-obsidian .mini-fm-pill-x {
+  opacity: 0.55;
+  font-size: 12px;
+  line-height: 1;
+  margin-left: 2px;
+  color: var(--text-muted);
+  transition: opacity 0.15s ease, color 0.15s ease;
+}
+.tc-settings .tc-mini-obsidian .mini-fm-pill:hover .mini-fm-pill-x {
+  opacity: 1;
+  color: var(--color-accent);
 }
 
 /* Boolean toggle — mini switch matching Obsidian's native Toggle

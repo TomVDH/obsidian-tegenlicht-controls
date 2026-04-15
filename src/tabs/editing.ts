@@ -4,8 +4,9 @@ import { buildEditingPreview } from "../preview-sample";
 
 // Session-scoped accordion state — same pattern as the Appearance and
 // Typography tabs so flipping a toggle doesn't snap sections shut.
+// Default: only the top accordion (`reading`) is open on first load.
 const accordionOpen: Record<string, boolean> = {
-  reading: true, coding: true, properties: true, highlights: true,
+  reading: true, coding: false, properties: false, highlights: false,
 };
 
 /** Build an accordion shell matching the Appearance tab's `tc-feat-group`

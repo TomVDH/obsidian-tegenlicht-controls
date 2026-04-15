@@ -8,8 +8,9 @@ import { buildTypographyPreview } from "../preview-sample";
 // so flipping a font or dragging a slider doesn't snap sections shut.
 // The `rhythm` accordion merges heading sizes and list spacing; they're the
 // same visual concept (vertical rhythm) separated by a hairline divider.
+// Default: only the top accordion (`fonts`) is open on first load.
 const accordionOpen: Record<string, boolean> = {
-  fonts: true, rhythm: true,
+  fonts: true, rhythm: false,
 };
 
 interface SliderCfg {

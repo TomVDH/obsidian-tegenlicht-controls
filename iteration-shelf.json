@@ -1,0 +1,76 @@
+{
+  "project": "tegenlicht-controls",
+  "title": "Flavour Candidates — Low Countries Tour",
+  "date": "2026-04-14",
+  "target_folder": "iterations/flavours",
+  "output": {
+    "curated": "iterations/flavours/_iterations.html"
+  },
+  "layout": "family",
+  "global_links": [
+    { "label": "plugin repo", "href": "../../src/tabs/appearance.ts" }
+  ],
+  "notes": [
+    {
+      "tone": "info",
+      "title": "The tour",
+      "body": "Twenty-eight candidate flavours across Flemish, Wallonian and Dutch towns. Mechelen and its night-form Maneblusser sit at the top. Brussels (day + Nacht) is the premium tier. The rest is split by country. Extended Catppuccin lineup stays untouched."
+    }
+  ],
+  "segments": [
+    {
+      "id": "apex",
+      "title": "★★ Apex — Mechelen",
+      "description": "Flagship pair · day + night · top of the plugin",
+      "items": [
+        { "id": "Mechelen",         "file": "apex-mechelen.html",         "tag": "locked", "quote": "pearl cathedral · red-gold coat of arms.",      "note": "apex · day · FL · pearl stone, mechelen red" },
+        { "id": "Maneblusser",      "file": "apex-maneblusser.html",      "tag": "locked", "quote": "the night they fought the moon.",             "note": "apex · night · FL · moon-silver on indigo" }
+      ]
+    },
+    {
+      "id": "premium",
+      "title": "★ Premium — Brussels",
+      "description": "Capital pair · day + Nacht",
+      "items": [
+        { "id": "Brussels",         "file": "premium-brussels.html",      "tag": "star", "note": "premium · day · BE · mustard gold, stone cream" },
+        { "id": "Brussels · Nacht", "file": "premium-brussels-nacht.html","tag": "star", "note": "premium · night · BE · grand-place after dusk" }
+      ]
+    },
+    {
+      "id": "belgie",
+      "title": "België — Vlaams + Waals",
+      "description": "Eleven Belgian towns — Flemish and Wallonian, dark and light",
+      "items": [
+        { "id": "Antwerpen",  "file": "dark-antwerpen.html",  "note": "FL · dark · port at dusk · deep navy, cobalt edge" },
+        { "id": "Leuven",     "file": "dark-leuven.html",     "note": "FL · dark · university woods · forest green" },
+        { "id": "Hasselt",    "file": "dark-hasselt.html",    "note": "FL · dark · jenever warmth · copper brown" },
+        { "id": "Gent",       "file": "dark-gent.html",       "note": "FL · dark · medieval stone · neutral graphite" },
+        { "id": "Aalst",      "file": "dark-aalst.html",      "note": "FL · dark · carnival nights · deep purple" },
+        { "id": "Oostende",   "file": "dark-oostende.html",   "note": "FL · dark · coastal dusk · sand-dark, honey" },
+        { "id": "Ronse",      "file": "dark-ronse.html",      "note": "FL · dark · textile heritage · burgundy" },
+        { "id": "Diest",      "file": "dark-diest.html",      "note": "FL · dark · dijle slate · blue-grey" },
+        { "id": "Liège",      "file": "dark-liege.html",      "note": "WA · dark · steel & ember · iron, ember accent" },
+        { "id": "Namur",      "file": "dark-namur.html",      "note": "WA · dark · meuse limestone · slate, citadel gold" },
+        { "id": "Charleroi",  "file": "dark-charleroi.html",  "note": "WA · dark · coal anthracite · deep black, coke" },
+        { "id": "Brugge",     "file": "light-brugge.html",    "note": "FL · light · burgundian gold · ivory" },
+        { "id": "Kortrijk",   "file": "light-kortrijk.html",  "note": "FL · light · flax & linen · soft beige" },
+        { "id": "Knokke",     "file": "light-knokke.html",    "note": "FL · light · coastal mint · seagrass" },
+        { "id": "Lier",       "file": "light-lier.html",      "note": "FL · light · begijnhof walls · warm sand" },
+        { "id": "Tournai",    "file": "light-tournai.html",   "note": "WA · light · cathedral stone · beige, oak" },
+        { "id": "Dinant",     "file": "light-dinant.html",    "note": "WA · light · saxophone brass · pale cream" }
+      ]
+    },
+    {
+      "id": "nederland",
+      "title": "Nederland",
+      "description": "Five Dutch cities — Holland sprinkle",
+      "items": [
+        { "id": "Maastricht", "file": "light-maastricht.html","note": "NL · light · limestone south · lavender" },
+        { "id": "Haarlem",    "file": "light-haarlem.html",   "note": "NL · light · tulip pink · sakura, rose" },
+        { "id": "Delft",      "file": "light-delft.html",     "note": "NL · light · porcelain sky · pale blue" },
+        { "id": "Utrecht",    "file": "light-utrecht.html",   "note": "NL · light · dom tower sun · canal cream" },
+        { "id": "Amsterdam",  "file": "dark-amsterdam.html",  "note": "NL · dark · canal night · tram orange" }
+      ]
+    }
+  ]
+}

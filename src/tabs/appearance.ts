@@ -9,9 +9,11 @@ import {
 
 // Session-scoped accordion state — survives redisplay() rebuilds so the
 // user's open/closed choice isn't lost every time a setting is changed.
+// Default: only the top accordion (`theme`) is open. Tom can expand the
+// rest as needed; we don't want a wall of expanded sections on first load.
 const accordionOpen: Record<string, boolean> = {
-  theme: true, interface: true, sidebarOutliner: false, graph: false,
-  workspace: true, highlights: true,
+  theme: true, interface: false, sidebarOutliner: false, graph: false,
+  workspace: false, highlights: false,
 };
 
 // Flat UI Colors v2 — India palette. See https://flatuicolors.com/palette/in

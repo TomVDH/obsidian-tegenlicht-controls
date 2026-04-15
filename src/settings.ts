@@ -13,7 +13,10 @@ export interface TegenlichtSettings {
 
   // Appearance — Interface
   uiDensity: string;     // 'compact' | 'comfortable' | 'spacious'
-  interfaceFont: string; // 'system' | 'inter' | 'ia-duo' (legacy; replaced by fontPairing)
+  // Legacy single-choice interface font (pre-pairing). Kept as a fallback:
+  // the applier reads it ONLY when fontPairing yields no usable stack.
+  // No UI exposes it directly anymore; lives here for back-compat saves.
+  interfaceFont: string; // 'system' | 'inter' | 'ia-duo'
   iconStroke: string;    // 'thin' | 'regular' | 'bold'
   cornerRadius: string;  // 'sharp' | 'subtle' | 'rounded'
   editorMood: string;    // experimental: 'minimal' | 'warm' | 'cool'
@@ -66,7 +69,10 @@ export interface TegenlichtSettings {
   tableWidthPct: number;
 
   // Features
-  rainbowFileBrowser: boolean;   // LEGACY — kept so old saved settings still load
+  // LEGACY — pre-0.7 boolean for rainbow folders. Replaced by `rainbowStyle`
+  // (off / simple / full). Migration in applier.ts promotes a true here to
+  // 'full' if rainbowStyle is 'off'. No UI exposes this anymore.
+  rainbowFileBrowser: boolean;
   // Outliner — AnuPuccin-style coloured folders, mirrors the four modes
   // the theme exposes via Style Settings (off / full bg / pip / icon),
   // plus the orthogonal "inherit" modifier. Visual rendering lives in
@@ -116,8 +122,6 @@ export interface TegenlichtSettings {
   // the user opts in.
   propertiesBoxed: boolean;
 
-  // Demo — illustrates how a toggle can swap its own preview image
-  demoImageToggle: boolean;
 }
 
 export const DEFAULT_SETTINGS: TegenlichtSettings = {
@@ -221,6 +225,4 @@ export const DEFAULT_SETTINGS: TegenlichtSettings = {
   calendar: false,
 
   propertiesBoxed: false,
-
-  demoImageToggle: false,
 };

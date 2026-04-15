@@ -32,8 +32,11 @@ const GROUPS: FeatureGroup[] = [
   {
     icon: "🗂", label: "Workspace",
     items: [
-      { key: "rainbowFileBrowser", label: "Rainbow file browser", desc: "Colour-coded folders in the file tree", previewId: "rainbow-file-browser" },
-      { key: "fileIcons",          label: "File icons",           desc: "Icons per file type",                  previewId: "file-icons" },
+      // Note: rainbow folders moved to Appearance tab (rainbowStyle picker).
+      // The legacy `rainbowFileBrowser` boolean is migrated automatically.
+      // previewId references are stripped until PNGs ship — otherwise each
+      // settings-pane open sprays 404s in the console.
+      { key: "fileIcons",          label: "File icons",           desc: "Icons per file type" },
       { key: "collapseFolderIcons",label: "Collapse folder icons",desc: "Custom icons for collapsed folders" },
       { key: "colorfulFrame",      label: "Colorful frame",       desc: "Accent-coloured window frame" },
       { key: "customVaultTitle",   label: "Custom vault title" },
@@ -42,9 +45,9 @@ const GROUPS: FeatureGroup[] = [
   {
     icon: "🧩", label: "Elements",
     items: [
-      { key: "customCheckboxes", label: "Custom checkboxes", previewId: "custom-checkboxes" },
-      { key: "cardsMinimal",     label: "Cards (minimal)",   desc: "Card-style note previews", previewId: "cards-minimal" },
-      { key: "rainbowTags",      label: "Rainbow tags",      previewId: "rainbow-tags" },
+      { key: "customCheckboxes", label: "Custom checkboxes" },
+      { key: "cardsMinimal",     label: "Cards (minimal)",   desc: "Card-style note previews" },
+      { key: "rainbowTags",      label: "Rainbow tags" },
       { key: "metadataButton",   label: "Metadata button" },
       { key: "metadataMods",     label: "Metadata mods",     desc: "Frontmatter display tweaks" },
     ],
@@ -85,20 +88,6 @@ const GROUPS: FeatureGroup[] = [
       { key: "itsCallouts", label: "ITS Theme callouts" },
       { key: "kanban",      label: "Kanban" },
       { key: "calendar",    label: "Calendar" },
-    ],
-  },
-  {
-    icon: "🖼️", label: "Preview demo",
-    items: [
-      {
-        key: "demoImageToggle",
-        label: "Show random preview image",
-        desc: "Flip the switch — the image swaps between two random Picsum shots",
-        previewUrls: {
-          off: "https://picsum.photos/seed/tegenlicht-off/480/180",
-          on:  "https://picsum.photos/seed/tegenlicht-on/480/180",
-        },
-      },
     ],
   },
 ];
@@ -154,6 +143,10 @@ function buildToggleRow(
     const state = plugin.settings[item.key] ? "on" : "off";
     img.src = `app://obsidian.md/plugins/tegenlicht-controls/assets/previews/${item.previewId}-${state}.png`;
     img.alt = `${item.label} (${state})`;
+    // Many previewIds reference PNGs we haven't shipped yet. Hide the
+    // wrapper entirely on load-error so we don't paint a broken-image
+    // icon OR spam the console with 404s whenever the settings pane opens.
+    img.addEventListener("error", () => previewWrap.remove(), { once: true });
   }
 }
 
@@ -176,13 +169,26 @@ function buildSelectRow(
   });
 }
 
+// Session-scoped accordion state — keyed by group label so the user's
+// open/close choice survives a redisplay() rebuild. Default: only the
+// FIRST group is open on first load (consistent with other tabs).
+const accordionOpen: Record<string, boolean> = {};
+
 export function build(
   containerEl: HTMLElement,
   plugin: TegenlichtControlsPlugin,
   onChange: () => Promise<void>,
 ): void {
-  GROUPS.forEach(group => {
-    const groupEl = containerEl.createDiv("tc-feat-group tc-feat-group--open");
+  GROUPS.forEach((group, idx) => {
+    // First time this group is built in this session, default it to open
+    // only if it's the top one. Subsequent rebuilds preserve user choice.
+    if (!(group.label in accordionOpen)) {
+      accordionOpen[group.label] = idx === 0;
+    }
+    const isOpen = accordionOpen[group.label];
+    const groupEl = containerEl.createDiv(
+      "tc-feat-group" + (isOpen ? " tc-feat-group--open" : ""),
+    );
 
     const header = groupEl.createDiv("tc-feat-header");
     const title  = header.createDiv("tc-feat-title");
@@ -191,9 +197,10 @@ export function build(
     const meta = header.createDiv("tc-feat-meta");
     meta.createSpan({ text: String(group.items.length), cls: "tc-feat-badge" });
     meta.createSpan({ text: "▶", cls: "tc-feat-chevron" });
-    header.addEventListener("click", () =>
-      groupEl.toggleClass("tc-feat-group--open", !groupEl.hasClass("tc-feat-group--open")),
-    );
+    header.addEventListener("click", () => {
+      accordionOpen[group.label] = !accordionOpen[group.label];
+      groupEl.toggleClass("tc-feat-group--open", accordionOpen[group.label]);
+    });
 
     const body = groupEl.createDiv("tc-feat-body");
     group.items.forEach(item => {

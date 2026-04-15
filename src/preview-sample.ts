@@ -140,9 +140,15 @@ const EDITING_PROPERTY_ROWS: PropertyRow[] = [
   },
   {
     type: "list", icon: "tags", key: "tags",
-    build: v => ["typography", "flavour", "preview"].forEach(
-      t => v.createSpan({ cls: "mini-fm-pill", text: t })
-    ),
+    build: v => ["typography", "flavour", "preview"].forEach(t => {
+      // Mirror the real Obsidian tag-pill structure: a label span + an
+      // `×` remove button. Two classes — `.mini-fm-pill` for the preview's
+      // base sizing/spacing, `.multi-select-pill` so it picks up the
+      // boxed-Properties accent treatment when `body.tc-fm-boxed` is on.
+      const pill = v.createSpan({ cls: "mini-fm-pill multi-select-pill" });
+      pill.createSpan({ cls: "mini-fm-pill-text", text: t });
+      pill.createSpan({ cls: "mini-fm-pill-x", text: "×" });
+    }),
   },
   {
     type: "date", icon: "calendar-days", key: "created",

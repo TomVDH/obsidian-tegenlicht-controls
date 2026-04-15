@@ -1,0 +1,777 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Tegenlicht Controls — Preview</title>
+<style>
+  /* Obsidian Mocha environment simulation */
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --background-primary: #1e1e2e;
+    --background-secondary: #181825;
+    --background-primary-alt: #313244;
+    --background-modifier-border: #313244;
+    --text-normal: #cdd6f4;
+    --text-muted: #6c7086;
+    --h1-size: 2em;
+    --h2-size: 1.6em;
+    --h3-size: 1.3em;
+    --h4-size: 1.1em;
+    --h5-size: 1em;
+    --h6-size: 0.9em;
+  }
+
+  body {
+    background: #11111b;
+    display: flex;
+    align-items: flex-start;
+    justify-content: center;
+    padding: 32px 16px;
+    min-height: 100vh;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    color: var(--text-normal);
+  }
+
+  /* Obsidian settings panel frame */
+  .obsidian-settings {
+    background: var(--background-primary);
+    border-radius: 12px;
+    width: 680px;
+    max-width: 100%;
+    border: 1px solid var(--background-modifier-border);
+    overflow: hidden;
+  }
+  .settings-header {
+    background: var(--background-secondary);
+    padding: 16px 20px 0;
+    border-bottom: 1px solid var(--background-modifier-border);
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text-muted);
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+  }
+  .settings-header-title {
+    padding-bottom: 12px;
+  }
+
+  /* Plugin settings container */
+  .tc-settings {
+    padding: 20px;
+    font-size: 13px;
+  }
+
+  /* ── Tab bar ── */
+  .tc-tab-bar {
+    display: flex;
+    gap: 2px;
+    padding: 0 0 12px;
+    border-bottom: 1px solid var(--background-modifier-border);
+    margin-bottom: 16px;
+  }
+  .tc-tab {
+    padding: 6px 14px;
+    border-radius: 5px 5px 0 0;
+    color: var(--text-muted);
+    font-size: 12px;
+    font-weight: 500;
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    transition: color 0.1s;
+  }
+  .tc-tab:hover { color: var(--text-normal); }
+  .tc-tab--active {
+    color: var(--text-normal);
+    border-bottom: 2px solid #e5b32a;
+    background: var(--background-primary);
+  }
+
+  /* ── Section titles ── */
+  .tc-section-title {
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--text-muted);
+    margin: 16px 0 8px;
+  }
+
+  /* ── Swatch grid ── */
+  .tc-swatch-grid {
+    display: grid;
+    grid-template-columns: repeat(5, 48px);
+    gap: 8px;
+    margin-bottom: 8px;
+  }
+  .tc-swatch {
+    width: 48px; height: 48px;
+    border-radius: 8px;
+    position: relative;
+    cursor: pointer;
+    border: 2px solid transparent;
+    transition: border-color 0.1s;
+  }
+  .tc-swatch:hover { border-color: var(--text-muted); }
+  .tc-swatch--active { border-color: #e5b32a; }
+  .tc-swatch-dot {
+    position: absolute;
+    bottom: 4px; right: 4px;
+    width: 10px; height: 10px;
+    border-radius: 50%;
+    border: 1px solid rgba(0,0,0,0.25);
+  }
+  .tc-swatch-label {
+    position: absolute;
+    bottom: -18px;
+    left: 50%;
+    transform: translateX(-50%);
+    font-size: 9px;
+    color: var(--text-muted);
+    white-space: nowrap;
+    opacity: 0;
+    transition: opacity 0.1s;
+    pointer-events: none;
+  }
+  .tc-swatch:hover .tc-swatch-label { opacity: 1; }
+
+  /* ── Extend toggle row ── */
+  .tc-extend-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 12px;
+    color: var(--text-muted);
+    margin: 8px 0 16px;
+    cursor: pointer;
+    user-select: none;
+  }
+  .tc-extend-row input[type="checkbox"] {
+    accent-color: #e5b32a;
+    width: 13px; height: 13px;
+    cursor: pointer;
+  }
+
+  /* ── Accent dots ── */
+  .tc-accent-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+    margin-bottom: 8px;
+  }
+  .tc-accent-dot {
+    width: 28px; height: 28px;
+    border-radius: 50%;
+    cursor: pointer;
+    border: 2px solid transparent;
+    transition: border-color 0.1s;
+    position: relative;
+  }
+  .tc-accent-dot:hover { border-color: var(--text-muted); }
+  .tc-accent-dot--active {
+    box-shadow: 0 0 0 2px var(--background-primary), 0 0 0 4px var(--text-normal);
+  }
+  .tc-accent-dot--custom {
+    background: conic-gradient(#f38ba8, #fab387, #f9e2af, #a6e3a1, #89dceb, #89b4fa, #cba6f7, #f38ba8);
+    border: 2px solid var(--background-modifier-border);
+  }
+
+  /* Extended grid (hidden initially) */
+  .tc-extended { display: none; }
+  .tc-extended.visible { display: grid; }
+
+  /* ── Slider rows ── */
+  .tc-slider-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 0;
+  }
+  .tc-slider-label {
+    font-size: 12px;
+    color: var(--text-normal);
+    width: 80px;
+    flex-shrink: 0;
+  }
+  .tc-slider-row input[type="range"] {
+    flex: 1;
+    accent-color: #e5b32a;
+    height: 4px;
+  }
+  .tc-slider-value {
+    font-size: 11px;
+    color: var(--text-muted);
+    width: 60px;
+    text-align: right;
+    background: var(--background-secondary);
+    border-radius: 4px;
+    padding: 2px 6px;
+  }
+  .tc-reset-btn {
+    font-size: 14px;
+    background: none;
+    border: none;
+    color: var(--text-muted);
+    cursor: pointer;
+    padding: 2px 4px;
+    border-radius: 4px;
+    transition: color 0.1s;
+  }
+  .tc-reset-btn:hover { color: var(--text-normal); background: var(--background-secondary); }
+
+  /* ── Typography two-column ── */
+  .tc-typo-wrap {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 24px;
+  }
+  .tc-typo-preview {
+    background: var(--background-secondary);
+    border-radius: 8px;
+    padding: 16px;
+    border: 1px solid var(--background-modifier-border);
+    overflow-y: auto;
+    max-height: 360px;
+  }
+  .tc-typo-preview h1 { font-size: var(--h1-size); margin: 0.2em 0; }
+  .tc-typo-preview h2 { font-size: var(--h2-size); margin: 0.2em 0; }
+  .tc-typo-preview h3 { font-size: var(--h3-size); margin: 0.2em 0; }
+  .tc-typo-preview h4 { font-size: var(--h4-size); margin: 0.2em 0; }
+  .tc-typo-preview h5 { font-size: var(--h5-size); margin: 0.2em 0; }
+  .tc-typo-preview h6 { font-size: var(--h6-size); margin: 0.2em 0; }
+  .tc-typo-preview p { font-size: 13px; color: var(--text-muted); margin: 0.5em 0; line-height: 1.5; }
+  .tc-typo-preview ul { font-size: 13px; color: var(--text-muted); padding-left: 1.5em; }
+  .tc-preview-hint { font-size: 10px; color: var(--text-muted); margin-top: 12px; }
+
+  /* ── Layout groups ── */
+  .tc-layout-group { margin-bottom: 20px; }
+
+  /* ── Feature groups ── */
+  .tc-feat-group {
+    border: 1px solid var(--background-modifier-border);
+    border-radius: 8px;
+    margin-bottom: 8px;
+    overflow: hidden;
+  }
+  .tc-feat-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 14px;
+    background: var(--background-secondary);
+    cursor: pointer;
+    user-select: none;
+  }
+  .tc-feat-header:hover { background: var(--background-primary-alt); }
+  .tc-feat-title {
+    font-size: 12px;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .tc-feat-meta { display: flex; align-items: center; gap: 8px; }
+  .tc-feat-badge {
+    font-size: 10px;
+    color: var(--text-muted);
+    background: var(--background-primary);
+    border-radius: 10px;
+    padding: 2px 7px;
+  }
+  .tc-feat-chevron {
+    font-size: 10px;
+    color: var(--text-muted);
+    transition: transform 0.15s;
+  }
+  .tc-feat-group--open .tc-feat-chevron { transform: rotate(90deg); }
+  .tc-feat-body { display: none; }
+  .tc-feat-group--open .tc-feat-body { display: block; }
+  .tc-feat-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 8px 14px;
+    border-bottom: 1px solid var(--background-secondary);
+    gap: 12px;
+  }
+  .tc-feat-row:last-child { border-bottom: none; }
+  .tc-feat-info { flex: 1; }
+  .tc-feat-name { font-size: 12px; color: var(--text-normal); }
+  .tc-feat-desc { font-size: 10px; color: var(--text-muted); margin-top: 2px; }
+
+  /* Toggle switch */
+  .tc-toggle {
+    width: 30px; height: 17px;
+    border-radius: 9px;
+    background: var(--background-modifier-border);
+    position: relative;
+    flex-shrink: 0;
+    cursor: pointer;
+    transition: background 0.12s;
+  }
+  .tc-toggle--on { background: #e5b32a; }
+  .tc-toggle::after {
+    content: '';
+    width: 13px; height: 13px;
+    border-radius: 50%;
+    background: #fff;
+    position: absolute;
+    top: 2px; left: 2px;
+    transition: left 0.12s;
+  }
+  .tc-toggle--on::after { left: 15px; }
+
+  .tc-feat-select {
+    font-size: 11px;
+    color: var(--text-normal);
+    background: var(--background-secondary);
+    border: 1px solid var(--background-modifier-border);
+    border-radius: 5px;
+    padding: 4px 8px;
+    min-width: 90px;
+  }
+
+  /* Tab panels */
+  .tc-tab-panel { display: none; }
+  .tc-tab-panel.active { display: block; }
+
+  .swatch-section-gap { margin-top: 4px; }
+</style>
+</head>
+<body>
+
+<div class="obsidian-settings">
+  <div class="settings-header">
+    <div class="settings-header-title">Tegenlicht Controls</div>
+  </div>
+
+  <div class="tc-settings">
+
+    <!-- Tab bar -->
+    <div class="tc-tab-bar">
+      <button class="tc-tab tc-tab--active" onclick="switchTab('appearance', this)">Appearance</button>
+      <button class="tc-tab" onclick="switchTab('typography', this)">Typography</button>
+      <button class="tc-tab" onclick="switchTab('layout', this)">Layout</button>
+      <button class="tc-tab" onclick="switchTab('features', this)">Features</button>
+    </div>
+
+    <!-- ══ APPEARANCE ══ -->
+    <div class="tc-tab-panel active" id="panel-appearance">
+
+      <div class="tc-section-title">Dark Flavour</div>
+      <div class="tc-swatch-grid" id="dark-base-grid">
+        <!-- populated by JS -->
+      </div>
+
+      <label class="tc-extend-row">
+        <input type="checkbox" id="ext-dark-toggle" onchange="toggleExtended('dark')">
+        Show extended dark flavours
+      </label>
+
+      <div class="tc-swatch-grid tc-extended" id="dark-ext-grid"></div>
+      <div id="dark-ext-gap" class="swatch-section-gap" style="display:none;height:12px"></div>
+
+      <div class="tc-section-title">Light Flavour</div>
+      <div class="tc-swatch-grid" id="light-base-grid"></div>
+
+      <label class="tc-extend-row">
+        <input type="checkbox" id="ext-light-toggle" onchange="toggleExtended('light')">
+        Show extended light flavours
+      </label>
+
+      <div class="tc-swatch-grid tc-extended" id="light-ext-grid"></div>
+      <div id="light-ext-gap" class="swatch-section-gap" style="display:none;height:12px"></div>
+
+      <div class="tc-section-title">Accent Colour</div>
+      <div class="tc-accent-row" id="accent-row">
+        <!-- populated by JS -->
+      </div>
+    </div>
+
+    <!-- ══ TYPOGRAPHY ══ -->
+    <div class="tc-tab-panel" id="panel-typography">
+      <div class="tc-typo-wrap">
+        <div class="tc-typo-controls">
+          <div class="tc-section-title">Headings</div>
+          <!-- sliders populated by JS -->
+        </div>
+        <div class="tc-typo-preview">
+          <h1>Heading 1</h1>
+          <h2>Heading 2</h2>
+          <h3>Heading 3</h3>
+          <h4>Heading 4</h4>
+          <h5>Heading 5</h5>
+          <h6>Heading 6</h6>
+          <p>Body text — the quick brown fox jumps over the lazy dog.</p>
+          <ul><li>First item</li><li>Second item</li><li>Third item</li></ul>
+          <p class="tc-preview-hint">Updates as you drag sliders</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══ LAYOUT ══ -->
+    <div class="tc-tab-panel" id="panel-layout">
+      <!-- populated by JS -->
+    </div>
+
+    <!-- ══ FEATURES ══ -->
+    <div class="tc-tab-panel" id="panel-features">
+      <!-- populated by JS -->
+    </div>
+
+  </div><!-- /tc-settings -->
+</div><!-- /obsidian-settings -->
+
+<script>
+// ── Data ──────────────────────────────────────────────────────────────────
+const DARK_BASE = [
+  { label:"Mocha",     cls:"ctp-mocha",     base:"#1e1e2e", surface:"#313244", accent:"#e5b32a" },
+  { label:"Mocha Old", cls:"ctp-mocha-old", base:"#1e1e2e", surface:"#45475a", accent:"#cba6f7" },
+  { label:"Macchiato", cls:"ctp-macchiato", base:"#24273a", surface:"#363a4f", accent:"#f5a97f" },
+  { label:"Frappé",    cls:"ctp-frappe",    base:"#303446", surface:"#414559", accent:"#ca9ee6" },
+  { label:"Rosé Pine", cls:"ctp-rose-pine", base:"#191724", surface:"#403d52", accent:"#f6c177" },
+];
+const DARK_EXTENDED = [
+  { label:"AMOLED",       base:"#000000", surface:"#1a1a1a", accent:"#cba6f7" },
+  { label:"Atom",         base:"#282c34", surface:"#353b45", accent:"#e5c07b" },
+  { label:"Biscuit",      base:"#1c1917", surface:"#292524", accent:"#d4a96a" },
+  { label:"Coffee",       base:"#221a0f", surface:"#2e2015", accent:"#c8945a" },
+  { label:"Dracula",      base:"#282a36", surface:"#44475a", accent:"#ff79c6" },
+  { label:"Everforest",   base:"#2d353b", surface:"#343f44", accent:"#a7c080" },
+  { label:"Flexoki",      base:"#1c1b1a", surface:"#282726", accent:"#d0a215" },
+  { label:"Generic",      base:"#1a1a2e", surface:"#16213e", accent:"#0f3460" },
+  { label:"Gruvbox",      base:"#282828", surface:"#3c3836", accent:"#d79921" },
+  { label:"Kanagawa",     base:"#1f1f28", surface:"#2a2a37", accent:"#957fb8" },
+  { label:"Material Mint",base:"#263238", surface:"#314549", accent:"#80cbc4" },
+  { label:"Nord",         base:"#2e3440", surface:"#3b4252", accent:"#88c0d0" },
+  { label:"Nord Darker",  base:"#242831", surface:"#2e3440", accent:"#5e81ac" },
+  { label:"Notion",       base:"#191919", surface:"#202020", accent:"#e5b32a" },
+  { label:"Rosebox",      base:"#1a1626", surface:"#241e33", accent:"#e4a0bc" },
+  { label:"Royal Velvet", base:"#1a0a2e", surface:"#2a1040", accent:"#c084fc" },
+  { label:"Solarized",    base:"#002b36", surface:"#073642", accent:"#268bd2" },
+  { label:"Thorns",       base:"#1a1a1a", surface:"#242424", accent:"#b5e853" },
+];
+const LIGHT_BASE = [
+  { label:"Latte",     cls:"ctp-latte",          base:"#eff1f5", surface:"#ccd0da", accent:"#e5b32a" },
+  { label:"Rosé Pine", cls:"ctp-rose-pine-dawn", base:"#faf4ed", surface:"#f2e9e1", accent:"#ea9d34" },
+];
+const LIGHT_EXTENDED = [
+  { label:"Atom",          base:"#f8f8f8", surface:"#e8e8e8", accent:"#e5c07b" },
+  { label:"Everforest",    base:"#fdf6e3", surface:"#efecd7", accent:"#8da101" },
+  { label:"Gruvbox",       base:"#fbf1c7", surface:"#ebdbb2", accent:"#b57614" },
+  { label:"Luminescence",  base:"#f5f5f5", surface:"#e0e0e0", accent:"#4a90e2" },
+  { label:"Material Mint", base:"#eceff1", surface:"#cfd8dc", accent:"#80cbc4" },
+  { label:"Nord",          base:"#eceff4", surface:"#e5e9f0", accent:"#5e81ac" },
+  { label:"Notion",        base:"#ffffff", surface:"#f7f6f3", accent:"#e5b32a" },
+  { label:"Sandy Beaches", base:"#fdf6e3", surface:"#f0e6c8", accent:"#c47a0e" },
+  { label:"Solarized",     base:"#fdf6e3", surface:"#eee8d5", accent:"#268bd2" },
+];
+const ACCENT_PRESETS = [
+  { label:"Yellow", hex:"#e5b32a" },
+  { label:"Mauve",  hex:"#cba6f7" },
+  { label:"Blue",   hex:"#89b4fa" },
+  { label:"Green",  hex:"#a6e3a1" },
+  { label:"Red",    hex:"#f38ba8" },
+];
+
+let activeDark  = 'ctp-mocha';
+let activeLight = 'ctp-latte';
+let activeAccent = '#e5b32a';
+
+// ── Render helpers ────────────────────────────────────────────────────────
+function makeSwatch(f, active, onClick) {
+  const sw = document.createElement('div');
+  sw.className = 'tc-swatch' + (f.cls === active ? ' tc-swatch--active' : '');
+  sw.style.background = `linear-gradient(135deg, ${f.base} 60%, ${f.surface} 60%)`;
+  sw.title = f.label;
+  const dot = document.createElement('div');
+  dot.className = 'tc-swatch-dot';
+  dot.style.background = f.accent;
+  const lbl = document.createElement('span');
+  lbl.className = 'tc-swatch-label';
+  lbl.textContent = f.label;
+  sw.appendChild(dot);
+  sw.appendChild(lbl);
+  sw.addEventListener('click', () => onClick(f.cls || f.label, sw));
+  return sw;
+}
+
+function renderGrid(containerId, flavours, getActive, setActive) {
+  const container = document.getElementById(containerId);
+  container.innerHTML = '';
+  flavours.forEach(f => {
+    container.appendChild(makeSwatch(f, getActive(), (cls, el) => {
+      setActive(cls);
+      container.querySelectorAll('.tc-swatch').forEach(s => s.classList.remove('tc-swatch--active'));
+      el.classList.add('tc-swatch--active');
+    }));
+  });
+}
+
+function buildDarkGrids() {
+  renderGrid('dark-base-grid', DARK_BASE, () => activeDark, v => activeDark = v);
+  renderGrid('dark-ext-grid', DARK_EXTENDED, () => activeDark, v => activeDark = v);
+  renderGrid('light-base-grid', LIGHT_BASE, () => activeLight, v => activeLight = v);
+  renderGrid('light-ext-grid', LIGHT_EXTENDED, () => activeLight, v => activeLight = v);
+}
+
+function buildAccentRow() {
+  const row = document.getElementById('accent-row');
+  row.innerHTML = '';
+  ACCENT_PRESETS.forEach(({ label, hex }) => {
+    const dot = document.createElement('div');
+    dot.className = 'tc-accent-dot' + (hex === activeAccent ? ' tc-accent-dot--active' : '');
+    dot.style.background = hex;
+    dot.title = label;
+    dot.addEventListener('click', () => {
+      activeAccent = hex;
+      row.querySelectorAll('.tc-accent-dot').forEach(d => d.classList.remove('tc-accent-dot--active'));
+      dot.classList.add('tc-accent-dot--active');
+      document.documentElement.style.setProperty('--color-accent', hex);
+    });
+    row.appendChild(dot);
+  });
+  // Custom dot
+  const custom = document.createElement('div');
+  custom.className = 'tc-accent-dot tc-accent-dot--custom';
+  custom.title = 'Custom colour';
+  const colorInput = document.createElement('input');
+  colorInput.type = 'color';
+  colorInput.value = activeAccent;
+  colorInput.style.display = 'none';
+  colorInput.addEventListener('input', () => {
+    activeAccent = colorInput.value;
+    custom.style.background = colorInput.value;
+    row.querySelectorAll('.tc-accent-dot:not(.tc-accent-dot--custom)').forEach(d => d.classList.remove('tc-accent-dot--active'));
+    document.documentElement.style.setProperty('--color-accent', colorInput.value);
+  });
+  custom.addEventListener('click', () => colorInput.click());
+  row.appendChild(custom);
+  row.appendChild(colorInput);
+}
+
+function toggleExtended(kind) {
+  const grid = document.getElementById(`${kind}-ext-grid`);
+  const gap  = document.getElementById(`${kind}-ext-gap`);
+  const cb   = document.getElementById(`ext-${kind}-toggle`);
+  grid.classList.toggle('visible', cb.checked);
+  gap.style.display = cb.checked ? 'block' : 'none';
+}
+
+// ── Typography tab ────────────────────────────────────────────────────────
+const HEADING_SLIDERS = [
+  { key:'--h1-size', label:'H1', min:0.5, max:3.0, step:0.05, def:2.0,   unit:'em' },
+  { key:'--h2-size', label:'H2', min:0.5, max:3.0, step:0.05, def:1.6,   unit:'em' },
+  { key:'--h3-size', label:'H3', min:0.5, max:3.0, step:0.05, def:1.3,   unit:'em' },
+  { key:'--h4-size', label:'H4', min:0.5, max:3.0, step:0.05, def:1.1,   unit:'em' },
+  { key:'--h5-size', label:'H5', min:0.5, max:3.0, step:0.05, def:1.0,   unit:'em' },
+  { key:'--h6-size', label:'H6', min:0.5, max:3.0, step:0.05, def:0.9,   unit:'em' },
+];
+const SPACING_SLIDERS = [
+  { key:'--list-indent',  label:'List indent',  min:0.5, max:4.0, step:0.05,  def:2.0,   unit:'em' },
+  { key:'--list-spacing', label:'List spacing', min:0,   max:0.5, step:0.005, def:0.075, unit:'em' },
+];
+
+function buildSlider(cfg) {
+  const row = document.createElement('div');
+  row.className = 'tc-slider-row';
+  const lbl = document.createElement('span');
+  lbl.className = 'tc-slider-label';
+  lbl.textContent = cfg.label;
+  const slider = document.createElement('input');
+  slider.type = 'range';
+  slider.min = cfg.min; slider.max = cfg.max; slider.step = cfg.step; slider.value = cfg.def;
+  const badge = document.createElement('span');
+  badge.className = 'tc-slider-value';
+  badge.textContent = `${cfg.def}${cfg.unit}`;
+  slider.addEventListener('input', () => {
+    const v = parseFloat(slider.value);
+    badge.textContent = `${v}${cfg.unit}`;
+    document.documentElement.style.setProperty(cfg.key, `${v}${cfg.unit}`);
+  });
+  const reset = document.createElement('button');
+  reset.className = 'tc-reset-btn';
+  reset.textContent = '↺';
+  reset.title = 'Reset to default';
+  reset.addEventListener('click', () => {
+    slider.value = cfg.def;
+    badge.textContent = `${cfg.def}${cfg.unit}`;
+    document.documentElement.style.setProperty(cfg.key, `${cfg.def}${cfg.unit}`);
+  });
+  row.append(lbl, slider, badge, reset);
+  return row;
+}
+
+function buildTypoTab() {
+  const ctrl = document.querySelector('.tc-typo-controls');
+  HEADING_SLIDERS.forEach(c => ctrl.appendChild(buildSlider(c)));
+  const sp = document.createElement('div');
+  sp.className = 'tc-section-title';
+  sp.textContent = 'Spacing';
+  ctrl.appendChild(sp);
+  SPACING_SLIDERS.forEach(c => ctrl.appendChild(buildSlider(c)));
+}
+
+// ── Layout tab ────────────────────────────────────────────────────────────
+const LAYOUT_GROUPS = [
+  { title:'Reading View', items:[
+    { label:'Line width',    min:400, max:1200, step:10, def:700,  unit:'px' },
+    { label:'Margins',       min:0,   max:120,  step:1,  def:40,   unit:'px' },
+    { label:'Preview width', min:40,  max:100,  step:1,  def:88,   unit:'%'  },
+  ]},
+  { title:'Cards & Borders', items:[
+    { label:'Card radius',    min:0, max:24, step:1, def:8, unit:'px' },
+    { label:'Border radius',  min:0, max:20, step:1, def:6, unit:'px' },
+    { label:'Border padding', min:0, max:20, step:1, def:4, unit:'px' },
+  ]},
+  { title:'Tables', items:[
+    { label:'Table width', min:40, max:100, step:1, def:100, unit:'%' },
+  ]},
+];
+
+function buildLayoutTab() {
+  const panel = document.getElementById('panel-layout');
+  LAYOUT_GROUPS.forEach(g => {
+    const grp = document.createElement('div');
+    grp.className = 'tc-layout-group';
+    const h = document.createElement('div');
+    h.className = 'tc-section-title';
+    h.textContent = g.title;
+    grp.appendChild(h);
+    g.items.forEach(c => {
+      const row = document.createElement('div');
+      row.className = 'tc-slider-row';
+      const lbl = document.createElement('span');
+      lbl.className = 'tc-slider-label';
+      lbl.textContent = c.label;
+      const sl = document.createElement('input');
+      sl.type='range'; sl.min=c.min; sl.max=c.max; sl.step=c.step; sl.value=c.def;
+      const badge = document.createElement('span');
+      badge.className = 'tc-slider-value';
+      badge.textContent = `${c.def}${c.unit}`;
+      sl.addEventListener('input', () => badge.textContent = `${parseFloat(sl.value)}${c.unit}`);
+      const reset = document.createElement('button');
+      reset.className='tc-reset-btn'; reset.textContent='↺';
+      reset.addEventListener('click', () => { sl.value=c.def; badge.textContent=`${c.def}${c.unit}`; });
+      row.append(lbl, sl, badge, reset);
+      grp.appendChild(row);
+    });
+    panel.appendChild(grp);
+  });
+}
+
+// ── Features tab ──────────────────────────────────────────────────────────
+const FEATURE_GROUPS = [
+  { icon:'🗂', label:'Workspace', items:[
+    { label:'Rainbow file browser', desc:'Colour-coded folders in the file tree', on:false },
+    { label:'File icons',           desc:'Icons per file type', on:false },
+    { label:'Collapse folder icons',desc:'Custom icons for collapsed folders', on:true },
+    { label:'Colorful frame',       desc:'Accent-coloured window frame', on:false },
+    { label:'Custom vault title',   on:true },
+  ]},
+  { icon:'🧩', label:'Elements', items:[
+    { label:'Custom checkboxes', on:true },
+    { label:'Cards (minimal)',   desc:'Card-style note previews', on:false },
+    { label:'Rainbow tags',      on:true },
+    { label:'Metadata button',   on:false },
+    { label:'Metadata mods',     desc:'Frontmatter display tweaks', on:true },
+  ]},
+  { icon:'✏️', label:'Editor', items:[
+    { label:'Inline title',          desc:'Show note title inline at the top', on:true },
+    { label:'Active line highlight', desc:'Highlight the current cursor line', on:false },
+    { label:'Codeblock line numbers',desc:'Line numbers inside code blocks', on:true },
+    { label:'Floating title',        desc:'Float the vault title in the nav', on:false },
+    { label:'Tab style', select: ['Default','Depth','Minimalistic','Safari (Animated)','Safari (Vanilla)'] },
+  ]},
+  { icon:'👁', label:'Show / Hide', items:[
+    { label:'Ribbon',      on:true },
+    { label:'Scrollbars',  on:false },
+    { label:'Status bar',  on:true },
+    { label:'Vault name',  on:true },
+  ]},
+  { icon:'🔌', label:'Plugin support', items:[
+    { label:'ITS Theme callouts', on:true },
+    { label:'Kanban',  on:false },
+    { label:'Calendar',on:false },
+  ]},
+];
+
+function buildFeaturesTab() {
+  const panel = document.getElementById('panel-features');
+  FEATURE_GROUPS.forEach(g => {
+    const grp = document.createElement('div');
+    grp.className = 'tc-feat-group tc-feat-group--open';
+    const hdr = document.createElement('div');
+    hdr.className = 'tc-feat-header';
+    const ttl = document.createElement('div');
+    ttl.className = 'tc-feat-title';
+    ttl.innerHTML = `<span>${g.icon}</span><span>${g.label}</span>`;
+    const meta = document.createElement('div');
+    meta.className = 'tc-feat-meta';
+    const badge = document.createElement('span');
+    badge.className = 'tc-feat-badge';
+    badge.textContent = `${g.items.length} settings`;
+    const chev = document.createElement('span');
+    chev.className = 'tc-feat-chevron';
+    chev.textContent = '▶';
+    meta.append(badge, chev);
+    hdr.append(ttl, meta);
+    hdr.addEventListener('click', () => grp.classList.toggle('tc-feat-group--open'));
+    const body = document.createElement('div');
+    body.className = 'tc-feat-body';
+    g.items.forEach(item => {
+      const row = document.createElement('div');
+      row.className = 'tc-feat-row';
+      if (item.select) {
+        const info = document.createElement('span');
+        info.className = 'tc-feat-name';
+        info.textContent = item.label;
+        const sel = document.createElement('select');
+        sel.className = 'tc-feat-select';
+        item.select.forEach(o => sel.appendChild(new Option(o, o)));
+        row.append(info, sel);
+      } else {
+        const info = document.createElement('div');
+        info.className = 'tc-feat-info';
+        const name = document.createElement('div');
+        name.className = 'tc-feat-name';
+        name.textContent = item.label;
+        info.appendChild(name);
+        if (item.desc) {
+          const desc = document.createElement('div');
+          desc.className = 'tc-feat-desc';
+          desc.textContent = item.desc;
+          info.appendChild(desc);
+        }
+        const tog = document.createElement('div');
+        tog.className = 'tc-toggle' + (item.on ? ' tc-toggle--on' : '');
+        tog.addEventListener('click', () => tog.classList.toggle('tc-toggle--on'));
+        row.append(info, tog);
+      }
+      body.appendChild(row);
+    });
+    grp.append(hdr, body);
+    panel.appendChild(grp);
+  });
+}
+
+// ── Tab switching ─────────────────────────────────────────────────────────
+function switchTab(id, btn) {
+  document.querySelectorAll('.tc-tab-panel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.tc-tab').forEach(b => b.classList.remove('tc-tab--active'));
+  document.getElementById('panel-' + id).classList.add('active');
+  btn.classList.add('tc-tab--active');
+}
+
+// ── Init ─────────────────────────────────────────────────────────────────
+buildDarkGrids();
+buildAccentRow();
+buildTypoTab();
+buildLayoutTab();
+buildFeaturesTab();
+</script>
+</body>
+</html>
