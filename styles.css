@@ -1458,8 +1458,10 @@
 /* Scope: Live Preview source view + Reading view + the in-settings
    mini-Obsidian preview. Deliberately NOT scoped to `.cm-editor` alone
    so we don't accidentally hit raw CodeMirror instances elsewhere
-   (e.g. embedded code blocks). */
-body.tc-fm-boxed .tc-mini-obsidian .mini-fm,
+   (e.g. embedded code blocks). The preview now uses a real
+   `.metadata-container` so it inherits Obsidian's own Properties CSS
+   and looks pixel-identical to a real note's Properties panel. */
+body.tc-fm-boxed .tc-mini-obsidian .metadata-container,
 body.tc-fm-boxed .markdown-source-view.is-live-preview .metadata-container,
 body.tc-fm-boxed .markdown-reading-view .metadata-container {
   margin: 6px 0 18px !important;
@@ -1677,255 +1679,78 @@ body.tc-tags-solid .tc-settings .tc-mini-obsidian .mini-fm-pill:hover .mini-fm-p
   color: var(--text-on-accent, #fff) !important;
 }
 
-/* Header — label first, count next, chevron pushed flush RIGHT.
-   Flex order is used to flip the chevron's DOM position (it's still
-   first in the markup for keyboard / screen-reader order). */
-.tc-settings .tc-mini-obsidian .mini-fm-header {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  padding: 3px 0 6px 0;
-  border-radius: 4px;
-  color: var(--text-muted);
+/* ── Preview scale-down ──────────────────────────────────────────────
+   The preview Properties panel now uses Obsidian's own class names
+   throughout (.metadata-container / -properties-heading / -property /
+   .multi-select-pill). That means Obsidian paints it natively — every
+   CSS change here is just fitting a real Properties panel into a
+   smaller settings-pane-sized container. */
+.tc-settings .tc-mini-obsidian .metadata-container {
+  font-size: 11px;
+  margin: 4px 0 12px !important;
+  padding: 0 !important;
+}
+.tc-settings .tc-mini-obsidian .metadata-properties-heading {
+  padding: 2px 4px !important;
+  min-height: 22px;
+}
+.tc-settings .tc-mini-obsidian .metadata-properties-title {
   font-size: 11px;
   font-weight: 500;
-  cursor: pointer;
-  user-select: none;
-  transition: color 0.12s ease, background 0.12s ease;
-}
-.tc-settings .tc-mini-obsidian .mini-fm-header:hover {
-  color: var(--text-normal);
-  background: color-mix(in srgb, var(--background-modifier-hover) 60%, transparent);
-}
-.tc-settings .tc-mini-obsidian .mini-fm-header:hover .mini-fm-label {
-  color: var(--text-normal);
-}
-/* Label sits first in flow (visually leftmost). */
-.tc-settings .tc-mini-obsidian .mini-fm-label { order: 1; }
-.tc-settings .tc-mini-obsidian .mini-fm-count { order: 2; }
-/* Chevron pushed FLUSH RIGHT — `margin-left: auto` consumes all the
-   slack between the label/count and the right edge so the chevron
-   anchors to the panel's right side regardless of header width. */
-.tc-settings .tc-mini-obsidian .mini-fm-chev {
-  order: 3;
-  margin-left: auto;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 16px;
-  height: 16px;
-  flex-shrink: 0;
   color: var(--text-muted);
-  transition: transform 0.18s cubic-bezier(0.4, 0.0, 0.2, 1);
 }
-.tc-settings .tc-mini-obsidian .mini-fm-chev svg {
-  width: 14px;
-  height: 14px;
+.tc-settings .tc-mini-obsidian .metadata-property {
+  padding: 2px 0 !important;
+  min-height: 22px !important;
 }
-.tc-settings .tc-mini-obsidian .mini-fm-label {
-  letter-spacing: 0;
-  text-transform: none;
+.tc-settings .tc-mini-obsidian .metadata-property-key {
+  min-width: 80px;
+  max-width: 30%;
 }
-.tc-settings .tc-mini-obsidian .mini-fm-count {
-  /* Pushed to the far right of the flex row. Tabular numerals so the
-     chip's width is stable as values change. */
-  margin-left: auto;
-  font-variant-numeric: tabular-nums;
+.tc-settings .tc-mini-obsidian .metadata-property-icon {
+  width: 16px !important;
+  height: 16px !important;
+  color: var(--text-muted);
+}
+.tc-settings .tc-mini-obsidian .metadata-property-icon svg {
+  width: 14px !important;
+  height: 14px !important;
+}
+.tc-settings .tc-mini-obsidian .metadata-property-key-input {
+  font-size: 11px !important;
+  color: var(--text-muted) !important;
+  pointer-events: none; /* preview only — don't compete with settings focus */
+}
+.tc-settings .tc-mini-obsidian .metadata-property-value {
+  font-size: 11px !important;
+  color: var(--text-normal);
+}
+.tc-settings .tc-mini-obsidian .multi-select-pill {
+  font-size: 10.5px !important;
+  padding: 1px 2px 1px 8px !important;
+  min-height: 18px !important;
+}
+.tc-settings .tc-mini-obsidian .multi-select-pill-remove-button svg {
+  width: 11px !important;
+  height: 11px !important;
+}
+.tc-settings .tc-mini-obsidian .metadata-add-button {
+  font-size: 10.5px !important;
+  padding: 4px !important;
   color: var(--text-faint);
-  font-size: 10px;
-  padding-right: 2px;
 }
-
-/* Collapsed: chevron rotates from ▾ to ▸, rows hide, and the header
-   gets tighter bottom padding (no need to leave space for the gap to
-   the rows when there are none). The whole panel becomes a clean
-   single-line affordance you can re-click to expand. */
-.tc-settings .tc-mini-obsidian .mini-fm--collapsed .mini-fm-chev {
-  transform: rotate(-90deg);
+.tc-settings .tc-mini-obsidian .metadata-add-button svg {
+  width: 12px !important;
+  height: 12px !important;
 }
-.tc-settings .tc-mini-obsidian .mini-fm--collapsed .mini-fm-rows {
-  display: none;
-}
-.tc-settings .tc-mini-obsidian .mini-fm--collapsed .mini-fm-header {
-  padding-bottom: 4px;
-  margin-bottom: 0;
-}
-/* Boxed mode + collapsed: shrink the panel padding so the header
-   doesn't feel like it's floating in too much space. */
-body.tc-fm-boxed .tc-mini-obsidian .mini-fm--collapsed {
-  padding-top: 6px !important;
-  padding-bottom: 6px !important;
-}
-.tc-settings .tc-mini-obsidian .mini-fm-label {
-  color: var(--text-muted);
-  font-weight: 500;
-  letter-spacing: 0;
-  text-transform: none;
-}
-.tc-settings .tc-mini-obsidian .mini-fm-count {
-  margin-left: auto;
-  color: var(--text-faint);
-  font-size: 9.5px;
-  font-variant-numeric: tabular-nums;
-}
-
-/* Rows — match Obsidian's .metadata-property geometry: icon chip 24px,
-   key column 30% (capped), value column flex-1. Hover subtly lifts the
-   row so the panel feels alive, just like the real one. */
-.tc-settings .tc-mini-obsidian .mini-fm-rows {
-  display: flex;
-  flex-direction: column;
-}
-.tc-settings .tc-mini-obsidian .mini-fm-row {
-  display: grid;
-  grid-template-columns: 22px minmax(70px, 30%) 1fr;
-  align-items: center;
-  gap: 8px;
-  padding: 3px 0;
-  min-height: 24px;
-  border-radius: 3px;
-  transition: background 0.1s ease;
-}
-.tc-settings .tc-mini-obsidian .mini-fm-row:hover {
-  background: color-mix(in srgb, var(--background-modifier-hover) 50%, transparent);
-}
-
-/* Icon chip — renders the real Lucide SVG from setIcon(). Icon colour
-   is muted by default; per-type rules below tint it subtly so each row
-   is scannable at a glance without the colour dominating. */
-.tc-settings .tc-mini-obsidian .mini-fm-icon {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 22px;
-  height: 22px;
-  color: var(--text-muted);
-  flex-shrink: 0;
-}
-.tc-settings .tc-mini-obsidian .mini-fm-icon svg {
-  width: 15px;
-  height: 15px;
-  stroke-width: 1.8;
-}
-.tc-settings .tc-mini-obsidian .mini-fm-row:hover .mini-fm-icon {
-  color: var(--text-normal);
-}
-/* Per-type tint on the icon stroke — same palette as the code-block
-   syntax tokens so the two previews speak one visual language. */
-.tc-settings .tc-mini-obsidian .mini-fm-row[data-type="list"]    .mini-fm-icon { color: var(--color-pink,   #f5c2e7); }
-.tc-settings .tc-mini-obsidian .mini-fm-row[data-type="date"]    .mini-fm-icon { color: var(--color-blue,   #89b4fa); }
-.tc-settings .tc-mini-obsidian .mini-fm-row[data-type="number"]  .mini-fm-icon { color: var(--color-orange, #fab387); }
-.tc-settings .tc-mini-obsidian .mini-fm-row[data-type="boolean"] .mini-fm-icon { color: var(--color-green,  #a6e3a1); }
-.tc-settings .tc-mini-obsidian .mini-fm-row[data-type="link"]    .mini-fm-icon { color: var(--color-mauve,  #cba6f7); }
-
-/* Key — muted text, same font as the interface, just below body size.
-   Obsidian's live panel uses .metadata-property-key; we match its tone. */
-.tc-settings .tc-mini-obsidian .mini-fm-key {
-  font-size: 11px;
-  color: var(--text-muted);
-  font-family: var(--font-interface, inherit);
-  letter-spacing: 0;
-  overflow: hidden;
-  white-space: nowrap;
-  text-overflow: ellipsis;
-}
-
-/* Value cell — the right column takes whatever remains. Type-aware
-   children (text, date, number, link) style separately below. */
-.tc-settings .tc-mini-obsidian .mini-fm-value {
-  min-width: 0;
-  font-size: 11px;
-  color: var(--text-normal);
-  font-family: var(--font-interface, inherit);
-  display: flex;
-  align-items: center;
-  gap: 4px;
-}
-.tc-settings .tc-mini-obsidian .mini-fm-value-text {
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  display: block;
-}
-.tc-settings .tc-mini-obsidian .mini-fm-value-num,
-.tc-settings .tc-mini-obsidian .mini-fm-value-date {
-  font-variant-numeric: tabular-nums;
-  color: var(--text-normal);
-}
-.tc-settings .tc-mini-obsidian .mini-fm-value-link {
-  color: var(--link-color, var(--color-accent));
-  text-decoration: underline;
-  text-decoration-color: color-mix(in srgb, var(--link-color, var(--color-accent)) 40%, transparent);
-  text-underline-offset: 2px;
-}
-
-/* List (tags, aliases) — pill chips wrapping on overflow. Matches
-   Obsidian's .multi-select-pill class shape: rounded 100px, a neutral
-   muted tone, hint of accent on the border. */
-.tc-settings .tc-mini-obsidian .mini-fm-value-list {
-  flex-wrap: wrap;
-  gap: 4px;
-}
-.tc-settings .tc-mini-obsidian .mini-fm-pill {
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-  padding: 1px 6px 1px 8px;
-  font-size: 10.5px;
-  line-height: 1.4;
-  border-radius: 100px;
-  background: var(--background-secondary);
-  color: var(--text-normal);
-  border: 1px solid var(--background-modifier-border);
-  white-space: nowrap;
-  transition: background 0.15s ease, border-color 0.15s ease;
-}
-
-/* Mirror real-Obsidian multi-select-pill "× remove" icon — purely
-   visual in the preview (no click handler). Sits at 80% opacity, goes
-   full-accent on hover for parity with the native interaction. */
-.tc-settings .tc-mini-obsidian .mini-fm-pill-x {
-  opacity: 0.55;
-  font-size: 12px;
-  line-height: 1;
-  margin-left: 2px;
-  color: var(--text-muted);
-  transition: opacity 0.15s ease, color 0.15s ease;
-}
-.tc-settings .tc-mini-obsidian .mini-fm-pill:hover .mini-fm-pill-x {
-  opacity: 1;
-  color: var(--color-accent);
-}
-
-/* Boolean toggle — mini switch matching Obsidian's native Toggle
-   component (used in the real Properties panel for `type: checkbox`). */
-.tc-settings .tc-mini-obsidian .mini-fm-toggle {
-  display: inline-block;
-  position: relative;
-  width: 24px;
-  height: 14px;
-  border-radius: 100px;
-  background: var(--background-modifier-border);
-  transition: background 0.15s ease;
-  vertical-align: middle;
-  flex-shrink: 0;
-}
-.tc-settings .tc-mini-obsidian .mini-fm-toggle-thumb {
-  position: absolute;
-  top: 1px;
-  left: 1px;
-  width: 12px;
-  height: 12px;
-  border-radius: 50%;
-  background: #ffffff;
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
-  transition: left 0.15s ease;
-}
-.tc-settings .tc-mini-obsidian .mini-fm-toggle[data-state="on"] {
-  background: var(--color-accent);
-}
-.tc-settings .tc-mini-obsidian .mini-fm-toggle[data-state="on"] .mini-fm-toggle-thumb {
-  left: 11px;
+/* Neutralize pointer handlers in the preview — the preview is visual
+   only; no accidental input focus should happen when Tom clicks a row
+   while inspecting the settings pane. Heading click (collapse/expand)
+   stays live because it's wired in buildEditingPreview. */
+.tc-settings .tc-mini-obsidian .metadata-property-value input,
+.tc-settings .tc-mini-obsidian .metadata-property-key-input {
+  pointer-events: none !important;
+  user-select: none !important;
 }
 
 /* ════════════════════════════════════════════════════════════════════════

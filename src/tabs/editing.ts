@@ -99,6 +99,24 @@ export function build(
       .onChange(async v => { s.codeblockLineNumbers = v; await onChange(); })
     );
 
+  // Tab style — same control Features tab exposes, surfaced here too
+  // since tab-bar rendering is part of the editing experience. Both
+  // locations write to the same `tabStyle` setting.
+  buildSegmentSetting(
+    codingBody,
+    "Tab style",
+    "How editor tabs render",
+    [
+      { label: "Default",  value: "anp-default-tab"         },
+      { label: "Depth",    value: "anp-depth-tab-toggle"    },
+      { label: "Minimal",  value: "anp-mini-tab-toggle"     },
+      { label: "Safari",   value: "anp-alternate-tab-toggle" },
+      { label: "Vanilla",  value: "anp-safari-tab-toggle"   },
+    ],
+    s.tabStyle || "anp-default-tab",
+    async v => { s.tabStyle = v; await onChange(); },
+  );
+
   // ── Properties accordion — Properties panel styling
   //
   // First real control: "Boxed Properties panel" mirrors what the

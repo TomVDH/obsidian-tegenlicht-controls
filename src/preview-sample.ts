@@ -124,10 +124,14 @@ export function buildTypographyPreview(parent: HTMLElement): HTMLElement {
 // in the real editor, not a text-glyph imitation.
 
 /** Seven representative property rows + their Lucide icon names.
- *  Matches Obsidian's own type → icon mapping so the preview is visually
- *  indistinguishable from the real Properties panel for these types. */
+ *  Uses Obsidian's native class names and DOM structure throughout so
+ *  the preview is visually indistinguishable from a real Properties
+ *  panel — same selectors, same cascade, same result. Obsidian's own
+ *  CSS paints the baseline look; the plugin's boxed / tag-style
+ *  overrides layer on top exactly as they would in a real note. */
 interface PropertyRow {
-  type: "text" | "list" | "date" | "number" | "boolean" | "link";
+  /** Obsidian's data-property-type value (matters for its native CSS). */
+  type: "text" | "multitext" | "date" | "number" | "checkbox" | "link";
   icon: string;
   key: string;
   build: (valueEl: HTMLElement) => void;
@@ -139,16 +143,24 @@ const EDITING_PROPERTY_ROWS: PropertyRow[] = [
     build: v => v.setText("Lorem ipsum dolor sit amet"),
   },
   {
-    type: "list", icon: "tags", key: "tags",
-    build: v => ["typography", "flavour", "preview"].forEach(t => {
-      // Mirror the real Obsidian tag-pill structure: a label span + an
-      // `×` remove button. Two classes — `.mini-fm-pill` for the preview's
-      // base sizing/spacing, `.multi-select-pill` so it picks up the
-      // boxed-Properties accent treatment when `body.tc-fm-boxed` is on.
-      const pill = v.createSpan({ cls: "mini-fm-pill multi-select-pill" });
-      pill.createSpan({ cls: "mini-fm-pill-text", text: t });
-      pill.createSpan({ cls: "mini-fm-pill-x", text: "×" });
-    }),
+    type: "multitext", icon: "tags", key: "tags",
+    build: v => {
+      // Real-Obsidian multi-select structure: container → pills with
+      // `.multi-select-pill-content` + Lucide-X remove button. Using
+      // Obsidian's own classes means `body.tc-tags-{style}` paints these
+      // pills identically to real note-body tags.
+      const container = v.createDiv("multi-select-container");
+      ["typography", "flavour", "preview"].forEach(t => {
+        const pill = container.createDiv({
+          cls: "multi-select-pill",
+          attr: { tabindex: "0" },
+        });
+        const pillContent = pill.createDiv("multi-select-pill-content");
+        pillContent.createSpan({ text: t });
+        const removeBtn = pill.createDiv("multi-select-pill-remove-button");
+        setIcon(removeBtn, "x");
+      });
+    },
   },
   {
     type: "date", icon: "calendar-days", key: "created",
@@ -163,10 +175,15 @@ const EDITING_PROPERTY_ROWS: PropertyRow[] = [
     build: v => v.setText("3"),
   },
   {
-    type: "boolean", icon: "check-square", key: "done",
+    type: "checkbox", icon: "check-square", key: "done",
     build: v => {
-      const toggle = v.createSpan({ cls: "mini-fm-toggle", attr: { "data-state": "off" } });
-      toggle.createSpan({ cls: "mini-fm-toggle-thumb" });
+      // Obsidian renders boolean properties as a checkbox <input> — match
+      // that so its native styling (and our tc-fm-boxed overrides) reach it.
+      const input = v.createEl("input", {
+        cls: "metadata-input-checkbox",
+        attr: { type: "checkbox" },
+      });
+      input.checked = false;
     },
   },
   {
@@ -217,33 +234,69 @@ export function buildEditingPreview(parent: HTMLElement): HTMLElement {
   tabs.createDiv({ text: "Style Kitchen Sink", cls: "mini-tab active" });
   tabs.createDiv({ text: "Reading list",      cls: "mini-tab" });
 
-  // Properties panel — real Lucide icons via setIcon for every type.
-  // Click the header to collapse / expand the rows (mirrors how
-  // Obsidian's real Properties panel responds to its chevron click).
-  const fm = main.createDiv("mini-fm");
-  const fmHeader = fm.createDiv("mini-fm-header");
-  fmHeader.setAttribute("role", "button");
+  // Properties panel — uses Obsidian's REAL class names throughout so
+  // the preview literally IS a Properties panel as Obsidian would render
+  // it. The `.mini-fm` class stays on the outer div for scope-targeted
+  // sizing/layout in the settings pane; every inner class is Obsidian's
+  // own, which means boxed-Properties CSS, tag-style CSS, and Obsidian's
+  // own metadata CSS all paint the preview exactly as they'd paint a
+  // note. Change a setting → the preview updates in lockstep with what
+  // you'll see in real notes.
+  const fm = main.createDiv("metadata-container mini-fm");
+
+  // Heading — `.metadata-properties-heading` with a `.collapse-indicator`
+  // containing the chevron (the plugin's boxed CSS hides this in boxed
+  // mode and stamps its own via ::after; in non-boxed mode the native
+  // chevron shows normally).
+  const fmHeader = fm.createDiv("metadata-properties-heading");
+  fmHeader.setAttribute("tabindex", "0");
   fmHeader.setAttribute("aria-expanded", "true");
   fmHeader.setAttribute("title", "Click to collapse / expand");
-  const chev = fmHeader.createSpan({ cls: "mini-fm-chev" });
-  setIcon(chev, "chevron-down");
-  fmHeader.createSpan({ cls: "mini-fm-label", text: "Properties" });
-  fmHeader.createSpan({ cls: "mini-fm-count", text: String(EDITING_PROPERTY_ROWS.length) });
+  const chev = fmHeader.createDiv("collapse-indicator collapse-icon");
+  setIcon(chev, "right-triangle");
+  fmHeader.createDiv({ cls: "metadata-properties-title", text: "Properties" });
 
   fmHeader.addEventListener("click", () => {
-    const collapsed = fm.classList.toggle("mini-fm--collapsed");
+    const collapsed = fm.classList.toggle("is-collapsed");
+    fmHeader.classList.toggle("is-collapsed", collapsed);
     fmHeader.setAttribute("aria-expanded", collapsed ? "false" : "true");
   });
 
-  const rows = fm.createDiv("mini-fm-rows");
+  // Content wrapper + properties grid — matches Obsidian's real structure.
+  const content = fm.createDiv("metadata-content");
+  const props = content.createDiv("metadata-properties");
   EDITING_PROPERTY_ROWS.forEach(row => {
-    const rowEl = rows.createDiv({ cls: "mini-fm-row", attr: { "data-type": row.type } });
-    const iconWrap = rowEl.createSpan({ cls: "mini-fm-icon" });
-    setIcon(iconWrap, row.icon);
-    rowEl.createSpan({ cls: "mini-fm-key", text: row.key });
-    const valueEl = rowEl.createSpan({ cls: `mini-fm-value mini-fm-value-${row.type}` });
+    const propEl = props.createDiv({
+      cls: "metadata-property",
+      attr: {
+        "data-property-key": row.key,
+        "data-property-type": row.type,
+        tabindex: "0",
+      },
+    });
+    // Key = icon + readonly input (real Obsidian uses an <input>).
+    const keyWrap = propEl.createDiv("metadata-property-key");
+    const iconSpan = keyWrap.createSpan({ cls: "metadata-property-icon" });
+    setIcon(iconSpan, row.icon);
+    const keyInput = keyWrap.createEl("input", {
+      cls: "metadata-property-key-input",
+      attr: { type: "text", value: row.key, spellcheck: "false" },
+    });
+    keyInput.readOnly = true;
+
+    // Value — delegated to the row.build(). Real Obsidian nests a
+    // typed value wrapper inside `.metadata-property-value`; we give
+    // build() the outer div and let it shape the inside.
+    const valueEl = propEl.createDiv({ cls: "metadata-property-value" });
     row.build(valueEl);
   });
+
+  // "Add property" button — complete the real-Obsidian shape. Purely
+  // visual in the preview; no click handler.
+  const addBtn = content.createDiv("metadata-add-button");
+  const addIcon = addBtn.createSpan({ cls: "metadata-add-button-icon" });
+  setIcon(addIcon, "plus");
+  addBtn.createSpan({ text: "Add property" });
 
   // Note body — H1 + a short lede so the panel-to-body transition reads.
   main.createEl("h1", { text: "Lorem ipsum dolor sit amet" });
