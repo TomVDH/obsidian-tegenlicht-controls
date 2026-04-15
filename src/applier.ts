@@ -374,15 +374,18 @@ ${s.caretColourEnabled ? `.cm-cursor { border-left-color: ${caretClr} !important
   ALL_ICON_STROKE_CLASSES.forEach(c => document.body.classList.remove(c));
   document.body.classList.add(`tc-icon-stroke-${s.iconStroke || 'regular'}`);
 
-  // Icon + Border tint overrides — three-state semantic:
-  //   ''         → remove the CSS var → theme default applies
-  //   'accent'   → write var(--color-accent) so it tracks accent changes
-  //   '#rrggbb'  → write the literal hex
-  // Reset to '' on flavour change (done in the Appearance tab's
-  // pickFlavour helper) so picking a theme restores its defaults.
+  // Icon + Border tint overrides — two primary states:
+  //   ''       → remove the CSS var → theme default paints (accent)
+  //   'mono'   → write `rgb(var(--mono-rgb-100))` for a monochrome tint
+  // Back-compat fall-throughs (accepted but no UI exposes them):
+  //   'accent' → explicit accent var reference (legacy)
+  //   '#rrggbb'→ literal hex (legacy from the Pickr-era custom slot)
+  // Any unknown value collapses to '' so old saves don't strand the UI.
   const applyTint = (value: string, cssVar: string) => {
     if (!value) {
       document.body.style.removeProperty(cssVar);
+    } else if (value === 'mono') {
+      document.body.style.setProperty(cssVar, 'rgb(var(--mono-rgb-100, 200 200 200))');
     } else if (value === 'accent') {
       document.body.style.setProperty(cssVar, 'var(--color-accent)');
     } else if (/^#[0-9a-fA-F]{6}$/.test(value)) {

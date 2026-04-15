@@ -1193,12 +1193,30 @@
   box-shadow: none;
 }
 
-/* Extra breathing room between auto and custom — they're a pair, not a
-   stream. Applies to every row using the auto+custom pair so the spacing
-   reads the same everywhere: main Accent row AND the Icon/Border
-   intensity rows that reuse the same dot pattern. */
+/* Mono pip — white solid fill + subtle border. Clicking it writes the
+   'mono' sentinel to iconColour / borderColour; the applier translates
+   that to rgb(var(--mono-rgb-100)) so icons/borders render monochrome
+   instead of tracking the accent. */
+.tc-settings .tc-accent-dot--mono {
+  background: #ffffff;
+  border: 2px solid var(--background-modifier-border);
+  opacity: 0.95;
+}
+.tc-settings .tc-accent-dot--mono:hover {
+  opacity: 1;
+  border-color: var(--text-muted);
+}
+.tc-settings .tc-accent-dot--mono.tc-accent-dot--active {
+  border-color: var(--color-accent, #ffffff);
+  opacity: 1;
+}
+
+/* Extra breathing room between the auto pip and the next pip (custom in
+   the main Accent row, mono in Icon/Border rows). They're a pair, not
+   a stream — the margin-left rule applies whichever sibling follows. */
 .tc-settings .tc-accent-row .tc-accent-item--auto + .tc-accent-item--custom,
-.tc-settings .tc-seg-with-color .tc-accent-item--auto + .tc-accent-item--custom {
+.tc-settings .tc-seg-with-color .tc-accent-item--auto + .tc-accent-item--custom,
+.tc-settings .tc-seg-with-color .tc-accent-item--auto + .tc-accent-item--mono {
   margin-left: 10px;
 }
 
@@ -2397,37 +2415,12 @@ body.tc-radius-rounded .tc-settings .tc-feat-group { border-radius: 14px !import
 }
 .tc-settings .tc-toggle--on::after { left: 15px; }
 
-/* Sliders (range inputs) — knob + track borders follow Border intensity.
-   Obsidian's default slider uses hardcoded backgrounds in some builds,
-   so we force explicit `border` rules tied to --background-modifier-border
-   on the WebKit pseudo-elements. At intensity=none the borders vanish. */
-.tc-settings input[type="range"] {
-  background: transparent;
-}
+/* Sliders (range inputs) — leave Obsidian's native thumb styling alone
+   (pill-shaped on most platforms) and only tie the TRACK to Border
+   intensity via the border-color var. Explicit thumb CSS here had
+   regressed the default pill to a circle; reverted. */
 .tc-settings input[type="range"]::-webkit-slider-runnable-track {
-  background: var(--background-modifier-border);
   border: 1px solid var(--background-modifier-border);
-  border-radius: 100px;
-  height: 4px;
-}
-.tc-settings input[type="range"]::-webkit-slider-thumb {
-  -webkit-appearance: none;
-  appearance: none;
-  background: var(--interactive-accent, var(--color-accent));
-  border: 1.5px solid var(--background-modifier-border);
-  border-radius: 50%;
-  width: 16px;
-  height: 16px;
-  margin-top: -7px; /* centre thumb on 4px track */
-  cursor: grab;
-  transition: transform 0.1s ease, border-color 0.15s ease;
-}
-.tc-settings input[type="range"]::-webkit-slider-thumb:hover {
-  transform: scale(1.08);
-  border-color: var(--background-modifier-border-hover);
-}
-.tc-settings input[type="range"]::-webkit-slider-thumb:active {
-  cursor: grabbing;
 }
 
 /* Feature select */
