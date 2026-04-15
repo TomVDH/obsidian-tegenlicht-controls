@@ -1546,15 +1546,17 @@ body.tc-fm-boxed .metadata-properties-heading {
   list-style: none !important;
 }
 
-/* HIDE every possible existing chevron — direct svg, wrapped svg,
-   collapse-indicator/icon spans/divs, AND ::before pseudo-elements
-   from snippets. Belt-and-braces. */
-body.tc-fm-boxed .metadata-properties-heading > svg,
-body.tc-fm-boxed .metadata-properties-heading svg.right-triangle,
-body.tc-fm-boxed .metadata-properties-heading svg.svg-icon,
-body.tc-fm-boxed .metadata-properties-heading .collapse-indicator,
-body.tc-fm-boxed .metadata-properties-heading .collapse-icon,
-body.tc-fm-boxed .metadata-properties-heading .right-triangle {
+/* HIDE every possible existing chevron — STRICTLY direct children of
+   the heading so we don't accidentally hit property icons, remove-button
+   icons, or anything else inside nested wrappers. Obsidian's DOM varies;
+   some versions nest the property rows inside the heading container, so
+   broad descendant matches like `.metadata-properties-heading svg.svg-icon`
+   would snuff every property icon + remove button + Lucide glyph. That
+   broke click-to-edit on non-tag fields. Direct-child only. */
+body.tc-fm-boxed .metadata-properties-heading > svg:first-child,
+body.tc-fm-boxed .metadata-properties-heading > .collapse-indicator,
+body.tc-fm-boxed .metadata-properties-heading > .collapse-icon,
+body.tc-fm-boxed .metadata-properties-heading > .right-triangle {
   display: none !important;
   visibility: hidden !important;
   width: 0 !important;
