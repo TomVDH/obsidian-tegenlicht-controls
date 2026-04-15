@@ -1510,22 +1510,24 @@ body.tc-fm-boxed .metadata-property-key {
    That system applies globally — Properties, search chips, autocomplete,
    and inline body tags — instead of being scoped to boxed Properties. */
 
-/* ── 4. Date / number values — mono + accent so they read as data,
-   matching what the snippet does for type="date" / "number". */
-body.tc-fm-boxed .metadata-property-value[data-property-type="date"],
-body.tc-fm-boxed .metadata-property-value[data-property-type="datetime"],
-body.tc-fm-boxed .metadata-property-value[data-property-type="number"] {
+/* ── 4. Date / number values — mono tint for data-like types.
+   Target `.metadata-property[data-property-type=...]` which is where the
+   attribute actually lives in Obsidian's DOM (previously targeted the
+   wrong element; rule never fired). */
+body.tc-fm-boxed .metadata-property[data-property-type="date"]     .metadata-property-value,
+body.tc-fm-boxed .metadata-property[data-property-type="datetime"] .metadata-property-value,
+body.tc-fm-boxed .metadata-property[data-property-type="number"]   .metadata-property-value {
   font-family: var(--font-monospace, monospace) !important;
   color: var(--color-accent) !important;
   font-variant-numeric: tabular-nums !important;
 }
 
-/* ── 5. Empty values — em-dash placeholder, faint italic. */
-body.tc-fm-boxed .metadata-property-value:empty::after {
-  content: "—";
-  color: var(--text-faint);
-  font-style: italic;
-}
+/* NOTE: Previously painted a `—` em-dash via `:empty::after` on
+   `.metadata-property-value`. Removed — Obsidian inserts a click-to-edit
+   `<input>` inside the value on focus and the pseudo-element's hit zone
+   was masking the input's click target for non-multiselect types (text,
+   date, number, link), making those fields effectively uneditable. The
+   default rendering already shows an empty chip, no placeholder needed. */
 
 /* ── 6. Properties heading + chevron — pseudo-element strategy.
    Element selectors kept missing because Obsidian's chevron may be
@@ -1719,7 +1721,6 @@ body.tc-tags-solid .tc-settings .tc-mini-obsidian .mini-fm-pill:hover .mini-fm-p
 .tc-settings .tc-mini-obsidian .metadata-property-key-input {
   font-size: 11px !important;
   color: var(--text-muted) !important;
-  pointer-events: none; /* preview only — don't compete with settings focus */
 }
 .tc-settings .tc-mini-obsidian .metadata-property-value {
   font-size: 11px !important;
@@ -1743,15 +1744,11 @@ body.tc-tags-solid .tc-settings .tc-mini-obsidian .mini-fm-pill:hover .mini-fm-p
   width: 12px !important;
   height: 12px !important;
 }
-/* Neutralize pointer handlers in the preview — the preview is visual
-   only; no accidental input focus should happen when Tom clicks a row
-   while inspecting the settings pane. Heading click (collapse/expand)
-   stays live because it's wired in buildEditingPreview. */
-.tc-settings .tc-mini-obsidian .metadata-property-value input,
-.tc-settings .tc-mini-obsidian .metadata-property-key-input {
-  pointer-events: none !important;
-  user-select: none !important;
-}
+/* Preview inputs are read-only via the `readonly` attr already set in
+   buildEditingPreview — we don't need pointer-events:none. Keeping
+   clicks live means Tom can click into the preview to sanity-check
+   what "clicking a value" does structurally, without actually mutating
+   any real data (since they're readonly and not backed by a note). */
 
 /* ════════════════════════════════════════════════════════════════════════
    Typography preview — micro-Obsidian lookalike.
@@ -2490,6 +2487,23 @@ body.tc-icon-stroke-thin    { --icon-stroke: 1px;    --icon-stroke-width: 1px; }
 body.tc-icon-stroke-regular { --icon-stroke: 1.75px; --icon-stroke-width: 1.75px; }
 body.tc-icon-stroke-bold    { --icon-stroke: 2.5px;  --icon-stroke-width: 2.5px; }
 
+/* Corner radius extends to images — the "Rounded" / "Subtle" / "Sharp"
+   setting applies to every image rendered in a note (reading + live
+   preview + embeds + canvas + banner plugin). Uses --radius-m so images
+   pick up the same curvature as cards and inputs for visual coherence.
+   Sharp mode (radius-m = 0) gives square images, Rounded gives ~15%. */
+.workspace img,
+.workspace-leaf img,
+.markdown-source-view img,
+.markdown-preview-view img,
+.markdown-rendered img,
+.markdown-embed img,
+.image-embed img,
+.internal-embed img,
+.canvas-node-content img {
+  border-radius: var(--radius-m, 0);
+}
+
 /* Icon-stroke colour override — applied only when the user sets a colour
    via the Icon-intensity swatch. When unset (theme default), --tc-icon-color
    isn't defined, so `color: var(--tc-icon-color, currentColor)` falls back
@@ -2574,37 +2588,42 @@ body.anp-colorful-frame .workspace-split.mod-right-split > .workspace-tabs {
    on `body.is-translucent.tc-borders-X` and `body.theme-X.tc-borders-X`
    bumps us to the same 2-class specificity and later source order, so
    we reliably win against translucent-mode theme rules. */
+/* Base = `--tc-border-color`, which the applier sets to a tinted hex or
+   var(--color-accent) when the user picks those. When unset (auto), we
+   fall back to the theme's mono-rgb() as before. Intensity scales the
+   alpha via color-mix(). Applies to every --background-modifier-border-*
+   surface so a single colour controls the whole chrome. */
 body.tc-borders-none,
 body.theme-dark.tc-borders-none,
 body.theme-light.tc-borders-none,
 body.is-translucent.tc-borders-none {
   --background-modifier-border: transparent !important;
   --background-modifier-border-hover: transparent !important;
-  --background-modifier-border-focus: rgba(var(--mono-rgb-100, 200, 200, 200), 0.15) !important;
+  --background-modifier-border-focus: color-mix(in srgb, var(--tc-border-color, rgb(var(--mono-rgb-100, 200 200 200))) 15%, transparent) !important;
 }
 body.tc-borders-whisper,
 body.theme-dark.tc-borders-whisper,
 body.theme-light.tc-borders-whisper,
 body.is-translucent.tc-borders-whisper {
-  --background-modifier-border: rgba(var(--mono-rgb-100, 200, 200, 200), 0.05) !important;
-  --background-modifier-border-hover: rgba(var(--mono-rgb-100, 200, 200, 200), 0.10) !important;
-  --background-modifier-border-focus: rgba(var(--mono-rgb-100, 200, 200, 200), 0.18) !important;
+  --background-modifier-border: color-mix(in srgb, var(--tc-border-color, rgb(var(--mono-rgb-100, 200 200 200))) 5%, transparent) !important;
+  --background-modifier-border-hover: color-mix(in srgb, var(--tc-border-color, rgb(var(--mono-rgb-100, 200 200 200))) 10%, transparent) !important;
+  --background-modifier-border-focus: color-mix(in srgb, var(--tc-border-color, rgb(var(--mono-rgb-100, 200 200 200))) 18%, transparent) !important;
 }
 body.tc-borders-subtle,
 body.theme-dark.tc-borders-subtle,
 body.theme-light.tc-borders-subtle,
 body.is-translucent.tc-borders-subtle {
-  --background-modifier-border: rgba(var(--mono-rgb-100, 200, 200, 200), 0.15) !important;
-  --background-modifier-border-hover: rgba(var(--mono-rgb-100, 200, 200, 200), 0.22) !important;
-  --background-modifier-border-focus: rgba(var(--mono-rgb-100, 200, 200, 200), 0.32) !important;
+  --background-modifier-border: color-mix(in srgb, var(--tc-border-color, rgb(var(--mono-rgb-100, 200 200 200))) 15%, transparent) !important;
+  --background-modifier-border-hover: color-mix(in srgb, var(--tc-border-color, rgb(var(--mono-rgb-100, 200 200 200))) 22%, transparent) !important;
+  --background-modifier-border-focus: color-mix(in srgb, var(--tc-border-color, rgb(var(--mono-rgb-100, 200 200 200))) 32%, transparent) !important;
 }
 body.tc-borders-ligne-claire,
 body.theme-dark.tc-borders-ligne-claire,
 body.theme-light.tc-borders-ligne-claire,
 body.is-translucent.tc-borders-ligne-claire {
-  --background-modifier-border: rgba(var(--mono-rgb-100, 200, 200, 200), 0.42) !important;
-  --background-modifier-border-hover: rgba(var(--mono-rgb-100, 200, 200, 200), 0.58) !important;
-  --background-modifier-border-focus: rgba(var(--mono-rgb-100, 200, 200, 200), 0.75) !important;
+  --background-modifier-border: color-mix(in srgb, var(--tc-border-color, rgb(var(--mono-rgb-100, 200 200 200))) 42%, transparent) !important;
+  --background-modifier-border-hover: color-mix(in srgb, var(--tc-border-color, rgb(var(--mono-rgb-100, 200 200 200))) 58%, transparent) !important;
+  --background-modifier-border-focus: color-mix(in srgb, var(--tc-border-color, rgb(var(--mono-rgb-100, 200 200 200))) 75%, transparent) !important;
 }
 
 /* Direct border-color overrides for workspace elements — catches any

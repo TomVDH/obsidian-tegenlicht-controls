@@ -9,7 +9,11 @@ export interface TegenlichtSettings {
   accentColour: string;
   showExtendedDark: boolean;
   showExtendedLight: boolean;
-  borderIntensity: string; // 'none' | 'subtle' | 'ligne-claire'
+  borderIntensity: string; // 'none' | 'whisper' | 'subtle' | 'ligne-claire'
+  // Border tint. Same three-state semantic as iconColour:
+  // '' = auto (theme default mono), 'accent' = track --color-accent,
+  // '#rrggbb' = custom. Resets to '' on flavour switch.
+  borderColour: string;
 
   // Appearance — Interface
   uiDensity: string;     // 'compact' | 'comfortable' | 'spacious'
@@ -18,10 +22,9 @@ export interface TegenlichtSettings {
   // No UI exposes it directly anymore; lives here for back-compat saves.
   interfaceFont: string; // 'system' | 'inter' | 'ia-duo'
   iconStroke: string;    // 'thin' | 'regular' | 'bold' — aka "Icon intensity"
-  // Optional icon-stroke override colour. Empty string = use the theme
-  // default. Paired with iconStroke as "Icon intensity" in the UI so Tom
-  // can tint Lucide icons without fighting the pill picker. Resets to ''
-  // whenever the user switches flavour — pick-a-theme, get-its-default.
+  // Icon tint. Three states: '' = auto (theme default), 'accent' = track
+  // the accent colour, any '#rrggbb' = custom. Resets to '' on flavour
+  // switch — pick-a-theme, get-its-default.
   iconColour: string;
   cornerRadius: string;  // 'sharp' | 'subtle' | 'rounded'
   editorMood: string;    // experimental: 'minimal' | 'warm' | 'cool'
@@ -144,6 +147,7 @@ export const DEFAULT_SETTINGS: TegenlichtSettings = {
   showExtendedDark: false,
   showExtendedLight: false,
   borderIntensity: 'subtle',
+  borderColour: '',
 
   uiDensity: 'comfortable',
   interfaceFont: 'system',

@@ -374,18 +374,25 @@ ${s.caretColourEnabled ? `.cm-cursor { border-left-color: ${caretClr} !important
   ALL_ICON_STROKE_CLASSES.forEach(c => document.body.classList.remove(c));
   document.body.classList.add(`tc-icon-stroke-${s.iconStroke || 'regular'}`);
 
-  // Icon-stroke colour override. Empty string = use theme default (the
-  // CSS var is cleared so Obsidian / theme rules take back over). A
-  // set hex value writes --tc-icon-color, which styles.css applies to
-  // every Lucide SVG's stroke. Reset to '' on flavour change so each
-  // theme gets its own default until the user explicitly opts in.
-  // Check raw value first — sanitizeHex returns an accent fallback for
-  // empty input, which would make this always-true.
-  if (s.iconColour && /^#[0-9a-fA-F]{6}$/.test(s.iconColour)) {
-    document.body.style.setProperty('--tc-icon-color', s.iconColour);
-  } else {
-    document.body.style.removeProperty('--tc-icon-color');
-  }
+  // Icon + Border tint overrides — three-state semantic:
+  //   ''         → remove the CSS var → theme default applies
+  //   'accent'   → write var(--color-accent) so it tracks accent changes
+  //   '#rrggbb'  → write the literal hex
+  // Reset to '' on flavour change (done in the Appearance tab's
+  // pickFlavour helper) so picking a theme restores its defaults.
+  const applyTint = (value: string, cssVar: string) => {
+    if (!value) {
+      document.body.style.removeProperty(cssVar);
+    } else if (value === 'accent') {
+      document.body.style.setProperty(cssVar, 'var(--color-accent)');
+    } else if (/^#[0-9a-fA-F]{6}$/.test(value)) {
+      document.body.style.setProperty(cssVar, value);
+    } else {
+      document.body.style.removeProperty(cssVar);
+    }
+  };
+  applyTint(s.iconColour   || '', '--tc-icon-color');
+  applyTint(s.borderColour || '', '--tc-border-color');
 
   // Corner radius — migrate legacy 'pill' saved value forward to 'rounded'
   ALL_RADIUS_CLASSES.forEach(c => document.body.classList.remove(c));

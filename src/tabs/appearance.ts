@@ -72,12 +72,14 @@ function buildDivider(container: HTMLElement): void {
 // buildSegmentSetting now lives in ./_shared so the Editing tab can
 // share the same pill-picker helper without duplication.
 
-/** Segment picker + colour swatch on one row. Pills on the left for the
- *  discrete choice, a compact Pickr swatch on the right for a free-form
- *  colour. Used for "Icon intensity": weight (pills) + tint (swatch).
+/** Segment pill-select + a three-dot auto/accent/custom colour trio on
+ *  the same row. Mirrors the Accent-colour row's semantic:
+ *    - "auto"   → empty string (theme's own default paints the element)
+ *    - "accent" → track --color-accent live
+ *    - custom   → free-form hex via Pickr
  *
- *  The swatch's `clear`/cancel semantics aren't wired — flavour-change
- *  callbacks handle the reset flow instead by zeroing the saved colour. */
+ *  Used for "Icon intensity" and "Border intensity" so both gain the
+ *  same picker without duplicated boilerplate. */
 function buildSegmentWithColor(
   container: HTMLElement,
   name: string,
@@ -86,16 +88,15 @@ function buildSegmentWithColor(
   currentSegment: string,
   onSegmentChange: (value: string) => Promise<void>,
   colour: {
-    getColor: () => string;                 // '' = theme default
-    setColor: (hex: string) => void;        // '' = reset to default
-    defaultColor: string;                   // shown in Pickr when getColor() is ''
-    onColorChange: () => Promise<void>;
+    getValue: () => string;                // '' | 'accent' | '#rrggbb'
+    setValue: (v: string) => void;
+    onChange: () => Promise<void>;
   },
 ): Pickr {
   const setting = new Setting(container).setName(name).setDesc(desc);
   const wrap = setting.controlEl.createDiv("tc-seg-with-color");
 
-  // Pills (identical markup to buildSegmentSetting so CSS just works).
+  // Pills — identical markup to buildSegmentSetting.
   const group = wrap.createDiv("tc-seg");
   const buttons = new Map<string, HTMLElement>();
   options.forEach(o => {
@@ -110,27 +111,91 @@ function buildSegmentWithColor(
     buttons.set(o.value, btn);
   });
 
-  // Pickr swatch on the right. When the saved colour is empty we seed
-  // Pickr with the theme default so the swatch visibly reflects reality.
-  const pickerEl = wrap.createDiv("pickr tc-seg-color-picker");
+  // Separator between pills and colour dots.
+  wrap.createDiv("tc-accent-sep");
+
+  // Three-dot trio — auto / accent / custom. Same classes as the Accent
+  // row so the dot styling (conic gradient for auto, etc.) reuses.
+  const autoItem = wrap.createDiv("tc-accent-item tc-accent-item--auto");
+  const autoDot = autoItem.createDiv("tc-accent-dot tc-accent-dot--auto");
+  autoDot.setAttribute("title", "Auto — use theme default");
+  autoItem.createSpan({ text: "auto", cls: "tc-accent-caption" });
+
+  const accentItem = wrap.createDiv("tc-accent-item tc-accent-item--accent");
+  const accentDot = accentItem.createDiv("tc-accent-dot tc-accent-dot--accent-track");
+  accentDot.style.background = "var(--color-accent)";
+  accentDot.setAttribute("title", "Accent — track the active accent colour");
+  accentItem.createSpan({ text: "accent", cls: "tc-accent-caption" });
+
+  const customItem = wrap.createDiv("tc-accent-item tc-accent-item--custom");
+  const customDot = customItem.createDiv("tc-accent-dot tc-accent-dot--custom");
+  customItem.createSpan({ text: "cust.", cls: "tc-accent-caption" });
+
+  const setActiveDot = (which: 'auto' | 'accent' | 'custom') => {
+    [autoDot, accentDot, customDot].forEach(d => d.removeClass('tc-accent-dot--active'));
+    ({ auto: autoDot, accent: accentDot, custom: customDot })[which]
+      .addClass('tc-accent-dot--active');
+  };
+
+  // Seed active state based on current stored value.
+  const initial = colour.getValue();
+  const isHex = initial && initial !== 'accent' && /^#[0-9a-fA-F]{6}$/.test(initial);
+  if (!initial)              setActiveDot('auto');
+  else if (initial === 'accent') setActiveDot('accent');
+  else if (isHex) {
+    customDot.style.background = initial;
+    setActiveDot('custom');
+  }
+
+  autoDot.addEventListener('click', async () => {
+    colour.setValue('');
+    customDot.style.background = '';
+    setActiveDot('auto');
+    await colour.onChange();
+  });
+  accentDot.addEventListener('click', async () => {
+    colour.setValue('accent');
+    customDot.style.background = '';
+    setActiveDot('accent');
+    await colour.onChange();
+  });
+
+  // Pickr — anchored on the custom dot, opens only when that dot is
+  // clicked. Clearing from within Pickr flips back to 'auto'.
   const pickr = Pickr.create({
-    el: pickerEl,
+    el: customDot,
     container: container.closest('.modal-content') as HTMLElement ?? document.body,
     theme: 'nano',
-    default: colour.getColor() || colour.defaultColor,
+    default: isHex ? initial : '#e5b32a',
+    useAsButton: true,
     lockOpacity: true,
+    position: 'bottom-start',
     components: {
       preview: true,
       hue: true,
       opacity: false,
-      interaction: { hex: true, input: true, save: true, cancel: true },
+      interaction: { hex: true, input: true, clear: true, save: true, cancel: true },
     },
   });
+  const commitHex = (hex: string) => {
+    colour.setValue(hex);
+    customDot.style.background = hex;
+    setActiveDot('custom');
+    colour.onChange();
+  };
+  pickr.on('change', (c: Pickr.HSVaColor | null) => {
+    if (c) commitHex(c.toHEXA().toString().slice(0, 7));
+  });
   pickr.on('save', (c: Pickr.HSVaColor | null, instance: Pickr) => {
-    if (!c) return;
-    colour.setColor(c.toHEXA().toString().slice(0, 7));
+    if (c) commitHex(c.toHEXA().toString().slice(0, 7));
     instance.hide();
-    colour.onColorChange();
+  });
+  pickr.on('clear', (instance: Pickr) => {
+    colour.setValue('');
+    customDot.style.background = '';
+    setActiveDot('auto');
+    colour.onChange();
+    instance.hide();
   });
   pickr.on('cancel', (instance: Pickr) => instance.hide());
   return pickr;
@@ -357,7 +422,8 @@ export function build(
   const pickFlavour = async (kind: 'dark' | 'light', cls: string) => {
     if (kind === 'dark') s.darkFlavour = cls;
     else                 s.lightFlavour = cls;
-    s.iconColour = '';
+    s.iconColour   = '';
+    s.borderColour = '';
     await refresh();
   };
 
@@ -445,10 +511,10 @@ export function build(
     async v => { s.uiDensity = v; await refresh(); },
   );
 
-  // Icon intensity — combined pill-select (weight) + colour swatch (tint).
-  // Colour swatch writes to `iconColour`, which the applier turns into the
-  // `--tc-icon-color` CSS var. Flavour switching resets `iconColour` to ''
-  // so each theme gets its natural Lucide colour until Tom opts in again.
+  // Icon intensity — pill weight + auto/accent/custom tint trio.
+  // Colour writes to `iconColour`, applier turns it into `--tc-icon-color`.
+  // Flavour switching resets iconColour to '' (auto) so each theme starts
+  // at its natural Lucide colour.
   pickrs.push(buildSegmentWithColor(
     interfaceCard,
     "Icon intensity", "Weight + tint of every Lucide icon in the chrome",
@@ -460,10 +526,9 @@ export function build(
     s.iconStroke,
     async v => { s.iconStroke = v; await refresh(); },
     {
-      getColor:      () => s.iconColour,
-      setColor:      v  => { s.iconColour = v; },
-      defaultColor:  getComputedStyle(document.body).getPropertyValue('--text-normal').trim() || '#cdd6f4',
-      onColorChange: refresh,
+      getValue: () => s.iconColour,
+      setValue: v  => { s.iconColour = v; },
+      onChange: refresh,
     },
   ));
 
@@ -478,8 +543,13 @@ export function build(
     async v => { s.cornerRadius = v; await refresh(); },
   );
 
-  buildSegmentSetting(interfaceCard,
-    "Border intensity", "Strength of borders across the Obsidian interface",
+  // Border intensity — strength pills + auto/accent/custom tint trio.
+  // Colour writes to `borderColour`, applier turns it into `--tc-border-color`.
+  // Same theme-reset semantic as iconColour — picking a flavour restores
+  // that flavour's native border colour.
+  pickrs.push(buildSegmentWithColor(
+    interfaceCard,
+    "Border intensity", "Strength + tint of borders across the Obsidian interface",
     [
       { label: "None",         value: "none" },
       { label: "Whisper",      value: "whisper" },
@@ -488,7 +558,12 @@ export function build(
     ],
     s.borderIntensity,
     async v => { s.borderIntensity = v; await refresh(); },
-  );
+    {
+      getValue: () => s.borderColour,
+      setValue: v  => { s.borderColour = v; },
+      onChange: refresh,
+    },
+  ));
 
   // ── Outliner accordion — file tree / nav-files pane settings ─────
   // Ports the file-browser knobs from AnuPuccin (rainbow folders, file
