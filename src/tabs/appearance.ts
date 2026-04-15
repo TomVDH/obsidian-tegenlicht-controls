@@ -446,6 +446,20 @@ export function build(
   });
   const interfaceCard = ifaceAccordion.createDiv("tc-feat-body tc-setting-card");
 
+  // Corner radius leads the Interface section — it's the most visually
+  // global setting (buttons, cards, inputs, images) so giving it the
+  // top slot matches how the rest of the card reads top-down.
+  buildSegmentSetting(interfaceCard,
+    "Corner radius", "Roundness of buttons, cards, inputs, and images",
+    [
+      { label: "Sharp",   value: "sharp" },
+      { label: "Subtle",  value: "subtle" },
+      { label: "Rounded", value: "rounded" },
+    ],
+    s.cornerRadius,
+    async v => { s.cornerRadius = v; await refresh(); },
+  );
+
   buildSegmentSetting(interfaceCard,
     "UI density", "Spacing across nav, tabs, ribbon, and header",
     [
@@ -476,17 +490,6 @@ export function build(
       setValue: v  => { s.iconColour = v; },
       onChange: refresh,
     },
-  );
-
-  buildSegmentSetting(interfaceCard,
-    "Corner radius", "Roundness of buttons, cards, and inputs",
-    [
-      { label: "Sharp",   value: "sharp" },
-      { label: "Subtle",  value: "subtle" },
-      { label: "Rounded", value: "rounded" },
-    ],
-    s.cornerRadius,
-    async v => { s.cornerRadius = v; await refresh(); },
   );
 
   // Border intensity — strength pills + auto/mono tint pair.
