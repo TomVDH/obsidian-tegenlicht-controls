@@ -1,7 +1,8 @@
-import { Setting, setIcon } from "obsidian";
+import { Setting, SliderComponent, setIcon } from "obsidian";
 import TegenlichtControlsPlugin from "../main";
 import { DEFAULT_SETTINGS, TegenlichtSettings } from "../settings";
 import { buildFontCombobox } from "../font-combobox";
+import { buildTypographyPreview } from "../preview-sample";
 
 // ── Module-level accordion state — survives redisplay() like Appearance does,
 // so flipping a font or dragging a slider doesn't snap sections shut.
@@ -112,7 +113,12 @@ function buildFontRoleSetting(
 }
 
 /** Slider row — label chip, slider, value badge, reset. Compact layout so
- *  six H1-H6 sliders read as a family rather than six separate rows. */
+ *  six H1-H6 sliders read as a family rather than six separate rows.
+ *  Uses Obsidian's native SliderComponent so the knob inherits the
+ *  platform's interactive-accent styling (matches the Grain slider in
+ *  Appearance and every other native Obsidian slider). No custom
+ *  -webkit-slider-* rules needed — we just drop the component into
+ *  our custom grid cell and let Obsidian render the slider itself. */
 function buildSliderRow(
   container: HTMLElement,
   cfg: SliderCfg,
@@ -129,11 +135,11 @@ function buildSliderRow(
     row.createSpan({ text: cfg.label, cls: "tc-spacing-label" });
   }
 
-  const slider = row.createEl("input", { type: "range", cls: "tc-h-slider" });
-  slider.min   = String(cfg.min);
-  slider.max   = String(cfg.max);
-  slider.step  = String(cfg.step);
-  slider.value = String(currentVal);
+  // Obsidian's native slider component — matches the Grain slider look,
+  // gets the accent-coloured knob via --interactive-accent.
+  const slider = new SliderComponent(row);
+  slider.setLimits(cfg.min, cfg.max, cfg.step).setValue(currentVal).setDynamicTooltip();
+  slider.sliderEl.addClass("tc-h-slider");
 
   const digits = isHeading ? 2 : 3;
   const badge = row.createSpan({ cls: "tc-h-val" });
@@ -144,14 +150,19 @@ function buildSliderRow(
   resetBtn.setAttribute("aria-label", "Reset to default");
   setIcon(resetBtn, "rotate-ccw");
 
-  slider.addEventListener("input", () => {
-    const v = parseFloat(slider.value);
+  // SliderComponent.onChange() fires on `change` (mouse release), so the
+  // live preview only updated when the user let go of the knob. Listen
+  // directly to the `input` event on the underlying <input type="range">
+  // — it fires on every frame of the drag, giving real-time visual
+  // response in the mini-Obsidian preview and the editor itself.
+  slider.sliderEl.addEventListener("input", () => {
+    const v = parseFloat(slider.sliderEl.value);
     badge.setText(`${v.toFixed(digits)}${cfg.unit}`);
     onChange(v);
   });
   resetBtn.addEventListener("click", () => {
     const def = DEFAULT_SETTINGS[cfg.key] as number;
-    slider.value = String(def);
+    slider.setValue(def);
     badge.setText(`${def.toFixed(digits)}${cfg.unit}`);
     onReset();
   });
@@ -261,63 +272,12 @@ export function build(
   });
 
   // ── Dynamic Preview header + preview (bottom, full width) ────────
+  // Canonical Lorem-Ipsum preview lives in preview-sample.ts so other
+  // surfaces of the plugin (Flavour switcher, onboarding, theme compare)
+  // can reuse the same content without drift.
   const previewHeader = wrap.createDiv("tc-typo-preview-header");
   previewHeader.createSpan({ text: "Dynamic Preview", cls: "tc-typo-preview-title" });
   previewHeader.createSpan({ text: "Live Obsidian mock — reads your sliders as you drag", cls: "tc-typo-preview-desc" });
 
-  const preview = wrap.createDiv("tc-typo-preview tc-mini-obsidian");
-  preview.innerHTML = `
-    <header class="mini-title">
-      <span class="mini-dots"><i></i><i></i><i></i></span>
-      <span class="mini-name">Obsidian</span>
-      <span class="mini-vault">Lorem ipsum dolor sit amet</span>
-    </header>
-    <aside class="mini-ribbon">
-      <i class="mini-rib active"></i>
-      <i class="mini-rib"></i>
-      <i class="mini-rib"></i>
-      <i class="mini-rib"></i>
-    </aside>
-    <aside class="mini-side">
-      <h4>Notes</h4>
-      <ul>
-        <li>Daily</li>
-        <li class="mini-active">Typography study</li>
-        <li class="mini-nested">Heading rhythm</li>
-        <li class="mini-nested">Body voice</li>
-        <li>Archive</li>
-      </ul>
-    </aside>
-    <main class="mini-main">
-      <div class="mini-tabs">
-        <div class="mini-tab active">Typography study</div>
-        <div class="mini-tab">Calibration</div>
-      </div>
-      <h1>Typography study — a heading one</h1>
-      <p class="mini-lede">An opening paragraph set at the editor's reading
-      size. The H1 above is the heaviest weight in the rhythm; every slider
-      you move propagates down through this page.</p>
-      <h2>A heading two</h2>
-      <p>The quick brown fox jumps over the lazy dog — body text reflecting
-      the interface font, line-height, and reading rhythm you've picked.
-      Words flow with <strong>bold conviction</strong>, curl into
-      <em>italic asides</em>, carry <u>underlined weight</u>, and link back
-      with <a href="#" class="mini-link">a quiet hyperlink</a>.</p>
-      <h3>A heading three</h3>
-      <ul>
-        <li>List indent and spacing respond to the sliders above</li>
-        <li>Bullet markers inherit the accent colour</li>
-        <li>Monospace lives here: <code>const rhythm = true;</code></li>
-      </ul>
-      <h4>Heading four</h4>
-      <p>A quieter paragraph for sub-sections — kerning, line-height, and size
-      settle into their places as you drag. <em>Source Serif, Playfair, Lora</em>
-      each bring their own colour to this sentence.</p>
-      <div class="mini-callout">
-        <strong>Note</strong> — this preview reads the same CSS variables the
-        plugin writes to the live Obsidian workspace, so what you see is what
-        you'll get.
-      </div>
-    </main>
-  `;
+  buildTypographyPreview(wrap);
 }

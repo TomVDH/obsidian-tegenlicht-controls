@@ -66,7 +66,26 @@ export interface TegenlichtSettings {
   tableWidthPct: number;
 
   // Features
-  rainbowFileBrowser: boolean;
+  rainbowFileBrowser: boolean;   // LEGACY — kept so old saved settings still load
+  // Outliner — AnuPuccin-style coloured folders, mirrors the four modes
+  // the theme exposes via Style Settings (off / full bg / pip / icon),
+  // plus the orthogonal "inherit" modifier. Visual rendering lives in
+  // the theme; this plugin only toggles the body classes that drive it.
+  rainbowStyle: string;          // 'off' | 'full' | 'simple' (legacy 'dot'/'icon' migrate to 'simple')
+  rainbowInherit: boolean;
+  // Full-mode sub-toggles (mirror AnuPuccin Style Settings's `Full Folder
+  // Settings` panel — only effective when rainbowStyle === 'full').
+  rainbowFullFileRecolor: boolean;  // recolor files to match folders
+  rainbowFullInvertLight: boolean;  // invert title text colour in light mode
+  rainbowFullInvertDark: boolean;   // invert title text colour in dark mode
+  rainbowFullBgOpacity: number;     // 0–100, written as 0–1 to CSS var
+  // Simple-mode sub-toggles (mirror `Simple Folder Settings` — only
+  // effective when rainbowStyle === 'simple'). Theme CSS uses compound
+  // selectors, so flipping these on individually controls what paints.
+  rainbowSimpleTitle: boolean;        // title text recolor
+  rainbowSimpleCollapseIcon: boolean; // chevron / collapse arrow recolor
+  rainbowSimpleIndent: boolean;       // tree indent guides recolor
+  rainbowSimpleFileIcon: boolean;     // circular file dot icon
   fileIcons: boolean;
   collapseFolderIcons: boolean;
   colorfulFrame: boolean;
@@ -88,6 +107,14 @@ export interface TegenlichtSettings {
   itsCallouts: boolean;
   kanban: boolean;
   calendar: boolean;
+
+  // Editing — Properties panel styling
+  // Toggles an accent-gradient card wrapper around Obsidian's Properties
+  // panel (.metadata-container). Same visual as the frontmatter-beauty.css
+  // snippet in the vault: rounded corners, soft accent tint, subtle shadow.
+  // Off by default so native Obsidian's flat rendering is preserved until
+  // the user opts in.
+  propertiesBoxed: boolean;
 
   // Demo — illustrates how a toggle can swap its own preview image
   demoImageToggle: boolean;
@@ -156,6 +183,21 @@ export const DEFAULT_SETTINGS: TegenlichtSettings = {
   tableWidthPct: 100,
 
   rainbowFileBrowser: false,
+  rainbowStyle: 'off',
+  rainbowInherit: false,
+  // Full mode defaults — match AnuPuccin's Style Settings defaults
+  // (none of the optional toggles on; opacity 0.7 = 70).
+  rainbowFullFileRecolor: false,
+  rainbowFullInvertLight: false,
+  rainbowFullInvertDark: false,
+  rainbowFullBgOpacity: 70,
+  // Simple mode defaults — mirror the typical Style Settings preset
+  // (title + indent + circular file ON, collapse icon OFF). Picking
+  // Simple in the dropdown immediately renders something visible.
+  rainbowSimpleTitle: true,
+  rainbowSimpleCollapseIcon: false,
+  rainbowSimpleIndent: true,
+  rainbowSimpleFileIcon: true,
   fileIcons: false,
   collapseFolderIcons: true,
   colorfulFrame: false,
@@ -177,6 +219,8 @@ export const DEFAULT_SETTINGS: TegenlichtSettings = {
   itsCallouts: true,
   kanban: false,
   calendar: false,
+
+  propertiesBoxed: false,
 
   demoImageToggle: false,
 };

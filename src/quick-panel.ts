@@ -1,15 +1,17 @@
-import { Modal } from "obsidian";
+import { Modal, setIcon } from "obsidian";
 import TegenlichtControlsPlugin from "./main";
 import { build as buildAppearance } from "./tabs/appearance";
 import { build as buildTypography } from "./tabs/typography";
+import { build as buildEditing }    from "./tabs/editing";
 import { build as buildLayout }     from "./tabs/layout";
 import { build as buildFeatures }   from "./tabs/features";
 
-type Tab = "appearance" | "typography" | "layout" | "features";
+type Tab = "appearance" | "typography" | "editing" | "layout" | "features";
 
 const TABS: { id: Tab; label: string }[] = [
   { id: "appearance", label: "Appearance" },
   { id: "typography", label: "Typography" },
+  { id: "editing",    label: "Editing"    },
   { id: "layout",     label: "Layout"     },
   { id: "features",   label: "Features"   },
 ];
@@ -61,6 +63,24 @@ export class TegenlichtQuickPanel extends Modal {
     titleBar.createSpan({ cls: "tc-quick-icon", text: "◈" });
     titleBar.createSpan({ cls: "tc-quick-title", text: "Tegenlicht Controls" });
     titleBar.createSpan({ cls: "tc-quick-spacer" });
+
+    // Blur toggle — round, same visual language as the close button.
+    // Water-drop icon (Lucide `droplet`) toggles the body class that
+    // blurs + dims the workspace behind the panel. Active state = accent
+    // outline, so users can tell at a glance whether the focal dim is on.
+    const blurBtn = titleBar.createEl("button", { cls: "tc-quick-blur-toggle" });
+    blurBtn.setAttribute("aria-label", "Toggle workspace blur");
+    setIcon(blurBtn, "droplet");
+    const syncBlurBtn = () => {
+      const on = document.body.hasClass("tc-quick-panel-open");
+      blurBtn.toggleClass("tc-quick-blur-toggle--on", on);
+      blurBtn.setAttribute("title", on ? "Disable workspace blur" : "Enable workspace blur");
+    };
+    syncBlurBtn();
+    blurBtn.addEventListener("click", () => {
+      document.body.toggleClass("tc-quick-panel-open", !document.body.hasClass("tc-quick-panel-open"));
+      syncBlurBtn();
+    });
 
     // Close button with Lucide-style SVG X so it matches Obsidian's icon
     // language rather than sitting as a raw unicode glyph.
@@ -120,7 +140,8 @@ export class TegenlichtQuickPanel extends Modal {
       case "appearance":
         this.cleanup = buildAppearance(this.contentArea, this.plugin, onChange, redisplay);
         break;
-      case "typography": buildTypography(this.contentArea, this.plugin, onChange); break;
+      case "typography": buildTypography(this.contentArea, this.plugin, onChange, redisplay); break;
+      case "editing":    buildEditing(this.contentArea, this.plugin, onChange);    break;
       case "layout":     buildLayout(this.contentArea, this.plugin, onChange);     break;
       case "features":   buildFeatures(this.contentArea, this.plugin, onChange);   break;
     }

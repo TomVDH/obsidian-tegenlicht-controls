@@ -3,14 +3,16 @@ import TegenlichtControlsPlugin from "./main";
 import { DEFAULT_SETTINGS } from "./settings";
 import { build as buildAppearance } from "./tabs/appearance";
 import { build as buildTypography } from "./tabs/typography";
+import { build as buildEditing }    from "./tabs/editing";
 import { build as buildLayout }     from "./tabs/layout";
 import { build as buildFeatures }   from "./tabs/features";
 
-type Tab = "appearance" | "typography" | "layout" | "features";
+type Tab = "appearance" | "typography" | "editing" | "layout" | "features";
 
 const TABS: { id: Tab; label: string }[] = [
   { id: "appearance", label: "Appearance" },
   { id: "typography", label: "Typography" },
+  { id: "editing",    label: "Editing"    },
   { id: "layout",     label: "Layout"     },
   { id: "features",   label: "Features"   },
 ];
@@ -183,7 +185,8 @@ export class TegenlichtSettingsTab extends PluginSettingTab {
       case "appearance":
         this.cleanup = buildAppearance(this.contentEl, this.plugin, onChange, redisplay);
         break;
-      case "typography": buildTypography(this.contentEl, this.plugin, onChange); break;
+      case "typography": buildTypography(this.contentEl, this.plugin, onChange, redisplay); break;
+      case "editing":    buildEditing(this.contentEl, this.plugin, onChange);    break;
       case "layout":     buildLayout(this.contentEl, this.plugin, onChange);     break;
       case "features":   buildFeatures(this.contentEl, this.plugin, onChange);   break;
     }

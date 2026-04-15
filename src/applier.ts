@@ -74,8 +74,39 @@ const ALL_RADIUS_CLASSES      = ['tc-radius-sharp', 'tc-radius-subtle', 'tc-radi
 const ALL_BORDER_CLASSES      = ['tc-borders-none', 'tc-borders-whisper', 'tc-borders-subtle', 'tc-borders-ligne-claire'];
 const ALL_MOOD_CLASSES        = ['tc-mood-minimal', 'tc-mood-warm', 'tc-mood-cool'];
 
-const RAINBOW_OFF = 'anp-default-rainbow';
-const RAINBOW_ON  = 'anp-full-rainbow-color-toggle';
+// AnuPuccin rainbow folders — three mutually-exclusive style classes
+// (None / Full / Simple) plus an orthogonal "subfolder inherit" modifier.
+// Names match AnuPuccin's Style Settings YAML at theme.css line 2122 so
+// the theme's existing CSS picks them up cleanly; this plugin only
+// toggles classes, never paints.
+const RAINBOW_OFF     = 'anp-default-rainbow';
+const RAINBOW_FULL    = 'anp-full-rainbow-color-toggle';
+const RAINBOW_SIMPLE  = 'anp-simple-rainbow-color-toggle';
+const RAINBOW_INHERIT = 'anp-rainbow-subfolder-color-toggle';
+// Per-mode sub-toggle classes — driven by individual settings in the
+// Outliner > Coloured folders UI. Theme CSS gates Simple's visuals
+// behind compound selectors (e.g. `.anp-simple-rainbow-color-toggle.
+// anp-simple-rainbow-title-toggle`), so the parent alone paints nothing
+// — these sub-toggles are what actually switch features on.
+const FULL_FILE_RECOLOR  = 'anp-rainbow-file-toggle';
+const FULL_INVERT_LIGHT  = 'anp-full-rainbow-text-color-toggle-light';
+const FULL_INVERT_DARK   = 'anp-full-rainbow-text-color-toggle-dark';
+const SIMPLE_TITLE       = 'anp-simple-rainbow-title-toggle';
+const SIMPLE_COLLAPSE    = 'anp-simple-rainbow-collapse-icon-toggle';
+const SIMPLE_INDENT      = 'anp-simple-rainbow-indentation-toggle';
+const SIMPLE_FILE_ICON   = 'anp-simple-rainbow-icon-toggle';
+// Includes legacy class names (the four-mode era's invented `dot`/`icon`
+// classes that never existed in the theme, plus the wrong inherit name)
+// so users upgrading from 0.7.4 don't end up with stale dead classes
+// stuck on body.
+const ALL_RAINBOW_CLASSES = [
+  RAINBOW_OFF, RAINBOW_FULL, RAINBOW_SIMPLE, RAINBOW_INHERIT,
+  FULL_FILE_RECOLOR, FULL_INVERT_LIGHT, FULL_INVERT_DARK,
+  SIMPLE_TITLE, SIMPLE_COLLAPSE, SIMPLE_INDENT, SIMPLE_FILE_ICON,
+  'anp-dot-rainbow-color-toggle',
+  'anp-icon-rainbow-color-toggle',
+  'anp-inherit-rainbow-color-toggle',
+];
 
 function hexToHsl(hex: string): string {
   const r = parseInt(hex.slice(1, 3), 16) / 255;
@@ -185,6 +216,7 @@ export function apply(s: TegenlichtSettings): void {
   --anp-border-radius: ${s.borderRadius}px;
   --anp-border-padding: ${s.borderPadding}px;
   --anp-table-width-pct: ${s.tableWidthPct}%;
+  --anp-rainbow-folder-bg-opacity: ${((s.rainbowFullBgOpacity ?? 70) / 100).toFixed(2)};
   --color-accent: ${accent};
   --color-accent-hsl: ${hexToHsl(accent)};
   --anp-inline-title-vis: ${s.inlineTitle ? 'block' : 'none'};
@@ -215,6 +247,11 @@ ${s.caretColourEnabled ? `.cm-cursor { border-left-color: ${caretClr} !important
   document.documentElement.style.setProperty('--ctp-accent', hexToRgbTriplet(accent));
   document.documentElement.style.setProperty('--color-accent', accent);
   document.documentElement.style.setProperty('--color-accent-hsl', hexToHsl(accent));
+  // Propagate into --interactive-accent too — this is the var Obsidian's
+  // native SliderComponent (and native toggles/buttons) reads to colour
+  // the knob + fill. Without this, our typography sliders would render
+  // with Obsidian's default purple thumb instead of the chosen flavour.
+  document.documentElement.style.setProperty('--interactive-accent', accent);
 
   // Force the SWATCH colours onto the theme — whatever the upstream palette,
   // when you pick the "Generic" swatch you see blue, "Royal Velvet" gives you
@@ -260,9 +297,35 @@ ${s.caretColourEnabled ? `.cm-cursor { border-left-color: ${caretClr} !important
   ALL_TAB_CLASSES.forEach(c => document.body.classList.remove(c));
   document.body.classList.add((s.tabStyle?.trim() || 'anp-default-tab'));
 
-  // Rainbow folders: exactly one of the two classes active
-  document.body.classList.remove(RAINBOW_ON, RAINBOW_OFF);
-  document.body.classList.add(s.rainbowFileBrowser ? RAINBOW_ON : RAINBOW_OFF);
+  // Rainbow folders — three modes mirroring AnuPuccin's Style Settings
+  // dropdown (None / Full / Simple). Two layers of migration:
+  //   1. Pre-0.7 boolean `rainbowFileBrowser` → 'full'.
+  //   2. 0.7.4 enum values 'dot' and 'icon' (which never existed as
+  //      classes in the theme — wrong assumption from the four-mode
+  //      port) collapse to 'simple', the closest real mode.
+  // Sub-toggles are applied conditionally per mode: theme CSS uses
+  // compound selectors so each individual feature (file recolor, title
+  // recolor, etc.) needs its own class on body to render.
+  ALL_RAINBOW_CLASSES.forEach(c => document.body.classList.remove(c));
+  let rainbowStyle = s.rainbowStyle || 'off';
+  if (rainbowStyle === 'off' && s.rainbowFileBrowser) rainbowStyle = 'full';
+  if (rainbowStyle === 'dot' || rainbowStyle === 'icon') rainbowStyle = 'simple';
+  const rainbowCls = rainbowStyle === 'full'   ? RAINBOW_FULL
+                   : rainbowStyle === 'simple' ? RAINBOW_SIMPLE
+                   : RAINBOW_OFF;
+  document.body.classList.add(rainbowCls);
+  if (rainbowStyle === 'full') {
+    if (s.rainbowFullFileRecolor) document.body.classList.add(FULL_FILE_RECOLOR);
+    if (s.rainbowFullInvertLight) document.body.classList.add(FULL_INVERT_LIGHT);
+    if (s.rainbowFullInvertDark)  document.body.classList.add(FULL_INVERT_DARK);
+  }
+  if (rainbowStyle === 'simple') {
+    if (s.rainbowSimpleTitle)        document.body.classList.add(SIMPLE_TITLE);
+    if (s.rainbowSimpleCollapseIcon) document.body.classList.add(SIMPLE_COLLAPSE);
+    if (s.rainbowSimpleIndent)       document.body.classList.add(SIMPLE_INDENT);
+    if (s.rainbowSimpleFileIcon)     document.body.classList.add(SIMPLE_FILE_ICON);
+  }
+  if (s.rainbowInherit) document.body.classList.add(RAINBOW_INHERIT);
 
   // Active line: remove all variants, add correct one
   document.body.classList.remove(
@@ -281,6 +344,7 @@ ${s.caretColourEnabled ? `.cm-cursor { border-left-color: ${caretClr} !important
   cls('anp-button-metadata-toggle', s.metadataButton);
   cls('anp-codeblock-numbers',      s.codeblockLineNumbers);
   cls('anp-floating-header',        s.floatingTitle);
+  cls('tc-fm-boxed',                s.propertiesBoxed);
 
   // Inverted toggles (class present = hidden)
   cls('anp-toggle-scrollbars', !s.showScrollbars);
@@ -341,6 +405,7 @@ export function remove(): void {
   document.documentElement.style.removeProperty('--color-accent');
   document.documentElement.style.removeProperty('--color-accent-hsl');
   document.documentElement.style.removeProperty('--ctp-accent');
+  document.documentElement.style.removeProperty('--interactive-accent');
   document.body.classList.remove('tegenlicht-accent-toggle');
   ['base','mantle','crust','surface0','surface1','surface2',
    'overlay0','overlay1','overlay2','text','subtext0','subtext1']
@@ -358,14 +423,14 @@ export function remove(): void {
   ALL_MOOD_CLASSES.forEach(c => document.body.classList.remove(c));
   document.body.classList.remove('tc-has-noise');
   document.getElementById('tc-noise-overlay')?.remove();
+  ALL_RAINBOW_CLASSES.forEach(c => document.body.classList.remove(c));
   document.body.classList.remove(
-    RAINBOW_ON, RAINBOW_OFF,
     'anp-no-highlight', 'anp-current-line',
     'anp-current-line-border', 'anp-current-line-border-only',
   );
   ['anp-file-icons', 'anp-collapse-folders', 'anp-colorful-frame',
    'anp-custom-vault-toggle', 'anp-custom-checkboxes', 'rainbow-tags',
    'anp-button-metadata-toggle', 'anp-codeblock-numbers', 'anp-floating-header',
-   'anp-toggle-scrollbars', 'anp-hide-status-bar',
+   'anp-toggle-scrollbars', 'anp-hide-status-bar', 'tc-fm-boxed',
   ].forEach(c => document.body.classList.remove(c));
 }

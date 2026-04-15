@@ -43,6 +43,10 @@ function buildSwatchGrid(
     item.setAttribute("title", f.label);
     const sw   = item.createDiv("tc-swatch");
     sw.style.background = `linear-gradient(135deg, ${f.base} 60%, ${f.surface} 60%)`;
+    // Store the swatch's own accent on a CSS custom property so the
+    // active-outline and other per-swatch accent cues can pick it up
+    // without hardcoding colours in CSS.
+    sw.style.setProperty("--tc-sw-accent", f.accent);
     if (f.cls === current) sw.addClass("tc-swatch--active");
     const dot = sw.createDiv("tc-swatch-dot");
     dot.style.background = f.accent;
@@ -434,13 +438,16 @@ export function build(
     async v => { s.borderIntensity = v; await refresh(); },
   );
 
-  // ── Sidebar Outliner accordion (placeholder shell) ─────
+  // ── Outliner accordion — file tree / nav-files pane settings ─────
+  // Ports the file-browser knobs from AnuPuccin (rainbow folders, file
+  // type icons, collapse arrows, custom vault title) into one home so
+  // the "left sidebar look" lives in one accordion.
   const outlinerAccordion = containerEl.createDiv(
     "tc-feat-group" + (accordionOpen.sidebarOutliner ? " tc-feat-group--open" : "")
   );
   const outlinerHeader = outlinerAccordion.createDiv("tc-feat-header");
   const outlinerTitle  = outlinerHeader.createDiv("tc-feat-title");
-  outlinerTitle.createSpan({ text: "Sidebar Outliner" });
+  outlinerTitle.createSpan({ text: "Outliner" });
   const outlinerMeta = outlinerHeader.createDiv("tc-feat-meta");
   outlinerMeta.createSpan({ text: "▶", cls: "tc-feat-chevron" });
   outlinerHeader.addEventListener("click", () => {
@@ -449,17 +456,162 @@ export function build(
   });
   const outlinerBody = outlinerAccordion.createDiv("tc-feat-body tc-setting-card");
 
-  // Coloured folders — AnuPuccin's rainbow file-browser, expanded further in future
+  // Rainbow folders — three modes mirroring AnuPuccin's Style Settings
+  // dropdown (and its `anp-alt-rainbow-style` class-select):
+  //   Off    — no colouring (native Obsidian look)
+  //   Full   — folder background tinted with its rotating hue
+  //   Simple — title + indent + file-icon take the hue (no bg fill)
+  // Each maps to one of AnuPuccin's rainbow-color-toggle body classes.
+  // `rainbowInherit` below is the orthogonal "subfolders inherit parent"
+  // modifier — applies on top of either Full or Simple.
+  // Sub-toggle blocks (`fullDetails`, `simpleDetails`) are built up-front
+  // and shown/hidden based on the current mode — captured in closure so
+  // the segment's onChange can flip their display without a redisplay.
+  let fullDetails: HTMLElement;
+  let simpleDetails: HTMLElement;
+  const computedMode = (() => {
+    if ((s.rainbowStyle ?? 'off') === 'off' && s.rainbowFileBrowser) return 'full';
+    const v = s.rainbowStyle ?? 'off';
+    if (v === 'dot' || v === 'icon') return 'simple';
+    return v;
+  })();
+
   buildSegmentSetting(outlinerBody,
-    "Coloured folders", "Colour-coded file tree — cycles through accent palette",
+    "Coloured folders",
+    "Full tints folder backgrounds, Simple tints titles + indents — matches AnuPuccin's Style Settings",
     [
-      { label: "Off",      value: "minimal" },
-      { label: "Warm",     value: "warm"    },
-      { label: "Cool",     value: "cool"    },
+      { label: "Off",    value: "off"    },
+      { label: "Simple", value: "simple" },
+      { label: "Full",   value: "full"   },
     ],
-    s.editorMood,
-    async v => { s.editorMood = v; await refresh(); },
+    computedMode,
+    async v => {
+      s.rainbowStyle = v;
+      // Also clear the legacy boolean so the migration doesn't re-fire
+      s.rainbowFileBrowser = v !== 'off' && s.rainbowFileBrowser;
+      fullDetails.style.display   = v === 'full'   ? '' : 'none';
+      simpleDetails.style.display = v === 'simple' ? '' : 'none';
+      await onChange();
+    },
   );
+
+  new Setting(outlinerBody)
+    .setName("Subfolders inherit colour")
+    .setDesc("Child folders pick up their parent's hue instead of rolling through the rainbow themselves")
+    .addToggle(t => t
+      .setValue(s.rainbowInherit)
+      .onChange(async v => { s.rainbowInherit = v; await onChange(); })
+    );
+
+  // ── Simple mode details ───────────────────────────────
+  simpleDetails = outlinerBody.createDiv("tc-rainbow-mode-details");
+  simpleDetails.style.display = computedMode === 'simple' ? '' : 'none';
+  buildDivider(simpleDetails);
+  simpleDetails.createEl("div", { cls: "tc-theme-label", text: "Simple mode" });
+
+  new Setting(simpleDetails)
+    .setName("Recolour folder titles")
+    .setDesc("Folder name text takes the rotating hue")
+    .addToggle(t => t
+      .setValue(s.rainbowSimpleTitle)
+      .onChange(async v => { s.rainbowSimpleTitle = v; await onChange(); })
+    );
+
+  new Setting(simpleDetails)
+    .setName("Recolour collapse arrows")
+    .setDesc("The chevron / disclosure triangle takes the folder's hue")
+    .addToggle(t => t
+      .setValue(s.rainbowSimpleCollapseIcon)
+      .onChange(async v => { s.rainbowSimpleCollapseIcon = v; await onChange(); })
+    );
+
+  new Setting(simpleDetails)
+    .setName("Recolour indent guides")
+    .setDesc("Vertical indent lines under each folder take the hue")
+    .addToggle(t => t
+      .setValue(s.rainbowSimpleIndent)
+      .onChange(async v => { s.rainbowSimpleIndent = v; await onChange(); })
+    );
+
+  new Setting(simpleDetails)
+    .setName("Show file dot")
+    .setDesc("Add a small coloured circle next to each file in a coloured folder")
+    .addToggle(t => t
+      .setValue(s.rainbowSimpleFileIcon)
+      .onChange(async v => { s.rainbowSimpleFileIcon = v; await onChange(); })
+    );
+
+  // ── Full mode details ─────────────────────────────────
+  fullDetails = outlinerBody.createDiv("tc-rainbow-mode-details");
+  fullDetails.style.display = computedMode === 'full' ? '' : 'none';
+  buildDivider(fullDetails);
+  fullDetails.createEl("div", { cls: "tc-theme-label", text: "Full mode" });
+
+  new Setting(fullDetails)
+    .setName("Recolour files")
+    .setDesc("Tint files inside coloured folders to match their parent's hue")
+    .addToggle(t => t
+      .setValue(s.rainbowFullFileRecolor)
+      .onChange(async v => { s.rainbowFullFileRecolor = v; await onChange(); })
+    );
+
+  new Setting(fullDetails)
+    .setName("Invert title text — light mode")
+    .setDesc("Use the regular text colour for folder titles in light themes (better contrast)")
+    .addToggle(t => t
+      .setValue(s.rainbowFullInvertLight)
+      .onChange(async v => { s.rainbowFullInvertLight = v; await onChange(); })
+    );
+
+  new Setting(fullDetails)
+    .setName("Invert title text — dark mode")
+    .setDesc("Use the regular text colour for folder titles in dark themes (better contrast)")
+    .addToggle(t => t
+      .setValue(s.rainbowFullInvertDark)
+      .onChange(async v => { s.rainbowFullInvertDark = v; await onChange(); })
+    );
+
+  new Setting(fullDetails)
+    .setName("Folder background opacity")
+    .setDesc("How much of the folder's hue shows through (0 = transparent, 100 = solid)")
+    .addSlider(sl => sl
+      .setLimits(0, 100, 1)
+      .setValue(s.rainbowFullBgOpacity ?? 70)
+      .setDynamicTooltip()
+      .onChange(async v => { s.rainbowFullBgOpacity = v; await onChange(); })
+    );
+
+  new Setting(outlinerBody)
+    .setName("File type icons")
+    .setDesc("Show a glyph next to each file in the tree based on its extension")
+    .addToggle(t => t
+      .setValue(s.fileIcons)
+      .onChange(async v => { s.fileIcons = v; await onChange(); })
+    );
+
+  new Setting(outlinerBody)
+    .setName("Collapsed folder arrows")
+    .setDesc("Use the theme's compact chevron for collapsed folders (less chrome)")
+    .addToggle(t => t
+      .setValue(s.collapseFolderIcons)
+      .onChange(async v => { s.collapseFolderIcons = v; await onChange(); })
+    );
+
+  new Setting(outlinerBody)
+    .setName("Custom vault title")
+    .setDesc("Style the vault root entry — larger and set apart from the file tree")
+    .addToggle(t => t
+      .setValue(s.customVaultTitle)
+      .onChange(async v => { s.customVaultTitle = v; await onChange(); })
+    );
+
+  new Setting(outlinerBody)
+    .setName("Colourful window frame")
+    .setDesc("Tint Obsidian's window frame with the active flavour's accent")
+    .addToggle(t => t
+      .setValue(s.colorfulFrame)
+      .onChange(async v => { s.colorfulFrame = v; await onChange(); })
+    );
 
   // ── Graph accordion (placeholder shell) ────────────────
   const graphAccordion = containerEl.createDiv(

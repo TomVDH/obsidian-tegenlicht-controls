@@ -231,17 +231,18 @@
 .tc-settings .tc-reset-all-btn {
   width: 28px;
   height: 28px;
+  /* Explicit box-shadow transition for the armed outline to animate in
+     and out cleanly — no looping pulse animation, just a simple grow
+     on arm and fade on disarm (or timeout). */
+  transition: color 0.2s ease, border-color 0.2s ease, background 0.2s ease, box-shadow 0.25s ease;
+  box-shadow: 0 0 0 0 transparent;
 }
 .tc-settings .tc-reset-all-btn svg { width: 15px; height: 15px; }
 .tc-settings .tc-reset-all-btn--armed {
   color: var(--text-error, #e88);
   border-color: var(--text-error, #e88);
   background: color-mix(in srgb, var(--text-error, #e88) 10%, transparent);
-  animation: tc-reset-pulse 1.4s ease-in-out infinite;
-}
-@keyframes tc-reset-pulse {
-  0%, 100% { box-shadow: 0 0 0 0 color-mix(in srgb, var(--text-error, #e88) 30%, transparent); }
-  50%      { box-shadow: 0 0 0 4px color-mix(in srgb, var(--text-error, #e88) 10%, transparent); }
+  box-shadow: 0 0 0 5px color-mix(in srgb, var(--text-error, #e88) 20%, transparent);
 }
 
 /* ── Tab bar — base (shared across all styles) ── */
@@ -1073,9 +1074,14 @@
   overflow: hidden;
 }
 .tc-settings .tc-swatch:hover   { border-color: rgba(var(--mono-rgb-100, 200, 200, 200), 0.28); }
+/* Active swatch outline = the swatch's OWN accent, not the global one.
+   --tc-sw-accent is written per-swatch at build time in appearance.ts,
+   so the ring around the selected light/dark flavour matches the dot
+   colour in its bottom-right corner. Falls back to --color-accent for
+   any swatch without an explicit per-swatch value. */
 .tc-settings .tc-swatch--active {
-  border-color: var(--color-accent, #e5b32a);
-  box-shadow: 0 0 0 2px var(--color-accent, #e5b32a);
+  border-color: var(--tc-sw-accent, var(--color-accent, #e5b32a));
+  box-shadow: 0 0 0 2px var(--tc-sw-accent, var(--color-accent, #e5b32a));
 }
 .tc-settings .tc-swatch-dot {
   position: absolute;
@@ -1251,14 +1257,23 @@
 }
 .tc-settings .tc-h-row {
   display: grid;
-  grid-template-columns: 34px 1fr 64px 26px;
+  grid-template-columns: 40px 1fr 74px 24px;
   align-items: center;
-  gap: 12px;
-  padding: 4px 0;
+  justify-items: stretch;
+  gap: 14px;
+  padding: 9px 0;
+  /* Hairline between rows — matches the .setting-item divider language
+     of native Obsidian Setting rows so the Rhythm block reads as a peer
+     to the Fonts section above it rather than a foreign chunk. */
+  border-top: 1px solid rgba(var(--mono-rgb-100, 200, 200, 200), 0.06);
 }
-.tc-settings .tc-h-row--spacing { grid-template-columns: 110px 1fr 74px 26px; }
+.tc-settings .tc-h-row > * {
+  align-self: center;
+}
+.tc-settings .tc-h-row:first-child { border-top: none; }
+.tc-settings .tc-h-row--spacing { grid-template-columns: 130px 1fr 82px 24px; }
 
-.tc-settings .tc-h-chip {
+.tc-settings .tc-h-row .tc-h-chip {
   font-size: 10px;
   font-weight: 600;
   text-transform: uppercase;
@@ -1270,38 +1285,78 @@
   text-align: center;
 }
 .tc-settings .tc-spacing-label {
-  font-size: 11px;
-  color: var(--text-muted);
-  letter-spacing: 0.02em;
-}
-.tc-settings .tc-h-slider {
-  width: 100%;
-  accent-color: var(--color-accent);
-  height: 3px;
-}
-.tc-settings .tc-h-val {
-  font-size: 10px;
-  color: var(--text-muted);
-  font-family: var(--font-monospace, monospace);
-  text-align: right;
-  letter-spacing: 0.02em;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--text-normal);
+  letter-spacing: 0;
 }
 
-/* Reset button — small circular chevron */
-.tc-settings .tc-reset-btn {
-  background: none;
+/* ── Slider — fully native Obsidian styling. No custom thumb/track CSS;
+   we intentionally do NOT set -webkit-appearance: none so Obsidian's
+   built-in slider look (same as Settings tab sliders everywhere) lands
+   as-is. The typography rhythm sliders and the Grain slider now look
+   identical to every other slider in Obsidian.
+   Only layout-level tweaks remain: full-width inside the row's grid
+   cell, no extra margin. The knob's accent colour comes through from
+   --interactive-accent, which applier.ts writes when a flavour loads. */
+.tc-settings .tc-h-slider {
+  width: 100%;
+  margin: 0;
+}
+
+/* ── Value badge: accent-tinted chip with mono digits — reads as a
+   live readout, not a muted label. Min-width keeps it from jumping as
+   values grow/shrink during a drag. ── */
+.tc-settings .tc-h-val {
+  font-size: 10.5px;
+  font-weight: 600;
+  color: var(--color-accent);
+  background: color-mix(in srgb, var(--color-accent) 10%, transparent);
+  font-family: var(--font-monospace, monospace);
+  text-align: center;
+  letter-spacing: 0.02em;
+  padding: 3px 7px;
+  border-radius: 4px;
+  line-height: 1;
+}
+
+/* Chip labels (H1/H2/...) get mono-accent treatment too, so the row
+   reads left-to-right as: chip → slider → value → reset, all speaking
+   the same visual language. */
+.tc-settings .tc-h-chip {
+  font-family: var(--font-monospace, monospace);
+  font-weight: 700;
+  color: var(--text-muted);
+  background: var(--background-secondary);
   border: 1px solid var(--background-modifier-border);
+  border-radius: 4px;
+  padding: 3px 0;
+  line-height: 1;
+}
+
+/* Reset button — circular, matches .tc-circle-btn language used
+   elsewhere. Uses Lucide rotate-ccw via setIcon() from JS. */
+.tc-settings .tc-reset-btn {
+  background: transparent;
+  border: 1.5px solid transparent;
   color: var(--text-muted);
   width: 22px; height: 22px;
   padding: 0;
   border-radius: 50%;
   cursor: pointer;
-  font-size: 11px;
-  line-height: 1;
-  display: flex; align-items: center; justify-content: center;
+  display: inline-flex; align-items: center; justify-content: center;
   flex-shrink: 0;
+  transition: color 0.12s, border-color 0.12s, background 0.12s;
 }
-.tc-settings .tc-reset-btn:hover { color: var(--text-normal); border-color: var(--text-muted); }
+.tc-settings .tc-reset-btn:hover {
+  color: var(--text-normal);
+  background: var(--background-modifier-hover);
+}
+.tc-settings .tc-reset-btn svg {
+  width: 12px;
+  height: 12px;
+  display: block;
+}
 
 /* (inline per-slider previews removed — the mini-Obsidian preview at the
    bottom of the Typography tab does the live rendering.) */
@@ -1336,6 +1391,282 @@
   font-size: 11px;
   color: var(--text-muted);
   font-style: italic;
+}
+
+/* ════════════════════════════════════════════════════════════════════════
+   MINI-OBSIDIAN — Properties panel (`.mini-fm`)
+   ════════════════════════════════════════════════════════════════════════
+
+   Renders inside the mini-Obsidian shell's `.mini-main`, nested BETWEEN
+   the tab strip and the first H1 — exactly where real Obsidian places
+   its Properties panel when a note has frontmatter. Reused by the
+   Editing tab's Dynamic Preview via buildEditingPreview().
+
+   Sized to match the rest of the mini-obsidian chrome (11–12px body,
+   tight row padding, muted keys) so the panel reads as a natural part
+   of the note body, not a detached card. When future property-styling
+   settings land in the Editing tab they'll retint/resize these rows
+   live. ════════════════════════════════════════════════════════════════════════ */
+.tc-settings .tc-mini-obsidian .mini-fm {
+  /* Matches how Obsidian renders .metadata-container by default: the
+     panel is an integrated part of the note body, not a styled card.
+     The body class .tc-fm-boxed (driven by the "Boxed Properties panel"
+     toggle in Editing → Properties) flips this into the gradient box
+     look — both here in the preview AND on the real .metadata-container
+     in Obsidian — so the toggle's effect is visible in both surfaces
+     simultaneously. */
+  margin: 4px 0 18px;
+  padding: 4px 0 6px;
+  background: transparent;
+  border: none;
+  font-family: var(--font-interface, inherit) !important;
+  font-size: 12px;
+  transition: background 0.18s ease, border-color 0.18s ease, box-shadow 0.18s ease, padding 0.18s ease;
+}
+
+/* Boxed mode — applies to BOTH the preview (.mini-fm) and Obsidian's
+   real Properties panel (.metadata-container). One toggle, both
+   surfaces, same look. Mirrors frontmatter-beauty.css: 135deg accent
+   gradient, accent-tinted border, soft shadow, rounded corners. */
+body.tc-fm-boxed .tc-mini-obsidian .mini-fm,
+body.tc-fm-boxed .metadata-container {
+  margin: 6px 0 18px;
+  padding: 10px 14px 12px;
+  background: linear-gradient(135deg,
+    color-mix(in srgb, var(--color-accent) 8%, transparent),
+    color-mix(in srgb, var(--color-accent) 3%, transparent)) !important;
+  border: 1px solid color-mix(in srgb, var(--color-accent) 22%, transparent) !important;
+  border-radius: 10px !important;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.08) !important;
+}
+
+/* Header — chevron flush LEFT, label tight beside it, count pushed to
+   the right. Whole header is the click target with a subtle hover fill;
+   layout uses a flex row (no negative margins) so the chevron sits
+   exactly where the box's content area starts. */
+.tc-settings .tc-mini-obsidian .mini-fm-header {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 3px 4px 6px 0;
+  border-radius: 4px;
+  color: var(--text-muted);
+  font-size: 11px;
+  font-weight: 500;
+  cursor: pointer;
+  user-select: none;
+  transition: color 0.12s ease, background 0.12s ease;
+}
+.tc-settings .tc-mini-obsidian .mini-fm-header:hover {
+  color: var(--text-normal);
+  background: color-mix(in srgb, var(--background-modifier-hover) 60%, transparent);
+}
+.tc-settings .tc-mini-obsidian .mini-fm-header:hover .mini-fm-label {
+  color: var(--text-normal);
+}
+/* Chevron — flush left, just big enough to read clearly. Anchored at
+   the left edge of the panel so the icon "owns" the leftmost glyph
+   slot, exactly like Obsidian's real Properties chevron. */
+.tc-settings .tc-mini-obsidian .mini-fm-chev {
+  display: inline-flex;
+  align-items: center;
+  justify-content: flex-start;
+  width: 16px;
+  height: 16px;
+  flex-shrink: 0;
+  color: var(--text-muted);
+  transition: transform 0.18s cubic-bezier(0.4, 0.0, 0.2, 1);
+}
+.tc-settings .tc-mini-obsidian .mini-fm-chev svg {
+  width: 14px;
+  height: 14px;
+}
+.tc-settings .tc-mini-obsidian .mini-fm-label {
+  letter-spacing: 0;
+  text-transform: none;
+}
+.tc-settings .tc-mini-obsidian .mini-fm-count {
+  /* Pushed to the far right of the flex row. Tabular numerals so the
+     chip's width is stable as values change. */
+  margin-left: auto;
+  font-variant-numeric: tabular-nums;
+  color: var(--text-faint);
+  font-size: 10px;
+  padding-right: 2px;
+}
+
+/* Collapsed: chevron rotates from ▾ to ▸, rows hide, and the header
+   gets tighter bottom padding (no need to leave space for the gap to
+   the rows when there are none). The whole panel becomes a clean
+   single-line affordance you can re-click to expand. */
+.tc-settings .tc-mini-obsidian .mini-fm--collapsed .mini-fm-chev {
+  transform: rotate(-90deg);
+}
+.tc-settings .tc-mini-obsidian .mini-fm--collapsed .mini-fm-rows {
+  display: none;
+}
+.tc-settings .tc-mini-obsidian .mini-fm--collapsed .mini-fm-header {
+  padding-bottom: 4px;
+  margin-bottom: 0;
+}
+/* Boxed mode + collapsed: shrink the panel padding so the header
+   doesn't feel like it's floating in too much space. */
+body.tc-fm-boxed .tc-mini-obsidian .mini-fm--collapsed {
+  padding-top: 6px !important;
+  padding-bottom: 6px !important;
+}
+.tc-settings .tc-mini-obsidian .mini-fm-label {
+  color: var(--text-muted);
+  font-weight: 500;
+  letter-spacing: 0;
+  text-transform: none;
+}
+.tc-settings .tc-mini-obsidian .mini-fm-count {
+  margin-left: auto;
+  color: var(--text-faint);
+  font-size: 9.5px;
+  font-variant-numeric: tabular-nums;
+}
+
+/* Rows — match Obsidian's .metadata-property geometry: icon chip 24px,
+   key column 30% (capped), value column flex-1. Hover subtly lifts the
+   row so the panel feels alive, just like the real one. */
+.tc-settings .tc-mini-obsidian .mini-fm-rows {
+  display: flex;
+  flex-direction: column;
+}
+.tc-settings .tc-mini-obsidian .mini-fm-row {
+  display: grid;
+  grid-template-columns: 22px minmax(70px, 30%) 1fr;
+  align-items: center;
+  gap: 8px;
+  padding: 3px 0;
+  min-height: 24px;
+  border-radius: 3px;
+  transition: background 0.1s ease;
+}
+.tc-settings .tc-mini-obsidian .mini-fm-row:hover {
+  background: color-mix(in srgb, var(--background-modifier-hover) 50%, transparent);
+}
+
+/* Icon chip — renders the real Lucide SVG from setIcon(). Icon colour
+   is muted by default; per-type rules below tint it subtly so each row
+   is scannable at a glance without the colour dominating. */
+.tc-settings .tc-mini-obsidian .mini-fm-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  color: var(--text-muted);
+  flex-shrink: 0;
+}
+.tc-settings .tc-mini-obsidian .mini-fm-icon svg {
+  width: 15px;
+  height: 15px;
+  stroke-width: 1.8;
+}
+.tc-settings .tc-mini-obsidian .mini-fm-row:hover .mini-fm-icon {
+  color: var(--text-normal);
+}
+/* Per-type tint on the icon stroke — same palette as the code-block
+   syntax tokens so the two previews speak one visual language. */
+.tc-settings .tc-mini-obsidian .mini-fm-row[data-type="list"]    .mini-fm-icon { color: var(--color-pink,   #f5c2e7); }
+.tc-settings .tc-mini-obsidian .mini-fm-row[data-type="date"]    .mini-fm-icon { color: var(--color-blue,   #89b4fa); }
+.tc-settings .tc-mini-obsidian .mini-fm-row[data-type="number"]  .mini-fm-icon { color: var(--color-orange, #fab387); }
+.tc-settings .tc-mini-obsidian .mini-fm-row[data-type="boolean"] .mini-fm-icon { color: var(--color-green,  #a6e3a1); }
+.tc-settings .tc-mini-obsidian .mini-fm-row[data-type="link"]    .mini-fm-icon { color: var(--color-mauve,  #cba6f7); }
+
+/* Key — muted text, same font as the interface, just below body size.
+   Obsidian's live panel uses .metadata-property-key; we match its tone. */
+.tc-settings .tc-mini-obsidian .mini-fm-key {
+  font-size: 11px;
+  color: var(--text-muted);
+  font-family: var(--font-interface, inherit);
+  letter-spacing: 0;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+/* Value cell — the right column takes whatever remains. Type-aware
+   children (text, date, number, link) style separately below. */
+.tc-settings .tc-mini-obsidian .mini-fm-value {
+  min-width: 0;
+  font-size: 11px;
+  color: var(--text-normal);
+  font-family: var(--font-interface, inherit);
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+.tc-settings .tc-mini-obsidian .mini-fm-value-text {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  display: block;
+}
+.tc-settings .tc-mini-obsidian .mini-fm-value-num,
+.tc-settings .tc-mini-obsidian .mini-fm-value-date {
+  font-variant-numeric: tabular-nums;
+  color: var(--text-normal);
+}
+.tc-settings .tc-mini-obsidian .mini-fm-value-link {
+  color: var(--link-color, var(--color-accent));
+  text-decoration: underline;
+  text-decoration-color: color-mix(in srgb, var(--link-color, var(--color-accent)) 40%, transparent);
+  text-underline-offset: 2px;
+}
+
+/* List (tags, aliases) — pill chips wrapping on overflow. Matches
+   Obsidian's .multi-select-pill class shape: rounded 100px, a neutral
+   muted tone, hint of accent on the border. */
+.tc-settings .tc-mini-obsidian .mini-fm-value-list {
+  flex-wrap: wrap;
+  gap: 4px;
+}
+.tc-settings .tc-mini-obsidian .mini-fm-pill {
+  display: inline-flex;
+  align-items: center;
+  padding: 1px 8px;
+  font-size: 10.5px;
+  line-height: 1.4;
+  border-radius: 100px;
+  background: var(--background-secondary);
+  color: var(--text-normal);
+  border: 1px solid var(--background-modifier-border);
+  white-space: nowrap;
+}
+
+/* Boolean toggle — mini switch matching Obsidian's native Toggle
+   component (used in the real Properties panel for `type: checkbox`). */
+.tc-settings .tc-mini-obsidian .mini-fm-toggle {
+  display: inline-block;
+  position: relative;
+  width: 24px;
+  height: 14px;
+  border-radius: 100px;
+  background: var(--background-modifier-border);
+  transition: background 0.15s ease;
+  vertical-align: middle;
+  flex-shrink: 0;
+}
+.tc-settings .tc-mini-obsidian .mini-fm-toggle-thumb {
+  position: absolute;
+  top: 1px;
+  left: 1px;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: #ffffff;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+  transition: left 0.15s ease;
+}
+.tc-settings .tc-mini-obsidian .mini-fm-toggle[data-state="on"] {
+  background: var(--color-accent);
+}
+.tc-settings .tc-mini-obsidian .mini-fm-toggle[data-state="on"] .mini-fm-toggle-thumb {
+  left: 11px;
 }
 
 /* ════════════════════════════════════════════════════════════════════════
@@ -1417,10 +1748,17 @@
   font-family: inherit !important;
 }
 .tc-settings .tc-mini-obsidian .mini-side h4 {
-  margin: 0 0 5px;
+  margin: 0 0 5px !important;
+  padding: 0 !important;
   font-size: 9px; font-weight: 600;
   text-transform: uppercase; letter-spacing: 0.08em;
   color: var(--text-muted);
+  /* Obsidian's settings-modal h4 rules were sneaking a padding-left in
+     through the cascade — same issue as the .mini-main headings. Force
+     indent to zero so "NOTES" sits flush with the section's left edge. */
+  margin-left: 0 !important;
+  padding-left: 0 !important;
+  text-indent: 0 !important;
 }
 .tc-settings .tc-mini-obsidian .mini-side ul { list-style: none; margin: 0; padding: 0; }
 .tc-settings .tc-mini-obsidian .mini-side li {
@@ -1473,6 +1811,10 @@
   border-bottom: 1px solid var(--background-primary);
   margin-bottom: -1px;
 }
+
+/* (Note toolbar simulation was removed — preview now jumps straight
+    from the tab strip into the H1, matching a real Obsidian editor
+    when the toolbar plugin isn't installed.) */
 
 /* ── Headings — vertical rhythm that actually reads as typography.
    Rule of thumb: space BEFORE a heading is generous (introducing a new
@@ -1581,6 +1923,48 @@
   border-radius: 3px;
 }
 
+/* ── Code block (<pre><code>) — the Source font's showcase. Full-width
+   card with mono inside, preserves whitespace, scrolls on overflow so
+   long lines don't break the preview layout. Background lifts the
+   block off the page; left rule uses the accent as a subtle indicator. */
+.tc-settings .tc-mini-obsidian .mini-code {
+  margin: 0.6em 0 0.85em;
+  padding: 10px 14px;
+  background: var(--background-secondary);
+  border-left: 3px solid color-mix(in srgb, var(--color-accent) 55%, transparent);
+  border-radius: 4px;
+  overflow-x: auto;
+  line-height: 1.55;
+  font-size: 0.82em;
+}
+.tc-settings .tc-mini-obsidian .mini-code code {
+  /* Re-use the inline code selector's font family but strip its chip
+     styling (background / padding / border-radius) — the block already
+     has those on the <pre>. */
+  font-family: var(--font-monospace, monospace) !important;
+  background: transparent !important;
+  padding: 0 !important;
+  border-radius: 0 !important;
+  font-size: inherit !important;
+  color: var(--text-normal);
+  white-space: pre;
+}
+
+/* ── Syntax highlighting tokens — simulates what Obsidian/Prism paints
+   on real code blocks. Uses the theme-exposed Catppuccin palette vars
+   (--color-pink, --color-blue, etc) which every flavour redefines, so
+   the code block recolours automatically when the user picks a new
+   flavour. Falls back to hardcoded Catppuccin values if the vars are
+   missing. ── */
+.tc-settings .tc-mini-obsidian .mini-syn-kw    { color: var(--color-pink,   #f5c2e7); }
+.tc-settings .tc-mini-obsidian .mini-syn-fn    { color: var(--color-blue,   #89b4fa); }
+.tc-settings .tc-mini-obsidian .mini-syn-str   { color: var(--color-green,  #a6e3a1); }
+.tc-settings .tc-mini-obsidian .mini-syn-num   { color: var(--color-orange, #fab387); }
+.tc-settings .tc-mini-obsidian .mini-syn-prop  { color: var(--color-yellow, #f9e2af); }
+.tc-settings .tc-mini-obsidian .mini-syn-var   { color: var(--text-normal); }
+.tc-settings .tc-mini-obsidian .mini-syn-param { color: var(--color-mauve,  #cba6f7); font-style: italic; }
+.tc-settings .tc-mini-obsidian .mini-syn-cm    { color: var(--text-muted);            font-style: italic; }
+
 /* ── Callout: em-based spacing so it lives in the same rhythm as
    paragraphs instead of a fixed 10px that stayed constant while the
    heading sliders made everything around it grow/shrink. */
@@ -1598,13 +1982,43 @@
 /* Layout groups */
 .tc-settings .tc-layout-group { margin-bottom: 16px; }
 
-/* Feature groups */
+/* ══════════════════════════════════════════════════════════════════════
+   LAYER A — BASELINE SETTINGS UI (source of truth)
+   ══════════════════════════════════════════════════════════════════════
+
+   Every rule below targets `.tc-settings` alone. It describes how the
+   plugin looks in the MAIN Obsidian Settings tab: the canonical rhythm,
+   colours, accordion gaps, setting-row padding. The QuickPanel pop-out
+   also carries `.tc-settings`, so it inherits all of this by default —
+   overrides specific to the pop-out are layered on top (see "LAYER B"
+   banner further down in this file, scoped to `.tc-quick-modal`).
+
+   Edit things here to change how the main settings panel looks, and
+   trust that the pop-out picks up the same visual baseline.
+   ══════════════════════════════════════════════════════════════════════ */
+
+/* Accordion (feat-group) — the outer shell wrapping each accordion
+   section in Appearance, Typography, Sidebar Outliner, etc.
+   `margin-bottom: 8px` is the BASELINE accordion gap; layer B bumps it
+   by a few pixels for the tighter pop-out column. Keep this consistent
+   across the main settings — no per-tab variation. */
 .tc-settings .tc-feat-group {
   border: 1px solid var(--background-modifier-border);
-  border-radius: 8px;
+  border-radius: 8px;       /* default / fallback when no tc-radius-* is set */
   margin-bottom: 8px;
   overflow: hidden;
 }
+/* Border-radius follows the user's Corner radius pick (Sharp/Subtle/
+   Rounded) by reading body's tc-radius-* class directly. Can't use
+   var(--radius-l) because `.tc-settings` scopes --radius-* to fixed
+   values so sliders/inputs don't warp — body-class selectors bypass
+   that, giving the accordion alone the user's corner preference. */
+body.tc-radius-sharp   .tc-settings .tc-feat-group { border-radius: 0 !important; }
+body.tc-radius-subtle  .tc-settings .tc-feat-group { border-radius: 5px !important; }
+body.tc-radius-rounded .tc-settings .tc-feat-group { border-radius: 14px !important; }
+body.tc-radius-sharp   .tc-settings .tc-feat-group { border-radius: 0 !important; }
+body.tc-radius-subtle  .tc-settings .tc-feat-group { border-radius: 5px !important; }
+body.tc-radius-rounded .tc-settings .tc-feat-group { border-radius: 14px !important; }
 .tc-settings .tc-feat-header {
   display: flex;
   align-items: center;
@@ -1683,9 +2097,33 @@
   box-shadow: none !important;
   /* Subtle row divider — matches the Features tab's row-bottom line */
   border-top: 1px solid rgba(var(--mono-rgb-100, 200, 200, 200), 0.08);
+  /* Every setting-item: name/desc on the left, controls on the right,
+     vertically centred. Obsidian's default ALSO centres, but some of our
+     custom control slots (swatch grids, accent pips, font comboboxes)
+     wrap to multiple lines and need an explicit center to stay aligned
+     with the left column's single-line label. */
+  align-items: center !important;
 }
 .tc-settings .tc-feat-body.tc-setting-card .setting-item:first-child {
   border-top: none;
+}
+
+/* Control slots: always center children vertically. Covers sliders,
+   toggles, dropdowns, pill segments, and any custom widget we drop into
+   a Setting's controlEl. Wrap allows multi-line content (swatch grids)
+   while keeping each line centred relative to the label on the left. */
+.tc-settings .tc-feat-body.tc-setting-card .setting-item .setting-item-control {
+  display: flex !important;
+  align-items: center !important;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 6px;
+}
+/* Info column (name + desc): top-align inside a tall row so the name
+   doesn't drift down when the control side is a tall swatch grid. When
+   heights match (single-line controls), center kicks in. */
+.tc-settings .tc-feat-body.tc-setting-card .setting-item .setting-item-info {
+  align-self: center;
 }
 
 /* Swatch grids appear as full-width strips BETWEEN setting-item rows.
@@ -1981,6 +2419,35 @@ body.tc-radius-rounded {
   --radius-s: 6px; --radius-m: 12px; --radius-l: 18px;
   --anp-card-radius: 12px; --anp-border-radius: 12px;
 }
+
+/* ── Colourful frame — right-side symmetry only. Left-side icons and
+   the right-side tinted frame both inherit the theme's colourful-frame
+   styling correctly; the one holdout is the right-most icon / sidebar
+   toggle container, which keeps its panel-background fill and stands
+   out. One targeted rule: strip the background on the right-split tab
+   header so the frame tint carries through there too. Left side,
+   centre, and every other surface are untouched. */
+body.anp-colorful-frame .workspace-split.mod-right-split > .workspace-tabs > .workspace-tab-header-container,
+body.anp-colorful-frame .workspace-split.mod-right-split > .workspace-tabs {
+  background: transparent !important;
+  background-color: transparent !important;
+}
+
+/* ════════════════════════════════════════════════════════════════════════
+   RAINBOW FOLDERS — no plugin-level CSS here by design.
+
+   The body classes we toggle (`anp-default-rainbow`, `anp-full-rainbow-
+   color-toggle`, `anp-dot-rainbow-color-toggle`, `anp-icon-rainbow-color-
+   toggle`, `anp-inherit-rainbow-color-toggle`) are owned by AnuPuccin
+   and Tegenlicht. Their own theme CSS paints the colours when those
+   classes land. Any custom CSS we'd write here would fight the theme
+   rather than complement it — earlier iterations of this block did
+   exactly that and the result was messy cross-cuts.
+
+   The toggle UI and applier still live in the plugin; the VISUAL layer
+   is delegated to the theme. If you want the rainbow modes to render,
+   the Tegenlicht / AnuPuccin theme must be active. That is by design.
+   ════════════════════════════════════════════════════════════════════════ */
 
 /* Border intensity — drives the strength of EVERY border in the Obsidian
    UI (sidebars, tabs, callouts, inputs, modals, …) by remapping the
@@ -2478,11 +2945,13 @@ body.tc-quick-panel-open .app-container {
   letter-spacing: -0.01em;
 }
 .tc-quick-spacer { flex: 1; }
+/* Shared shape for the title-bar mini buttons — blur-toggle + close.
+   22px circle, inline-flex centred, muted default colour, soft hover
+   fill. Individual buttons layer active/icon-specific styling on top. */
+.tc-quick-blur-toggle,
 .tc-quick-close {
-  /* 22px circle — sits flush with title-bar height, generous hit target
-     without feeling chunky. SVG X inside scales to 12px for legibility. */
   background: transparent;
-  border: none;
+  border: 1.5px solid transparent;
   color: var(--text-muted);
   width: 22px;
   height: 22px;
@@ -2493,16 +2962,34 @@ body.tc-quick-panel-open .app-container {
   cursor: pointer;
   padding: 0;
   line-height: 1;
-  transition: background 0.12s, color 0.12s;
+  transition: background 0.12s, color 0.12s, border-color 0.12s;
 }
+.tc-quick-blur-toggle:hover,
 .tc-quick-close:hover {
   background: var(--background-modifier-hover);
   color: var(--text-normal);
 }
+.tc-quick-blur-toggle:active,
 .tc-quick-close:active {
   background: var(--background-modifier-border);
 }
+.tc-quick-blur-toggle svg,
 .tc-quick-close svg { display: block; }
+.tc-quick-blur-toggle svg {
+  width: 13px;
+  height: 13px;
+}
+
+/* Blur-toggle active state: accent outline + filled icon so it reads
+   as "blur currently on" without relying on the hover state. */
+.tc-quick-blur-toggle.tc-quick-blur-toggle--on {
+  color: var(--color-accent);
+  border-color: var(--color-accent);
+  background: color-mix(in srgb, var(--color-accent) 10%, transparent);
+}
+.tc-quick-blur-toggle.tc-quick-blur-toggle--on:hover {
+  background: color-mix(in srgb, var(--color-accent) 16%, transparent);
+}
 
 /* Tabs — compact pill strip, stuck to top of scrolling content.
    Generous bottom padding + hairline under the tabs so content has
@@ -2532,13 +3019,52 @@ body.tc-quick-panel-open .app-container {
   color: var(--text-on-accent);
 }
 
-/* Scrolling body — owns the overflow so the title bar and tabs stay put */
+/* Scrolling body — owns the overflow so the title bar and tabs stay put.
+   Structural CSS only (flex + padding). Padding values are the layer-A
+   baseline; .tc-quick-modal overrides (layer B) don't redefine this. */
 .tc-quick-body {
   flex: 1;
   min-height: 0;
   overflow-y: auto;
-  padding: 10px 14px 14px;
+  padding: 14px 16px 20px;
 }
+
+/* ══════════════════════════════════════════════════════════════════════
+   LAYER B — QUICKPANEL OVERRIDES
+   ══════════════════════════════════════════════════════════════════════
+
+   The plugin renders its UI in two places:
+     Layer A — the main Obsidian Settings tab (.tc-settings alone)
+     Layer B — the floating QuickPanel pop-out (.tc-settings + .tc-quick-modal)
+
+   Everywhere else in this file, layer A is the source of truth: the
+   baseline spacing, colours, and rhythm. Layer B leaves those alone
+   wherever possible and LAYERS ON TOP of them only where the pop-out's
+   compact footprint needs a different treatment than the full-width
+   settings tab (e.g. more generous setting-row padding because the
+   pop-out's narrower column would otherwise feel cramped).
+
+   Add new layer-B overrides below this banner, NOT scattered elsewhere.
+   Rule of thumb: if a change should apply to the settings tab too, it
+   goes in the main block above — NOT here.
+   ══════════════════════════════════════════════════════════════════════ */
+
+/* Accordion gap — slightly bigger than the .tc-feat-group baseline (8px)
+   so the pop-out's stacked accordions don't read as one tall slab. */
+.tc-quick-modal .tc-feat-group {
+  margin-bottom: 10px;
+}
+
+/* Setting-row vertical padding — a touch more generous than Obsidian's
+   native setting-item default so rows don't feel crammed in a 720px
+   column. Not too much: user feedback specifically called out that the
+   rows shouldn't feel luxurious, just comfortable. */
+.tc-quick-modal .tc-feat-body.tc-setting-card .setting-item {
+  padding-top: 11px !important;
+  padding-bottom: 11px !important;
+}
+
+/* END LAYER B — no more pop-out-specific rules past this point. */
 
 /* ════════════════════════════════════════════════════════════════════════
    Background effects — three depth steps.
@@ -2800,8 +3326,9 @@ body.tc-has-noise .workspace::before {
 /* ── .tc-circle-btn: shared circular mini-button style ─────────────────
    Used by the per-role System + Reset buttons in Typography AND the
    tab-bar Reset-All. 24px circle, Lucide SVG icon, muted default tone,
-   hover = normal text colour + soft fill. The Reset-All adds the armed
-   pulse animation on top via .tc-reset-all-btn--armed. */
+   hover = normal text colour + brighter fill. Visible neutral bg +
+   border at rest so it reads as a button, not a flat icon — same
+   affordance across every reset in the plugin. */
 .tc-settings .tc-circle-btn {
   flex: 0 0 auto;
   width: 24px;
@@ -2809,8 +3336,8 @@ body.tc-has-noise .workspace::before {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  background: transparent;
-  border: 1.5px solid transparent;
+  background: var(--background-secondary);
+  border: 1px solid var(--background-modifier-border);
   border-radius: 50%;
   color: var(--text-muted);
   padding: 0;
@@ -2820,6 +3347,7 @@ body.tc-has-noise .workspace::before {
 .tc-settings .tc-circle-btn:hover {
   color: var(--text-normal);
   background: var(--background-modifier-hover);
+  border-color: var(--text-muted);
 }
 .tc-settings .tc-circle-btn:active {
   background: var(--background-modifier-border);
