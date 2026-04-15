@@ -1,66 +1,34 @@
+import { Setting } from "obsidian";
+import Pickr from "@simonwep/pickr";
 import TegenlichtControlsPlugin from "../main";
+import {
+  FlavourEntry,
+  DARK_BASE, DARK_EXTENDED, DARK_EXTENDED_TC, DARK_EXTENDED_ANP,
+  LIGHT_BASE, LIGHT_EXTENDED, LIGHT_EXTENDED_TC, LIGHT_EXTENDED_ANP,
+} from "../flavours";
 
-interface FlavourEntry {
-  label: string;
-  cls: string;
-  base: string;    // hex for gradient left
-  surface: string; // hex for gradient right
-  accent: string;  // hex for accent dot
-}
+// Session-scoped accordion state — survives redisplay() rebuilds so the
+// user's open/closed choice isn't lost every time a setting is changed.
+const accordionOpen: Record<string, boolean> = {
+  theme: true, interface: true, sidebarOutliner: false, graph: false,
+  workspace: true, highlights: true,
+};
 
-const DARK_BASE: FlavourEntry[] = [
-  { label: "Mocha",     cls: "ctp-mocha",     base: "#1e1e2e", surface: "#313244", accent: "#e5b32a" },
-  { label: "Mocha Old", cls: "ctp-mocha-old",  base: "#1e1e2e", surface: "#45475a", accent: "#cba6f7" },
-  { label: "Macchiato", cls: "ctp-macchiato",  base: "#24273a", surface: "#363a4f", accent: "#f5a97f" },
-  { label: "Frappé",    cls: "ctp-frappe",     base: "#303446", surface: "#414559", accent: "#ca9ee6" },
-  { label: "Rosé Pine", cls: "ctp-rose-pine",  base: "#191724", surface: "#403d52", accent: "#f6c177" },
-];
-
-const DARK_EXTENDED: FlavourEntry[] = [
-  { label: "AMOLED",        cls: "ctp-amoled",        base: "#000000", surface: "#1a1a1a", accent: "#cba6f7" },
-  { label: "Atom",          cls: "ctp-atom",           base: "#282c34", surface: "#353b45", accent: "#e5c07b" },
-  { label: "Biscuit",       cls: "ctp-biscuit",        base: "#1c1917", surface: "#292524", accent: "#d4a96a" },
-  { label: "Coffee",        cls: "ctp-coffee",         base: "#221a0f", surface: "#2e2015", accent: "#c8945a" },
-  { label: "Dracula",       cls: "ctp-dracula",        base: "#282a36", surface: "#44475a", accent: "#ff79c6" },
-  { label: "Everforest",    cls: "ctp-everforest",     base: "#2d353b", surface: "#343f44", accent: "#a7c080" },
-  { label: "Flexoki",       cls: "ctp-flexoki",        base: "#1c1b1a", surface: "#282726", accent: "#d0a215" },
-  { label: "Generic",       cls: "ctp-generic",        base: "#1a1a2e", surface: "#16213e", accent: "#0f3460" },
-  { label: "Gruvbox",       cls: "ctp-gruvbox",        base: "#282828", surface: "#3c3836", accent: "#d79921" },
-  { label: "Kanagawa",      cls: "ctp-kanagawa",       base: "#1f1f28", surface: "#2a2a37", accent: "#957fb8" },
-  { label: "Material Mint", cls: "ctp-material-mint",  base: "#263238", surface: "#314549", accent: "#80cbc4" },
-  { label: "Nord",          cls: "ctp-nord",           base: "#2e3440", surface: "#3b4252", accent: "#88c0d0" },
-  { label: "Nord Darker",   cls: "ctp-nord-darker",    base: "#242831", surface: "#2e3440", accent: "#5e81ac" },
-  { label: "Notion",        cls: "ctp-notion",         base: "#191919", surface: "#202020", accent: "#e5b32a" },
-  { label: "Rosebox",       cls: "ctp-rosebox",        base: "#1a1626", surface: "#241e33", accent: "#e4a0bc" },
-  { label: "Royal Velvet",  cls: "ctp-royal-velvet",   base: "#1a0a2e", surface: "#2a1040", accent: "#c084fc" },
-  { label: "Solarized",     cls: "ctp-solarized",      base: "#002b36", surface: "#073642", accent: "#268bd2" },
-  { label: "Thorns",        cls: "ctp-thorns",         base: "#1a1a1a", surface: "#242424", accent: "#b5e853" },
-];
-
-const LIGHT_BASE: FlavourEntry[] = [
-  { label: "Latte",       cls: "ctp-latte",          base: "#eff1f5", surface: "#ccd0da", accent: "#e5b32a" },
-  { label: "Rosé Pine",   cls: "ctp-rose-pine-dawn", base: "#faf4ed", surface: "#f2e9e1", accent: "#ea9d34" },
-];
-
-const LIGHT_EXTENDED: FlavourEntry[] = [
-  { label: "Atom",          cls: "ctp-atom-light",          base: "#f8f8f8", surface: "#e8e8e8", accent: "#e5c07b" },
-  { label: "Everforest",    cls: "ctp-everforest-light",    base: "#fdf6e3", surface: "#efecd7", accent: "#8da101" },
-  { label: "Gruvbox",       cls: "ctp-gruvbox-light",       base: "#fbf1c7", surface: "#ebdbb2", accent: "#b57614" },
-  { label: "Luminescence",  cls: "ctp-luminescence",        base: "#f5f5f5", surface: "#e0e0e0", accent: "#4a90e2" },
-  { label: "Material Mint", cls: "ctp-material-mint-light", base: "#eceff1", surface: "#cfd8dc", accent: "#80cbc4" },
-  { label: "Nord",          cls: "ctp-nord-light",          base: "#eceff4", surface: "#e5e9f0", accent: "#5e81ac" },
-  { label: "Notion",        cls: "ctp-notion-light",        base: "#ffffff", surface: "#f7f6f3", accent: "#e5b32a" },
-  { label: "Sandy Beaches", cls: "ctp-sandy-beaches",       base: "#fdf6e3", surface: "#f0e6c8", accent: "#c47a0e" },
-  { label: "Solarized",     cls: "ctp-solarized-light",     base: "#fdf6e3", surface: "#eee8d5", accent: "#268bd2" },
-];
-
+// Flat UI Colors v2 — India palette. See https://flatuicolors.com/palette/in
 const ACCENT_PRESETS = [
-  { label: "Yellow", hex: "#e5b32a" },
-  { label: "Mauve",  hex: "#cba6f7" },
-  { label: "Blue",   hex: "#89b4fa" },
-  { label: "Green",  hex: "#a6e3a1" },
-  { label: "Red",    hex: "#f38ba8" },
+  { label: "Yriel Yellow",        hex: "#eab543" },
+  { label: "Rosy Highlight",      hex: "#fd7272" },
+  { label: "Clear Chill",         hex: "#1b9cfc" },
+  { label: "Keppel",              hex: "#58b19f" },
+  { label: "Circumorbital Ring",  hex: "#82589f" },
 ];
+
+function shortCode(label: string): string {
+  const words = label.split(/[\s\-]+/);
+  return words.length > 1
+    ? words.map(w => w[0]).join("").slice(0, 3).toUpperCase()
+    : label.slice(0, 3);
+}
 
 function buildSwatchGrid(
   container: HTMLElement,
@@ -69,15 +37,126 @@ function buildSwatchGrid(
   onSelect: (cls: string) => Promise<void>,
 ): void {
   const grid = container.createDiv("tc-swatch-grid");
+  const swEls: HTMLElement[] = [];
   flavours.forEach(f => {
-    const sw = grid.createDiv("tc-swatch");
+    const item = grid.createDiv("tc-swatch-item");
+    item.setAttribute("title", f.label);
+    const sw   = item.createDiv("tc-swatch");
     sw.style.background = `linear-gradient(135deg, ${f.base} 60%, ${f.surface} 60%)`;
     if (f.cls === current) sw.addClass("tc-swatch--active");
-    sw.setAttribute("title", f.label);
     const dot = sw.createDiv("tc-swatch-dot");
     dot.style.background = f.accent;
-    sw.addEventListener("click", () => onSelect(f.cls));
+    item.createSpan({ text: shortCode(f.label), cls: "tc-swatch-name" });
+    swEls.push(sw);
+    item.addEventListener("click", () => {
+      swEls.forEach(s => s.removeClass("tc-swatch--active"));
+      sw.addClass("tc-swatch--active");
+      onSelect(f.cls);
+    });
   });
+}
+
+// ── Shared UI helpers ──────────────────────────────────────────────────────
+
+function buildDivider(container: HTMLElement): void {
+  container.createDiv("tc-divider");
+}
+
+/** Segmented pill picker: label + desc on the left, pill group on the right.
+ *  Preferred over dropdowns for small option sets (<=4) — visually clearer
+ *  and matches the plugin's pill/tab language. */
+function buildSegmentSetting(
+  container: HTMLElement,
+  name: string,
+  desc: string,
+  options: { label: string; value: string }[],
+  current: string,
+  onChange: (value: string) => Promise<void>,
+): void {
+  const setting = new Setting(container).setName(name).setDesc(desc);
+  const group = setting.controlEl.createDiv("tc-seg");
+  const buttons = new Map<string, HTMLElement>();
+  options.forEach(o => {
+    const btn = group.createEl("button", { text: o.label, cls: "tc-seg-btn" });
+    if (o.value === current) btn.addClass("tc-seg-btn--active");
+    btn.addEventListener("click", async () => {
+      if (btn.hasClass("tc-seg-btn--active")) return;
+      buttons.forEach(b => b.removeClass("tc-seg-btn--active"));
+      btn.addClass("tc-seg-btn--active");
+      await onChange(o.value);
+    });
+    buttons.set(o.value, btn);
+  });
+}
+
+/** Native Obsidian Setting row with dropdown for multi-option controls. */
+function buildDropdownSetting(
+  container: HTMLElement,
+  name: string,
+  desc: string,
+  options: { label: string; value: string }[],
+  current: string,
+  onChange: (value: string) => Promise<void>,
+): void {
+  const setting = new Setting(container).setName(name).setDesc(desc);
+  setting.addDropdown(dd => {
+    options.forEach(o => dd.addOption(o.value, o.label));
+    dd.setValue(current);
+    dd.onChange(async v => await onChange(v));
+  });
+}
+
+/** Native Obsidian Setting row: Pickr colour picker + native toggle. Returns the Pickr instance for cleanup. */
+function buildColorToggleRow(
+  container: HTMLElement,
+  name: string,
+  desc: string,
+  colourGetter: () => string,
+  colourSetter: (v: string) => void,
+  enabledGetter: () => boolean,
+  enabledSetter: (v: boolean) => void,
+  onChange: () => Promise<void>,
+): Pickr {
+  const setting = new Setting(container).setName(name).setDesc(desc);
+
+  // Mount Pickr in the control slot, before the toggle
+  const pickerEl = setting.controlEl.createDiv("pickr");
+  const pickr = Pickr.create({
+    el: pickerEl,
+    container: container.closest('.modal-content') as HTMLElement ?? document.body,
+    theme: 'nano',
+    default: colourGetter(),
+    // No transparency slider — opacity would've been a transparency
+    // control, not a brightness one. Brightness is the 2D palette's
+    // vertical axis already; a dedicated linear brightness slider is a
+    // bigger refactor tracked separately.
+    lockOpacity: true,
+    swatches: [colourGetter()],
+    position: 'left-middle',
+    components: {
+      preview: true,
+      hue: true,
+      opacity: false,
+      interaction: { hex: true, input: true, save: true, cancel: true },
+    },
+  });
+
+  pickr.on('save', (color: Pickr.HSVaColor | null, instance: Pickr) => {
+    if (!color) return;
+    const hex = color.toHEXA().toString().slice(0, 7);
+    colourSetter(hex);
+    instance.hide();
+    onChange();
+  });
+
+  pickr.on('cancel', (instance: Pickr) => instance.hide());
+
+  setting.addToggle(t => t
+    .setValue(enabledGetter())
+    .onChange(async v => { enabledSetter(v); await onChange(); })
+  );
+
+  return pickr;
 }
 
 export function build(
@@ -85,86 +164,407 @@ export function build(
   plugin: TegenlichtControlsPlugin,
   onChange: () => Promise<void>,
   redisplay?: () => void,
-): void {
+): () => void {
   const s = plugin.settings;
+  const pickrs: Pickr[] = [];
   const refresh = async () => {
     await onChange();
-    // Re-render to update active swatch and extended grid state
     redisplay?.();
   };
 
-  // ── Dark Flavours ──────────────────────────────────────
-  containerEl.createEl("h3", { text: "Dark Flavour", cls: "tc-section-title" });
-  buildSwatchGrid(containerEl, DARK_BASE, s.darkFlavour, async cls => {
-    s.darkFlavour = cls;
-    await refresh();
+  // ── Colour bar ─────────────────────────────────────────
+  containerEl.createDiv("tc-color-bar");
+
+  // ── Theme & Colour accordion ───────────────────────────
+  const themeAccordion = containerEl.createDiv(
+    "tc-feat-group" + (accordionOpen.theme ? " tc-feat-group--open" : "")
+  );
+  const themeHeader = themeAccordion.createDiv("tc-feat-header");
+  const themeTitle  = themeHeader.createDiv("tc-feat-title");
+  themeTitle.createSpan({ text: "Theme & Colour" });
+  const themeMeta = themeHeader.createDiv("tc-feat-meta");
+  themeMeta.createSpan({ text: "▶", cls: "tc-feat-chevron" });
+  themeHeader.addEventListener("click", () => {
+    accordionOpen.theme = !accordionOpen.theme;
+    themeAccordion.toggleClass("tc-feat-group--open", accordionOpen.theme);
   });
+  const themeBody = themeAccordion.createDiv("tc-feat-body tc-setting-card tc-theme-body");
 
-  const extDarkRow = containerEl.createDiv("tc-extend-row");
-  extDarkRow.createSpan({ text: "Show extended dark flavours" });
-  const extDarkTog = extDarkRow.createEl("input", { type: "checkbox" });
-  extDarkTog.checked = s.showExtendedDark;
-  extDarkTog.addEventListener("change", async () => {
-    s.showExtendedDark = extDarkTog.checked;
-    await refresh();
-  });
-
-  if (s.showExtendedDark) {
-    buildSwatchGrid(containerEl, DARK_EXTENDED, s.darkFlavour, async cls => {
-      s.darkFlavour = cls;
-      await refresh();
-    });
-  }
-
-  // ── Light Flavours ─────────────────────────────────────
-  containerEl.createEl("h3", { text: "Light Flavour", cls: "tc-section-title" });
-  buildSwatchGrid(containerEl, LIGHT_BASE, s.lightFlavour, async cls => {
-    s.lightFlavour = cls;
-    await refresh();
-  });
-
-  const extLightRow = containerEl.createDiv("tc-extend-row");
-  extLightRow.createSpan({ text: "Show extended light flavours" });
-  const extLightTog = extLightRow.createEl("input", { type: "checkbox" });
-  extLightTog.checked = s.showExtendedLight;
-  extLightTog.addEventListener("change", async () => {
-    s.showExtendedLight = extLightTog.checked;
-    await refresh();
-  });
-
-  if (s.showExtendedLight) {
-    buildSwatchGrid(containerEl, LIGHT_EXTENDED, s.lightFlavour, async cls => {
-      s.lightFlavour = cls;
-      await refresh();
-    });
-  }
-
-  // ── Accent Colour ──────────────────────────────────────
-  containerEl.createEl("h3", { text: "Accent Colour", cls: "tc-section-title" });
-  const accentRow = containerEl.createDiv("tc-accent-row");
+  // ── Accent Colour — native Setting row, pips in the control slot ──
+  const accentSetting = new Setting(themeBody)
+    .setName("Accent colour")
+    .setDesc("Drives the highlight colour across the interface");
+  const accentRow = accentSetting.controlEl.createDiv("tc-accent-row");
 
   ACCENT_PRESETS.forEach(({ label, hex }) => {
-    const dot = accentRow.createDiv("tc-accent-dot");
+    const item = accentRow.createDiv("tc-accent-item");
+    const dot  = item.createDiv("tc-accent-dot");
     dot.style.background = hex;
     if (s.accentColour === hex) dot.addClass("tc-accent-dot--active");
-    dot.setAttribute("title", label);
+    dot.setAttribute("title", label); // tooltip only — no visible caption
     dot.addEventListener("click", async () => {
       s.accentColour = hex;
       await refresh();
     });
   });
+  accentRow.createDiv("tc-accent-sep");
 
-  // Custom colour picker
-  const customDot = accentRow.createDiv("tc-accent-dot tc-accent-dot--custom");
-  customDot.style.background = s.accentColour;
-  const colorInput = accentRow.createEl("input", { type: "color" });
-  colorInput.value = s.accentColour;
-  colorInput.style.display = "none";
-  colorInput.addEventListener("input", async () => {
-    s.accentColour = colorInput.value;
-    customDot.style.background = colorInput.value;
-    await onChange();
-    redisplay?.();
+  // ── Auto (takes the accent from the selected flavour swatch) ─────
+  const autoItem = accentRow.createDiv("tc-accent-item tc-accent-item--auto");
+  const autoDot  = autoItem.createDiv("tc-accent-dot tc-accent-dot--auto");
+  if (s.accentColour === 'auto') autoDot.addClass("tc-accent-dot--active");
+  autoDot.setAttribute("title", "Use flavour's default accent");
+  autoDot.addEventListener("click", async () => {
+    s.accentColour = 'auto';
+    await refresh();
   });
-  customDot.addEventListener("click", () => colorInput.click());
+  autoItem.createSpan({ text: "auto", cls: "tc-accent-caption" });
+
+  const customItem = accentRow.createDiv("tc-accent-item tc-accent-item--custom");
+  const customDot  = customItem.createDiv("tc-accent-dot tc-accent-dot--custom");
+  customItem.createSpan({ text: "cust.", cls: "tc-accent-caption" });
+  // When a real custom hex is set, paint the dot. Otherwise leave inline
+  // background empty so the CSS conic gradient shows through.
+  const isCustom = s.accentColour !== 'auto' &&
+                   !ACCENT_PRESETS.some(p => p.hex === s.accentColour);
+  if (isCustom) customDot.style.background = s.accentColour;
+  if (isCustom) customDot.addClass("tc-accent-dot--active");
+
+  // Floating Pickr anchored on the custom dot. Clear button reverts to auto.
+  const pickrSeed = isCustom ? s.accentColour : '#e5b32a';
+  const customPickr = Pickr.create({
+    el: customDot,
+    container: containerEl.closest('.modal-content') as HTMLElement ?? document.body,
+    theme: 'nano',
+    default: pickrSeed,
+    useAsButton: true,
+    // Opacity slider disabled — it was transparency, not brightness.
+    lockOpacity: true,
+    position: 'bottom-start',
+    components: {
+      preview: true,
+      hue: true,
+      opacity: false,
+      interaction: { hex: true, input: true, clear: true, save: true, cancel: true },
+    },
+  });
+  const clearActiveDots = () => {
+    accentRow.querySelectorAll('.tc-accent-dot').forEach(d => d.removeClass('tc-accent-dot--active'));
+  };
+  const commitCustomHex = (hex: string) => {
+    s.accentColour = hex;
+    customDot.style.background = hex;
+    clearActiveDots();
+    customDot.addClass('tc-accent-dot--active');
+    onChange(); // live preview — never redisplay mid-interaction
+  };
+  customPickr.on('change', (color: Pickr.HSVaColor | null) => {
+    if (color) commitCustomHex(color.toHEXA().toString().slice(0, 7));
+  });
+  customPickr.on('save', (color: Pickr.HSVaColor | null, instance: Pickr) => {
+    if (color) commitCustomHex(color.toHEXA().toString().slice(0, 7));
+    instance.hide();
+  });
+  customPickr.on('clear', (instance: Pickr) => {
+    s.accentColour = 'auto';
+    customDot.style.background = ''; // restore CSS conic gradient
+    clearActiveDots();
+    autoDot.addClass('tc-accent-dot--active');
+    onChange();
+    instance.hide();
+  });
+  customPickr.on('cancel', (instance: Pickr) => instance.hide());
+  pickrs.push(customPickr);
+
+  /** Appends an outlined "+" swatch at the end of an inline swatch grid.
+   *  Clicking it flips the "show extended" state for that row and calls
+   *  refresh so the extended grid folds out / in below. When the row is
+   *  already open, the + rotates 45° into a × so it reads as "close".
+   *  Replaces the old dedicated toggle-row pattern — one interaction,
+   *  one less row in the accordion. */
+  function appendPlusSwatch(
+    inlineWrap: HTMLElement,
+    isOpen: boolean,
+    onToggle: () => Promise<void>,
+  ): void {
+    const grid = inlineWrap.querySelector<HTMLElement>(".tc-swatch-grid");
+    if (!grid) return;
+    const item = grid.createDiv("tc-swatch-item tc-swatch-item--plus");
+    item.setAttribute("title", isOpen ? "Hide extended flavours" : "Show extended flavours");
+    const sw = item.createDiv("tc-swatch tc-swatch-plus" + (isOpen ? " tc-swatch-plus--active" : ""));
+    // Single glyph "+", the icon (not the swatch) rotates 45° when open
+    // so it reads as ×. Rotating only the inner span keeps the swatch
+    // bounding box flush with its sibling pips — no overflow. No caption
+    // — the cross/plus state already tells the whole story.
+    sw.createSpan({ text: "+", cls: "tc-swatch-plus-icon" });
+    item.addEventListener("click", async () => { await onToggle(); });
+  }
+
+  // ── Dark Flavours ──────────────────────────────────────
+  // Base flavours + a "+" swatch at the end that folds the extended grid
+  // out below. Clicking + opens; clicking × (rotated +) closes. No
+  // dedicated toggle row — the interaction lives in the swatch strip.
+  const darkSetting = new Setting(themeBody)
+    .setName("Dark flavour")
+    .setDesc("Applied when Obsidian is in dark mode");
+  const darkInlineWrap = darkSetting.controlEl.createDiv("tc-swatch-grid-inline");
+  buildSwatchGrid(darkInlineWrap, DARK_BASE, s.darkFlavour, async cls => {
+    s.darkFlavour = cls; await refresh();
+  });
+  appendPlusSwatch(darkInlineWrap, s.showExtendedDark, async () => {
+    s.showExtendedDark = !s.showExtendedDark;
+    await refresh();
+  });
+  if (s.showExtendedDark) {
+    const darkExtWrap = themeBody.createDiv("tc-swatch-grid-wrap tc-swatch-grouped");
+    darkExtWrap.createSpan({ text: "Tegenlicht", cls: "tc-swatch-group-label" });
+    buildSwatchGrid(darkExtWrap, DARK_EXTENDED_TC, s.darkFlavour, async cls => {
+      s.darkFlavour = cls; await refresh();
+    });
+    darkExtWrap.createSpan({ text: "AnuPuccin", cls: "tc-swatch-group-label" });
+    buildSwatchGrid(darkExtWrap, DARK_EXTENDED_ANP, s.darkFlavour, async cls => {
+      s.darkFlavour = cls; await refresh();
+    });
+  }
+
+  // ── Light Flavours ─────────────────────────────────────
+  const lightSetting = new Setting(themeBody)
+    .setName("Light flavour")
+    .setDesc("Applied when Obsidian is in light mode");
+  const lightInlineWrap = lightSetting.controlEl.createDiv("tc-swatch-grid-inline");
+  buildSwatchGrid(lightInlineWrap, LIGHT_BASE, s.lightFlavour, async cls => {
+    s.lightFlavour = cls; await refresh();
+  });
+  appendPlusSwatch(lightInlineWrap, s.showExtendedLight, async () => {
+    s.showExtendedLight = !s.showExtendedLight;
+    await refresh();
+  });
+  if (s.showExtendedLight) {
+    const lightExtWrap = themeBody.createDiv("tc-swatch-grid-wrap tc-swatch-grouped");
+    lightExtWrap.createSpan({ text: "Tegenlicht", cls: "tc-swatch-group-label" });
+    buildSwatchGrid(lightExtWrap, LIGHT_EXTENDED_TC, s.lightFlavour, async cls => {
+      s.lightFlavour = cls; await refresh();
+    });
+    lightExtWrap.createSpan({ text: "AnuPuccin", cls: "tc-swatch-group-label" });
+    buildSwatchGrid(lightExtWrap, LIGHT_EXTENDED_ANP, s.lightFlavour, async cls => {
+      s.lightFlavour = cls; await refresh();
+    });
+  }
+
+  // Background-effect pill and Native-translucency toggle were REMOVED.
+  // Neither approach produced reliable results: CSS backdrop-filter in
+  // Obsidian samples sibling DOM (not the desktop), alpha-stacking from
+  // nested translucent panels crushed colours, and the native
+  // `app:toggle-translucent-window` command requires an app restart on
+  // some builds to take effect at the Electron window level. Rather
+  // than ship half-working UI, we cut the feature entirely. The grain
+  // slider below remains as a standalone workspace texture.
+  //
+  // `backgroundEffect` and `noiseAmount` still exist in settings.ts so
+  // previously-saved values don't break on migration. Their UI will
+  // return once we have a reliable translucency path.
+
+  new Setting(themeBody)
+    .setName("Background Grain")
+    .setDesc("Film-grain texture overlaid on the workspace")
+    .addSlider(sl => sl
+      .setLimits(0, 100, 1)
+      .setValue(s.noiseAmount ?? 0)
+      .setDynamicTooltip()
+      .onChange(async v => { s.noiseAmount = v; await onChange(); })
+    );
+
+  // ── Interface accordion ────────────────────────────────
+  const ifaceAccordion = containerEl.createDiv(
+    "tc-feat-group" + (accordionOpen.interface ? " tc-feat-group--open" : "")
+  );
+  const ifaceHeader = ifaceAccordion.createDiv("tc-feat-header");
+  const ifaceTitle  = ifaceHeader.createDiv("tc-feat-title");
+  ifaceTitle.createSpan({ text: "Interface" });
+  const ifaceMeta = ifaceHeader.createDiv("tc-feat-meta");
+  ifaceMeta.createSpan({ text: "▶", cls: "tc-feat-chevron" });
+  ifaceHeader.addEventListener("click", () => {
+    accordionOpen.interface = !accordionOpen.interface;
+    ifaceAccordion.toggleClass("tc-feat-group--open", accordionOpen.interface);
+  });
+  const interfaceCard = ifaceAccordion.createDiv("tc-feat-body tc-setting-card");
+
+  buildSegmentSetting(interfaceCard,
+    "UI density", "Spacing across nav, tabs, ribbon, and header",
+    [
+      { label: "Compact",     value: "compact" },
+      { label: "Comfortable", value: "comfortable" },
+      { label: "Spacious",    value: "spacious" },
+    ],
+    s.uiDensity,
+    async v => { s.uiDensity = v; await refresh(); },
+  );
+
+  buildSegmentSetting(interfaceCard,
+    "Icon stroke", "Line weight of every Lucide icon in the chrome",
+    [
+      { label: "Thin",    value: "thin" },
+      { label: "Regular", value: "regular" },
+      { label: "Bold",    value: "bold" },
+    ],
+    s.iconStroke,
+    async v => { s.iconStroke = v; await refresh(); },
+  );
+
+  buildSegmentSetting(interfaceCard,
+    "Corner radius", "Roundness of buttons, cards, and inputs",
+    [
+      { label: "Sharp",   value: "sharp" },
+      { label: "Subtle",  value: "subtle" },
+      { label: "Rounded", value: "rounded" },
+    ],
+    s.cornerRadius,
+    async v => { s.cornerRadius = v; await refresh(); },
+  );
+
+  buildSegmentSetting(interfaceCard,
+    "Border intensity", "Strength of borders across the Obsidian interface",
+    [
+      { label: "None",         value: "none" },
+      { label: "Whisper",      value: "whisper" },
+      { label: "Subtle",       value: "subtle" },
+      { label: "Ligne claire", value: "ligne-claire" },
+    ],
+    s.borderIntensity,
+    async v => { s.borderIntensity = v; await refresh(); },
+  );
+
+  // ── Sidebar Outliner accordion (placeholder shell) ─────
+  const outlinerAccordion = containerEl.createDiv(
+    "tc-feat-group" + (accordionOpen.sidebarOutliner ? " tc-feat-group--open" : "")
+  );
+  const outlinerHeader = outlinerAccordion.createDiv("tc-feat-header");
+  const outlinerTitle  = outlinerHeader.createDiv("tc-feat-title");
+  outlinerTitle.createSpan({ text: "Sidebar Outliner" });
+  const outlinerMeta = outlinerHeader.createDiv("tc-feat-meta");
+  outlinerMeta.createSpan({ text: "▶", cls: "tc-feat-chevron" });
+  outlinerHeader.addEventListener("click", () => {
+    accordionOpen.sidebarOutliner = !accordionOpen.sidebarOutliner;
+    outlinerAccordion.toggleClass("tc-feat-group--open", accordionOpen.sidebarOutliner);
+  });
+  const outlinerBody = outlinerAccordion.createDiv("tc-feat-body tc-setting-card");
+
+  // Coloured folders — AnuPuccin's rainbow file-browser, expanded further in future
+  buildSegmentSetting(outlinerBody,
+    "Coloured folders", "Colour-coded file tree — cycles through accent palette",
+    [
+      { label: "Off",      value: "minimal" },
+      { label: "Warm",     value: "warm"    },
+      { label: "Cool",     value: "cool"    },
+    ],
+    s.editorMood,
+    async v => { s.editorMood = v; await refresh(); },
+  );
+
+  // ── Graph accordion (placeholder shell) ────────────────
+  const graphAccordion = containerEl.createDiv(
+    "tc-feat-group" + (accordionOpen.graph ? " tc-feat-group--open" : "")
+  );
+  const graphHeader = graphAccordion.createDiv("tc-feat-header");
+  const graphTitle  = graphHeader.createDiv("tc-feat-title");
+  graphTitle.createSpan({ text: "Graph" });
+  const graphMeta = graphHeader.createDiv("tc-feat-meta");
+  graphMeta.createSpan({ text: "▶", cls: "tc-feat-chevron" });
+  graphHeader.addEventListener("click", () => {
+    accordionOpen.graph = !accordionOpen.graph;
+    graphAccordion.toggleClass("tc-feat-group--open", accordionOpen.graph);
+  });
+  const graphBody = graphAccordion.createDiv("tc-feat-body tc-setting-card");
+  graphBody.createEl("p", { cls: "tc-empty-hint",
+    text: "Graph-view controls arrive here — node size, link thickness, hover halo, cluster tinting." });
+
+  // ── Workspace accordion ────────────────────────────────
+  const wsAccordion = containerEl.createDiv(
+    "tc-feat-group" + (accordionOpen.workspace ? " tc-feat-group--open" : "")
+  );
+  const wsHeader = wsAccordion.createDiv("tc-feat-header");
+  const wsTitle  = wsHeader.createDiv("tc-feat-title");
+  wsTitle.createSpan({ text: "Workspace" });
+  const wsMeta = wsHeader.createDiv("tc-feat-meta");
+  wsMeta.createSpan({ text: "▶", cls: "tc-feat-chevron" });
+  wsHeader.addEventListener("click", () => {
+    accordionOpen.workspace = !accordionOpen.workspace;
+    wsAccordion.toggleClass("tc-feat-group--open", accordionOpen.workspace);
+  });
+  const workspaceCard = wsAccordion.createDiv("tc-feat-body tc-setting-card");
+
+  buildDropdownSetting(workspaceCard,
+    "Sidebar style", "Visual treatment of the left and right sidebars",
+    [{ label: "Flat", value: "flat" }, { label: "Bordered", value: "bordered" }, { label: "Cards", value: "cards" }],
+    s.sidebarStyle,
+    async v => { s.sidebarStyle = v; await refresh(); },
+  );
+
+  let frostSetting: Setting | null = null;
+  buildDropdownSetting(workspaceCard,
+    "Background", "Editor and workspace background treatment",
+    [{ label: "Solid", value: "solid" }, { label: "Frosted glass", value: "frosted" }, { label: "Gradient", value: "gradient" }],
+    s.backgroundStyle,
+    async v => {
+      s.backgroundStyle = v;
+      if (frostSetting) frostSetting.settingEl.style.display = v === "frosted" ? "" : "none";
+      await refresh();
+    },
+  );
+
+  // Frost depth (native Setting, hidden unless frosted)
+  frostSetting = new Setting(workspaceCard)
+    .setName("Frost depth")
+    .setDesc("Intensity of the frosted glass blur effect");
+  frostSetting.settingEl.style.display = s.backgroundStyle === "frosted" ? "" : "none";
+  frostSetting.addSlider(sl => sl
+    .setLimits(0, 100, 1)
+    .setValue(s.frostDepth)
+    .setDynamicTooltip()
+    .onChange(async v => { s.frostDepth = v; await refresh(); })
+  );
+
+  // ── Highlights & Tints accordion ──────────────────────
+  const hlAccordion = containerEl.createDiv(
+    "tc-feat-group" + (accordionOpen.highlights ? " tc-feat-group--open" : "")
+  );
+  const hlHeader = hlAccordion.createDiv("tc-feat-header");
+  const hlTitle  = hlHeader.createDiv("tc-feat-title");
+  hlTitle.createSpan({ text: "Highlights & Tints" });
+  const hlMeta = hlHeader.createDiv("tc-feat-meta");
+  hlMeta.createSpan({ text: "▶", cls: "tc-feat-chevron" });
+  hlHeader.addEventListener("click", () => {
+    accordionOpen.highlights = !accordionOpen.highlights;
+    hlAccordion.toggleClass("tc-feat-group--open", accordionOpen.highlights);
+  });
+  const highlightsCard = hlAccordion.createDiv("tc-feat-body tc-setting-card");
+
+  pickrs.push(buildColorToggleRow(highlightsCard,
+    "Active line", "Highlight the current cursor line in the editor",
+    () => s.activeLineColour,
+    v => { s.activeLineColour = v; },
+    () => s.activeLineHighlight,
+    v => { s.activeLineHighlight = v; },
+    refresh,
+  ));
+
+  pickrs.push(buildColorToggleRow(highlightsCard,
+    "Selection tint", "Colour overlay applied to selected text",
+    () => s.selectionTintColour,
+    v => { s.selectionTintColour = v; },
+    () => s.selectionTint,
+    v => { s.selectionTint = v; },
+    refresh,
+  ));
+
+  pickrs.push(buildColorToggleRow(highlightsCard,
+    "Caret colour", "Colour of the text insertion cursor",
+    () => s.caretColour,
+    v => { s.caretColour = v; },
+    () => s.caretColourEnabled,
+    v => { s.caretColourEnabled = v; },
+    refresh,
+  ));
+
+  return () => pickrs.forEach(p => { try { p.destroyAndRemove(); } catch(_) {} });
 }

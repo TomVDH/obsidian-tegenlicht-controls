@@ -1,6 +1,6 @@
 {
   "name": "tegenlicht-controls",
-  "version": "0.1.0",
+  "version": "0.7.4",
   "description": "Polished settings UI for the Tegenlicht theme",
   "main": "main.js",
   "scripts": {
@@ -17,5 +17,8 @@
     "obsidian": "latest",
     "tslib": "2.4.0",
     "typescript": "4.7.4"
+  },
+  "dependencies": {
+    "@simonwep/pickr": "^1.9.1"
   }
 }

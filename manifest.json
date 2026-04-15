@@ -1,9 +1,10 @@
 {
   "id": "tegenlicht-controls",
   "name": "Tegenlicht Controls",
-  "version": "0.1.0",
+  "version": "0.7.4",
   "minAppVersion": "1.6.0",
-  "description": "Polished settings UI for the Tegenlicht theme — tabbed panel with visual flavour picker, live typography preview, and feature toggles with before/after thumbnails.",
+  "description": "Visual settings companion for the Tegenlicht theme — Low Countries flavour swatches, per-role font pickers with Google Fonts support, background effects (frosted glass / transparency), film-grain noise, heading-size sliders, and a live mini-Obsidian typography preview.",
   "author": "Tom",
+  "authorUrl": "https://github.com/tomlinson/obsidian-tegenlicht-controls",
   "isDesktopOnly": false
 }

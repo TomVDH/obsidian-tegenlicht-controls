@@ -1,8 +1,70 @@
 import esbuild from "esbuild";
 import process from "process";
 import builtins from "builtin-modules";
+import { promises as fs } from "fs";
+import path from "path";
 
 const prod = (process.argv[2] === "production");
+
+// ── Post-build deploy ─────────────────────────────────────────────────
+// Copy the built plugin into the user's vault plugin directory so dev
+// iterations reach the live Obsidian install without a manual copy.
+// Set TC_OBSIDIAN_PLUGIN_DIR in your shell to override the default path.
+const DEFAULT_INSTALL_DIR = path.join(
+  process.env.HOME ?? "",
+  "Library/Mobile Documents/iCloud~md~obsidian/Documents/Onnozelaer/.obsidian/plugins/tegenlicht-controls",
+);
+const INSTALL_DIR = process.env.TC_OBSIDIAN_PLUGIN_DIR ?? DEFAULT_INSTALL_DIR;
+
+const FILES_TO_DEPLOY = ["main.js", "manifest.json", "styles.css"];
+
+async function deploy() {
+  try {
+    await fs.mkdir(INSTALL_DIR, { recursive: true });
+    const copied = [];
+    for (const name of FILES_TO_DEPLOY) {
+      const src = path.resolve(name);
+      const dst = path.join(INSTALL_DIR, name);
+      try {
+        // If dst is a symlink pointing back to the repo, copyFile would
+        // copy the file onto itself (noop or EBUSY). Unlink any existing
+        // symlink/file first so we always land a fresh copy.
+        try {
+          const stat = await fs.lstat(dst);
+          if (stat.isSymbolicLink() || stat.isFile()) {
+            await fs.unlink(dst);
+          }
+        } catch { /* nothing to unlink */ }
+        await fs.copyFile(src, dst);
+        copied.push(name);
+      } catch (err) {
+        // A missing styles.css on first-run is fine; loudly warn about
+        // main.js / manifest.json failures.
+        if (name !== "styles.css") {
+          console.warn(`[deploy] failed to copy ${name}:`, err.message);
+        }
+      }
+    }
+    if (copied.length) {
+      console.log(`[deploy] → ${INSTALL_DIR} (${copied.join(", ")})`);
+    }
+  } catch (err) {
+    console.warn("[deploy] skipped —", err.message);
+  }
+}
+
+/** esbuild plugin that re-runs deploy() after every successful build
+ *  (including watch-mode rebuilds), so editing a .ts file and saving
+ *  instantly updates the live plugin install. Async callback is awaited
+ *  by esbuild so the build cleanly resolves after deploy finishes. */
+const deployPlugin = {
+  name: "tc-deploy",
+  setup(build) {
+    build.onEnd(async result => {
+      if (result.errors.length === 0) await deploy();
+    });
+  },
+};
 
 const context = await esbuild.context({
   banner: {
@@ -24,10 +86,14 @@ const context = await esbuild.context({
   sourcemap: prod ? false : "inline",
   treeShaking: true,
   outfile: "main.js",
+  plugins: [deployPlugin],
 });
 
 if (prod) {
   await context.rebuild();
+  // Belt + braces: run deploy explicitly too, in case esbuild's onEnd
+  // resolves after we'd otherwise exit.
+  await deploy();
   process.exit(0);
 } else {
   await context.watch();

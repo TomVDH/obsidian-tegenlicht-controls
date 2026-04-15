@@ -2,28 +2,969 @@
    Tegenlicht Controls — Settings Panel CSS
    ===================================================== */
 
-/* Tab bar */
+/* ── Plugin header / splash ── */
+.tc-settings .tc-header {
+  padding: 18px 0 0;
+  margin-bottom: 0;
+}
+/* Header line: wordmark + badge + github icon all grouped flush-left,
+   nothing flex-spread across the row. */
+.tc-settings .tc-header-top {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 4px;
+  flex-wrap: wrap;
+}
+.tc-settings .tc-header-wordmark {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+/* Pushes the version badge to the far right of the top row */
+.tc-settings .tc-header-top-spacer { flex: 1; }
+/* Signature "Spun up by Onnozelaer" lives inline with the tagline,
+   separated by a thin pip. Quieter than a standalone footer line. */
+.tc-settings .tc-header-tagline-sep { margin: 0 4px; opacity: 0.4; }
+.tc-settings .tc-header-tagline-sig {
+  font-style: italic;
+  color: var(--text-faint);
+  letter-spacing: 0.01em;
+}
+.tc-settings .tc-header-icon {
+  font-size: 18px;
+  /* Tracks the active accent — defaults to the signature harvest gold. */
+  color: var(--color-accent, #e5b32a);
+  line-height: 1;
+  cursor: default;
+  user-select: none;
+  transition: color 0.3s ease;
+}
+
+/* ── Easter egg: accent shimmer — the "Tegenlicht" wordmark glows ── */
+.tc-settings .tc-header-name-brand {
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--text-normal);
+  letter-spacing: -0.02em;
+}
+/* Subtitle "Settings Companion" — spaced small-caps style, sits beside
+   the Tegenlicht wordmark. Muted tone + tracking so it reads as a
+   label/kicker rather than continuing the brand title. */
+.tc-settings .tc-header-subtitle {
+  margin-left: 10px;
+  font-size: 10px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.18em;
+  color: var(--text-muted);
+  opacity: 0.8;
+  align-self: center;
+  padding-bottom: 2px;
+}
+.tc-settings .tc-header-name-brand.tc-name-shimmer {
+  animation: tc-golden-shimmer 1.6s ease forwards;
+}
+
+/* GitHub link next to the version badge */
+.tc-settings .tc-header-gh {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-muted);
+  text-decoration: none;
+  padding: 4px;
+  border-radius: 50%;
+  transition: color 140ms ease, background 140ms ease;
+  margin-left: 4px;
+}
+.tc-settings .tc-header-gh:hover {
+  color: var(--color-accent);
+  background: color-mix(in srgb, var(--color-accent) 12%, transparent);
+}
+.tc-settings .tc-header-gh svg { display: block; }
+.tc-settings .tc-header-name {
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--text-normal);
+  letter-spacing: -0.02em;
+}
+.tc-settings .tc-header-badge {
+  font-size: 10px;
+  color: var(--text-muted);
+  background: var(--background-secondary);
+  border: 1px solid var(--background-modifier-border);
+  border-radius: 100px;
+  padding: 2px 8px;
+  font-family: var(--font-monospace, monospace);
+}
+.tc-settings .tc-header-tagline {
+  font-size: 12px;
+  color: var(--text-muted);
+  line-height: 1.6;
+  max-width: 60%;
+  margin-bottom: 18px;
+}
+.tc-settings .tc-header-tagline a {
+  color: var(--color-accent, #e5b32a);
+  text-decoration: none;
+  border-bottom: 1px solid transparent;
+  transition: border-color 0.15s;
+}
+.tc-settings .tc-header-tagline a:hover {
+  border-bottom-color: var(--color-accent, #e5b32a);
+}
+.tc-settings .tc-header-copy {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 10px;
+  color: var(--text-faint);
+  padding: 8px 0 14px;
+}
+.tc-settings .tc-header-copy-sep {
+  opacity: 0.4;
+}
+.tc-settings .tc-header-copy a {
+  color: var(--text-faint);
+  text-decoration: none;
+  transition: color 0.12s;
+}
+.tc-settings .tc-header-copy a:hover {
+  color: var(--color-accent);
+}
+/* GitHub icon in copy row — inherits text-faint colour, same as text */
+.tc-settings .tc-header-copy .tc-header-gh {
+  padding: 0;
+  border-radius: 2px;
+  margin-right: 2px;
+}
+
+/* ── Colour bar — smooth Catppuccin gradient, accent-independent ── */
+.tc-color-bar {
+  height: 4px;
+  border-radius: 2px;
+  margin: 14px 0 20px;
+  background: linear-gradient(to right,
+    #e5b32a,
+    #cba6f7,
+    #89b4fa,
+    #a6e3a1,
+    #f38ba8
+  );
+  opacity: 0.7;
+  transition: opacity 0.2s;
+}
+.tc-color-bar:hover { opacity: 1; }
+
+/* Accent-solid variant — used by the Typography tab's top divider. */
+.tc-color-bar.tc-color-bar--accent {
+  background: var(--color-accent, #e5b32a);
+  opacity: 0.85;
+}
+.tc-color-bar.tc-color-bar--accent:hover { opacity: 1; }
+
+/* ── Swatch cards ── */
+.tc-settings .tc-swatch-card {
+  background: var(--background-secondary);
+  border: 1px solid var(--background-modifier-border);
+  border-radius: 10px;
+  padding: 14px 16px 12px;
+  margin-bottom: 12px;
+}
+
+
+/* ── Flavour section title ── */
+.tc-settings .tc-flavour-title {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-normal);
+  margin: 0 0 12px;
+  letter-spacing: 0;
+  text-transform: none;
+}
+
+/* ── Animations ── */
+@keyframes tc-shimmer {
+  0%   { background-position: -300% center; }
+  100% { background-position:  300% center; }
+}
+/* Easter egg shimmer — glows in whatever the current accent colour is */
+@keyframes tc-golden-shimmer {
+  0%   { text-shadow: 0 0 0 var(--color-accent);                                                     color: var(--text-normal); }
+  30%  { text-shadow: 0 0 12px var(--color-accent), 0 0 24px var(--color-accent);                    color: var(--color-accent); }
+  60%  { text-shadow: 0 0 8px var(--color-accent),  0 0 18px rgba(var(--ctp-accent, 229,179,42), 0.5); color: var(--color-accent); }
+  100% { text-shadow: 0 0 0 var(--color-accent);                                                     color: var(--text-normal); }
+}
+@keyframes tc-pulse-glow {
+  0%, 100% { box-shadow: 0 0 6px 1px var(--color-accent, #e5b32a); }
+  50%       { box-shadow: 0 0 18px 6px var(--color-accent, #e5b32a); }
+}
+@keyframes tc-line-grow {
+  from { transform: scaleX(0); }
+  to   { transform: scaleX(1); }
+}
+
+/* ── Reset-all confirmation hint — fades in to the LEFT of the button
+   when armed, fades out when disarmed. Always in the DOM so the
+   transition is smooth; opacity + translate gate visibility. ── */
+.tc-settings .tc-reset-all-hint {
+  font-size: 11px;
+  font-style: italic;
+  color: var(--text-error, #e88);
+  margin-right: 8px;
+  align-self: center;
+  opacity: 0;
+  transform: translateX(6px);
+  pointer-events: none;
+  transition: opacity 0.25s ease, transform 0.25s ease;
+  white-space: nowrap;
+}
+.tc-settings .tc-reset-all-hint--visible {
+  opacity: 1;
+  transform: translateX(0);
+}
+
+/* ── Reset-all button — right-aligned in the tab bar. Inherits circle
+   shape/size from .tc-circle-btn; this block just layers the armed
+   double-click state on top. ── */
+.tc-settings .tc-reset-all-btn {
+  width: 28px;
+  height: 28px;
+}
+.tc-settings .tc-reset-all-btn svg { width: 15px; height: 15px; }
+.tc-settings .tc-reset-all-btn--armed {
+  color: var(--text-error, #e88);
+  border-color: var(--text-error, #e88);
+  background: color-mix(in srgb, var(--text-error, #e88) 10%, transparent);
+  animation: tc-reset-pulse 1.4s ease-in-out infinite;
+}
+@keyframes tc-reset-pulse {
+  0%, 100% { box-shadow: 0 0 0 0 color-mix(in srgb, var(--text-error, #e88) 30%, transparent); }
+  50%      { box-shadow: 0 0 0 4px color-mix(in srgb, var(--text-error, #e88) 10%, transparent); }
+}
+
+/* ── Tab bar — base (shared across all styles) ── */
 .tc-settings .tc-tab-bar {
   display: flex;
-  gap: 2px;
-  padding: 0 0 12px;
-  border-bottom: 1px solid var(--background-modifier-border);
-  margin-bottom: 16px;
+  align-items: center;
+  padding: 12px 0;
+  border-bottom: none;
+  margin-bottom: 0;
 }
 .tc-settings .tc-tab {
-  padding: 6px 14px;
-  border-radius: 5px 5px 0 0;
+  padding: 5px 14px;
+  border-radius: 100px;
   color: var(--text-muted);
   font-size: 12px;
   font-weight: 500;
   background: transparent;
   border: none;
   cursor: pointer;
+  transition: background 0.15s, color 0.15s, box-shadow 0.15s, transform 0.15s, opacity 0.15s;
+  font-family: inherit;
+  margin-right: var(--tc-tab-gap, 6px) !important;
+  position: relative;
 }
-.tc-settings .tc-tab--active {
+.tc-settings .tc-tab:last-child { margin-right: 0 !important; }
+.tc-settings .tc-tab:hover { background: var(--background-modifier-hover); color: var(--text-normal); }
+
+/* ════════════════════════════════════════
+   PILL VARIANTS (20)
+   ════════════════════════════════════════ */
+
+/* P01 — Accent fill */
+.tc-settings.tc-tabs-pill .tc-tab--active {
+  background: var(--interactive-accent);
+  color: var(--text-on-accent);
+}
+
+/* P02 — Soft surface */
+.tc-settings.tc-tabs-pill-soft .tc-tab--active {
+  background: var(--background-secondary);
   color: var(--text-normal);
-  border-bottom: 2px solid #e5b32a;
+  box-shadow: inset 0 0 0 1px var(--background-modifier-border);
+}
+
+/* P03 — Ghost outline */
+.tc-settings.tc-tabs-pill-ghost .tc-tab--active {
+  background: transparent;
+  color: var(--color-accent, #e5b32a);
+  box-shadow: inset 0 0 0 1.5px var(--color-accent, #e5b32a);
+}
+.tc-settings.tc-tabs-pill-ghost .tc-tab:hover { background: transparent; color: var(--color-accent, #e5b32a); opacity: 0.7; }
+
+/* P04 — Glow halo */
+.tc-settings.tc-tabs-pill-glow .tc-tab--active {
+  background: var(--interactive-accent);
+  color: var(--text-on-accent);
+  box-shadow: 0 0 0 3px var(--background-primary),
+              0 0 16px 5px var(--color-accent, #e5b32a);
+}
+
+/* P05 — Frosted glass */
+.tc-settings.tc-tabs-pill-frost .tc-tab--active {
+  background: rgba(var(--mono-rgb-100, 200, 200, 200), 0.07);
+  backdrop-filter: blur(10px) saturate(1.4);
+  -webkit-backdrop-filter: blur(10px) saturate(1.4);
+  color: var(--text-normal);
+  box-shadow: inset 0 0 0 1px rgba(var(--mono-rgb-100, 200, 200, 200), 0.14), 0 2px 8px rgba(0,0,0,0.2);
+}
+.tc-settings.tc-tabs-pill-frost .tc-tab:hover { background: rgba(var(--mono-rgb-100, 200, 200, 200), 0.04); }
+
+/* P06 — Gradient gold→lavender */
+.tc-settings.tc-tabs-pill-gradient .tc-tab--active {
+  background: linear-gradient(120deg, var(--color-accent, #e5b32a) 0%, #cba6f7 100%);
+  color: #1e1e2e;
+  font-weight: 600;
+}
+
+/* P07 — Lifted card */
+.tc-settings.tc-tabs-pill-lifted .tc-tab--active {
   background: var(--background-primary);
+  color: var(--text-normal);
+  box-shadow: 0 4px 14px rgba(0,0,0,0.35), 0 1px 3px rgba(0,0,0,0.2);
+  transform: translateY(-2px);
+}
+.tc-settings.tc-tabs-pill-lifted .tc-tab:hover { transform: translateY(-1px); box-shadow: 0 2px 6px rgba(0,0,0,0.2); }
+
+/* P08 — Dot indicator */
+.tc-settings.tc-tabs-pill-dot .tc-tab { padding-bottom: 12px; }
+.tc-settings.tc-tabs-pill-dot .tc-tab::after {
+  content: '';
+  position: absolute;
+  bottom: 3px;
+  left: 50%;
+  transform: translateX(-50%) scale(0);
+  width: 4px; height: 4px;
+  border-radius: 50%;
+  background: var(--color-accent, #e5b32a);
+  transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+.tc-settings.tc-tabs-pill-dot .tc-tab--active { background: transparent; color: var(--text-normal); font-weight: 600; }
+.tc-settings.tc-tabs-pill-dot .tc-tab--active::after { transform: translateX(-50%) scale(1); }
+
+/* P09 — Tint: accent wash bg + accent text */
+.tc-settings.tc-tabs-pill-tint .tc-tab--active {
+  background: color-mix(in srgb, var(--color-accent, #e5b32a) 14%, transparent);
+  color: var(--color-accent, #e5b32a);
+  font-weight: 600;
+}
+
+/* P10 — Inset / pressed */
+.tc-settings.tc-tabs-pill-inset .tc-tab--active {
+  background: var(--background-primary);
+  color: var(--text-normal);
+  box-shadow: inset 0 2px 5px rgba(0,0,0,0.4), inset 0 1px 2px rgba(0,0,0,0.3);
+}
+
+/* P11 — Neon: dark pill + accent glow text */
+.tc-settings.tc-tabs-pill-neon .tc-tab--active {
+  background: rgba(0,0,0,0.5);
+  color: var(--color-accent, #e5b32a);
+  box-shadow: inset 0 0 0 1px var(--color-accent, #e5b32a),
+              0 0 10px 2px var(--color-accent, #e5b32a);
+  text-shadow: 0 0 8px var(--color-accent, #e5b32a);
+}
+.tc-settings.tc-tabs-pill-neon .tc-tab:hover { background: rgba(0,0,0,0.25); }
+
+/* P12 — Duo gradient (pink→blue) */
+.tc-settings.tc-tabs-pill-duo .tc-tab--active {
+  background: linear-gradient(120deg, #f38ba8 0%, #89b4fa 100%);
+  color: #1e1e2e;
+  font-weight: 600;
+}
+
+/* P13 — Flat text only */
+.tc-settings.tc-tabs-pill-flat .tc-tab--active {
+  background: transparent;
+  color: var(--color-accent, #e5b32a);
+  font-weight: 700;
+}
+.tc-settings.tc-tabs-pill-flat .tc-tab:hover { background: transparent; color: var(--text-normal); }
+
+/* P14 — Pop: scale up on active */
+.tc-settings.tc-tabs-pill-pop .tc-tab--active {
+  background: var(--interactive-accent);
+  color: var(--text-on-accent);
+  transform: scale(1.1);
+  box-shadow: 0 2px 10px rgba(0,0,0,0.25);
+}
+
+/* P15 — Shimmer sweep animation */
+.tc-settings.tc-tabs-pill-shimmer .tc-tab--active {
+  background: linear-gradient(
+    90deg,
+    var(--color-accent, #e5b32a) 0%,
+    #cba6f7 30%,
+    #89b4fa 60%,
+    var(--color-accent, #e5b32a) 100%
+  );
+  background-size: 300% 100%;
+  animation: tc-shimmer 2.5s linear infinite;
+  color: #1e1e2e;
+  font-weight: 600;
+}
+
+/* P16 — Mono: white text, dark pill */
+.tc-settings.tc-tabs-pill-mono .tc-tab--active {
+  background: var(--text-normal);
+  color: var(--background-primary);
+  font-weight: 600;
+}
+
+/* P17 — Badge: accent with offset ring */
+.tc-settings.tc-tabs-pill-badge .tc-tab--active {
+  background: var(--interactive-accent);
+  color: var(--text-on-accent);
+  box-shadow: 0 0 0 2px var(--background-primary), 0 0 0 3.5px var(--color-accent, #e5b32a);
+}
+
+/* P18 — Line-under hybrid: pill shape + accent underline */
+.tc-settings.tc-tabs-pill-lineunder .tc-tab::after {
+  content: '';
+  position: absolute;
+  bottom: -2px;
+  left: 20%;
+  right: 20%;
+  height: 2px;
+  border-radius: 1px;
+  background: var(--color-accent, #e5b32a);
+  transform: scaleX(0);
+  transition: transform 0.2s ease;
+}
+.tc-settings.tc-tabs-pill-lineunder .tc-tab--active {
+  background: var(--background-secondary);
+  color: var(--text-normal);
+}
+.tc-settings.tc-tabs-pill-lineunder .tc-tab--active::after { transform: scaleX(1); }
+
+/* P19 — Dark matte */
+.tc-settings.tc-tabs-pill-dark .tc-tab--active {
+  background: rgba(0,0,0,0.55);
+  color: var(--text-normal);
+  box-shadow: inset 0 1px 0 rgba(var(--mono-rgb-100, 200, 200, 200), 0.06), 0 2px 8px rgba(0,0,0,0.4);
+}
+
+/* P20 — Pulse glow animation */
+.tc-settings.tc-tabs-pill-pulse .tc-tab--active {
+  background: var(--interactive-accent);
+  color: var(--text-on-accent);
+  animation: tc-pulse-glow 2s ease-in-out infinite;
+}
+
+/* P21 — Sweep: diagonal light sweep across the active tab */
+.tc-settings.tc-tabs-pill-sweep .tc-tab--active {
+  background: linear-gradient(
+    110deg,
+    transparent 0%,
+    color-mix(in srgb, var(--color-accent, #e5b32a) 20%, transparent) 40%,
+    color-mix(in srgb, var(--color-accent, #e5b32a) 10%, transparent) 70%,
+    transparent 100%
+  );
+  color: var(--color-accent, #e5b32a);
+  font-weight: 600;
+}
+.tc-settings.tc-tabs-pill-sweep .tc-tab:hover {
+  background: color-mix(in srgb, var(--color-accent, #e5b32a) 6%, transparent);
+}
+
+/* P22 — Frost + Tint: accent wash + frosted glass */
+.tc-settings.tc-tabs-pill-frosttint .tc-tab--active {
+  background: color-mix(in srgb, var(--color-accent, #e5b32a) 12%, rgba(var(--mono-rgb-100, 200, 200, 200), 0.06));
+  backdrop-filter: blur(10px) saturate(1.6);
+  -webkit-backdrop-filter: blur(10px) saturate(1.6);
+  color: var(--color-accent, #e5b32a);
+  font-weight: 600;
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--color-accent, #e5b32a) 30%, rgba(var(--mono-rgb-100, 200, 200, 200), 0.15)),
+              0 2px 8px rgba(0,0,0,0.2);
+}
+.tc-settings.tc-tabs-pill-frosttint .tc-tab:hover {
+  background: color-mix(in srgb, var(--color-accent, #e5b32a) 6%, rgba(var(--mono-rgb-100, 200, 200, 200), 0.03));
+}
+
+/* ════════════════════════════════════════
+   UNDERLINE VARIANTS (20)
+   All use a shared base for the bar + tab reset,
+   then ::after pseudo-elements for creative indicators
+   ════════════════════════════════════════ */
+
+/* Shared underline tab bar + tab reset */
+[class*="tc-tabs-line"] .tc-tab-bar {
+  padding: 12px 0 0;
+  border-bottom: 1px solid var(--background-modifier-border) !important;
+  margin-bottom: 36px;
+}
+[class*="tc-tabs-line"] .tc-tab {
+  border-radius: 0;
+  padding: 8px 16px;
+  border-bottom: 2px solid transparent !important;
+  margin-bottom: -1px !important;
+  margin-right: 0 !important;
+  overflow: visible;
+}
+[class*="tc-tabs-line"] .tc-tab:first-child { border-radius: 5px 0 0 0; }
+[class*="tc-tabs-line"] .tc-tab:last-child  { border-radius: 0 5px 0 0; margin-right: 0 !important; }
+[class*="tc-tabs-line"] .tc-tab:hover { background: transparent; }
+
+/* ::after indicator base for pseudo-element variants */
+[class*="tc-tabs-line"] .tc-tab::after {
+  content: '';
+  position: absolute;
+  bottom: -1px;
+  left: 0; right: 0;
+  height: 2px;
+  background: transparent;
+  transition: background 0.15s, transform 0.2s, opacity 0.15s, height 0.15s;
+}
+
+/* L01 — Thin accent line */
+.tc-settings.tc-tabs-line .tc-tab--active {
+  color: var(--text-normal);
+  border-bottom-color: var(--color-accent, #e5b32a) !important;
+}
+
+/* L02 — Thick line + tint bg */
+.tc-settings.tc-tabs-line-thick .tc-tab { border-bottom-width: 3px !important; }
+.tc-settings.tc-tabs-line-thick .tc-tab--active {
+  background: color-mix(in srgb, var(--color-accent, #e5b32a) 8%, transparent);
+  color: var(--color-accent, #e5b32a);
+  border-bottom-color: var(--color-accent, #e5b32a) !important;
+  font-weight: 600;
+}
+
+/* L03 — Fat 5px slab */
+.tc-settings.tc-tabs-line-fat .tc-tab { border-bottom-width: 5px !important; }
+.tc-settings.tc-tabs-line-fat .tc-tab--active {
+  color: var(--text-normal);
+  border-bottom-color: var(--color-accent, #e5b32a) !important;
+}
+
+/* L04 — Glow line */
+.tc-settings.tc-tabs-line-glow .tc-tab--active {
+  color: var(--text-normal);
+  border-bottom-color: var(--color-accent, #e5b32a) !important;
+  filter: drop-shadow(0 2px 6px var(--color-accent, #e5b32a));
+}
+
+/* L05 — Gradient line via ::after */
+.tc-settings.tc-tabs-line-grad .tc-tab--active { color: var(--text-normal); border-bottom-color: transparent !important; }
+.tc-settings.tc-tabs-line-grad .tc-tab--active::after {
+  background: linear-gradient(90deg, #f38ba8, var(--color-accent, #e5b32a), #cba6f7);
+  height: 2px;
+}
+
+/* L06 — Top indicator */
+.tc-settings.tc-tabs-line-top .tc-tab { border-bottom: none !important; border-top: 2px solid transparent !important; margin-bottom: 0 !important; margin-top: -1px !important; }
+.tc-settings.tc-tabs-line-top .tc-tab-bar { border-bottom: none !important; border-top: 1px solid var(--background-modifier-border) !important; padding: 0 0 12px; }
+.tc-settings.tc-tabs-line-top .tc-tab--active { color: var(--text-normal); border-top-color: var(--color-accent, #e5b32a) !important; }
+
+/* L07 — Full-height fill */
+.tc-settings.tc-tabs-line-fill .tc-tab--active {
+  background: color-mix(in srgb, var(--color-accent, #e5b32a) 12%, transparent);
+  color: var(--color-accent, #e5b32a);
+  border-bottom-color: var(--color-accent, #e5b32a) !important;
+  border-radius: 4px 4px 0 0;
+  font-weight: 600;
+}
+
+/* L08 — Rounded cap line via ::after */
+.tc-settings.tc-tabs-line-cap .tc-tab--active { color: var(--text-normal); border-bottom-color: transparent !important; }
+.tc-settings.tc-tabs-line-cap .tc-tab--active::after {
+  background: var(--color-accent, #e5b32a);
+  height: 3px;
+  border-radius: 3px;
+  left: 16px; right: 16px;
+}
+
+/* L09 — Grow from center */
+.tc-settings.tc-tabs-line-grow .tc-tab::after { transform: scaleX(0); transform-origin: center; }
+.tc-settings.tc-tabs-line-grow .tc-tab--active { color: var(--text-normal); border-bottom-color: transparent !important; }
+.tc-settings.tc-tabs-line-grow .tc-tab--active::after {
+  background: var(--color-accent, #e5b32a);
+  height: 2px;
+  transform: scaleX(1);
+}
+
+/* L10 — Three-dot indicator */
+.tc-settings.tc-tabs-line-dots .tc-tab { border-bottom: none !important; }
+.tc-settings.tc-tabs-line-dots .tc-tab::after {
+  content: '· · ·';
+  background: none;
+  color: transparent;
+  bottom: -2px;
+  left: 0; right: 0;
+  text-align: center;
+  font-size: 10px;
+  line-height: 1;
+  letter-spacing: 2px;
+  transition: color 0.15s;
+  height: auto;
+}
+.tc-settings.tc-tabs-line-dots .tc-tab--active { color: var(--text-normal); }
+.tc-settings.tc-tabs-line-dots .tc-tab--active::after { color: var(--color-accent, #e5b32a); }
+
+/* L11 — Sweep bg on active */
+.tc-settings.tc-tabs-line-sweep .tc-tab--active {
+  background: linear-gradient(180deg, transparent 40%, color-mix(in srgb, var(--color-accent, #e5b32a) 10%, transparent) 100%);
+  color: var(--text-normal);
+  border-bottom-color: var(--color-accent, #e5b32a) !important;
+}
+
+/* L12 — Highlight marker */
+.tc-settings.tc-tabs-line-highlight .tc-tab--active {
+  background: color-mix(in srgb, var(--color-accent, #e5b32a) 20%, transparent);
+  color: var(--text-normal);
+  border-bottom-color: transparent !important;
+  border-radius: 2px 2px 0 0;
+}
+
+/* L13 — Left side bar */
+.tc-settings.tc-tabs-line-side .tc-tab { border-bottom: none !important; border-left: 3px solid transparent !important; padding-left: 13px; }
+.tc-settings.tc-tabs-line-side .tc-tab-bar { border-bottom: none !important; }
+.tc-settings.tc-tabs-line-side .tc-tab--active { color: var(--text-normal); border-left-color: var(--color-accent, #e5b32a) !important; font-weight: 600; }
+
+/* L14 — Overline (top) */
+.tc-settings.tc-tabs-line-over .tc-tab { border-bottom: none !important; }
+.tc-settings.tc-tabs-line-over .tc-tab::after { top: 0; bottom: auto; height: 2px; }
+.tc-settings.tc-tabs-line-over .tc-tab--active { color: var(--text-normal); }
+.tc-settings.tc-tabs-line-over .tc-tab--active::after { background: var(--color-accent, #e5b32a); }
+
+/* L15 — Pill+line hybrid */
+.tc-settings.tc-tabs-line-pill .tc-tab--active {
+  background: color-mix(in srgb, var(--color-accent, #e5b32a) 10%, transparent);
+  color: var(--text-normal);
+  border-bottom-color: var(--color-accent, #e5b32a) !important;
+  border-radius: 6px 6px 0 0;
+}
+
+/* L16 — Neon line */
+.tc-settings.tc-tabs-line-neon .tc-tab--active {
+  color: var(--color-accent, #e5b32a);
+  border-bottom-color: var(--color-accent, #e5b32a) !important;
+  text-shadow: 0 0 8px var(--color-accent, #e5b32a);
+  filter: drop-shadow(0 2px 8px var(--color-accent, #e5b32a));
+}
+
+/* L17 — Double line via border + ::after */
+.tc-settings.tc-tabs-line-double .tc-tab--active { color: var(--text-normal); border-bottom-color: var(--color-accent, #e5b32a) !important; }
+.tc-settings.tc-tabs-line-double .tc-tab--active::after {
+  background: var(--color-accent, #e5b32a);
+  bottom: -4px;
+  height: 1px;
+  opacity: 0.4;
+}
+
+/* L18 — Bracket [ ] corners */
+.tc-settings.tc-tabs-line-bracket .tc-tab--active {
+  color: var(--text-normal);
+  border-bottom-color: transparent !important;
+  box-shadow: -2px 0 0 0 var(--color-accent, #e5b32a), 2px 0 0 0 var(--color-accent, #e5b32a);
+}
+.tc-settings.tc-tabs-line-bracket .tc-tab--active::after {
+  background: var(--color-accent, #e5b32a);
+  height: 2px;
+}
+
+/* L19 — Bold text only, no line */
+.tc-settings.tc-tabs-line-bold .tc-tab { border-bottom: none !important; }
+.tc-settings.tc-tabs-line-bold .tc-tab-bar { border-bottom: none !important; }
+.tc-settings.tc-tabs-line-bold .tc-tab--active { color: var(--text-normal); font-weight: 700; font-size: 13px; border-bottom-color: transparent !important; }
+
+/* L20 — Detached floating line (gap below) */
+.tc-settings.tc-tabs-line-float .tc-tab--active { color: var(--text-normal); border-bottom-color: transparent !important; }
+.tc-settings.tc-tabs-line-float .tc-tab--active::after {
+  background: var(--color-accent, #e5b32a);
+  height: 2px;
+  bottom: -4px;
+  border-radius: 1px;
+}
+
+/* L21 — Frost + Tint: accent wash underline + frosted full-height bg */
+.tc-settings.tc-tabs-line-frosttint .tc-tab--active {
+  background: color-mix(in srgb, var(--color-accent, #e5b32a) 10%, rgba(var(--mono-rgb-100, 200, 200, 200), 0.05));
+  backdrop-filter: blur(8px) saturate(1.5);
+  -webkit-backdrop-filter: blur(8px) saturate(1.5);
+  color: var(--color-accent, #e5b32a);
+  font-weight: 600;
+  border-bottom-color: var(--color-accent, #e5b32a) !important;
+  border-radius: 4px 4px 0 0;
+}
+
+/* ════════════════════════════════════════
+   SEGMENT VARIANTS (20)
+   ════════════════════════════════════════ */
+
+/* Shared segment base */
+[class*="tc-tabs-seg"] .tc-tab-bar { padding: 12px 0; }
+[class*="tc-tabs-seg"] .tc-tab-inner-wrap {
+  display: inline-flex;
+  border-radius: 8px;
+  padding: 3px;
+}
+[class*="tc-tabs-seg"] .tc-tab {
+  border-radius: 6px;
+  padding: 5px 14px;
+  margin-right: var(--tc-tab-gap, 6px) !important;
+}
+[class*="tc-tabs-seg"] .tc-tab:last-child { margin-right: 0 !important; }
+
+/* S01 — Raised card */
+.tc-settings.tc-tabs-seg .tc-tab-inner-wrap { background: var(--background-secondary); }
+.tc-settings.tc-tabs-seg .tc-tab:hover { background: var(--background-primary-alt); }
+.tc-settings.tc-tabs-seg .tc-tab--active { background: var(--background-primary); color: var(--text-normal); box-shadow: 0 1px 3px rgba(0,0,0,0.2); }
+
+/* S02 — Accent fill */
+.tc-settings.tc-tabs-seg-accent .tc-tab-inner-wrap { background: var(--background-secondary); }
+.tc-settings.tc-tabs-seg-accent .tc-tab:hover { background: var(--background-primary-alt); }
+.tc-settings.tc-tabs-seg-accent .tc-tab--active { background: var(--interactive-accent); color: var(--text-on-accent); box-shadow: 0 1px 4px rgba(0,0,0,0.25); }
+
+/* S03 — Border outline wrap */
+.tc-settings.tc-tabs-seg-border .tc-tab-inner-wrap { background: transparent; box-shadow: inset 0 0 0 1px var(--background-modifier-border); }
+.tc-settings.tc-tabs-seg-border .tc-tab:hover { background: var(--background-modifier-hover); }
+.tc-settings.tc-tabs-seg-border .tc-tab--active { background: transparent; color: var(--color-accent, #e5b32a); box-shadow: inset 0 0 0 1.5px var(--color-accent, #e5b32a); }
+
+/* S04 — Full pill inside wrap */
+.tc-settings.tc-tabs-seg-pill .tc-tab-inner-wrap { background: var(--background-secondary); }
+.tc-settings.tc-tabs-seg-pill .tc-tab { border-radius: 100px; }
+.tc-settings.tc-tabs-seg-pill .tc-tab:hover { background: var(--background-primary-alt); }
+.tc-settings.tc-tabs-seg-pill .tc-tab--active { background: var(--interactive-accent); color: var(--text-on-accent); }
+
+/* S05 — Raised + glow */
+.tc-settings.tc-tabs-seg-glow .tc-tab-inner-wrap { background: var(--background-secondary); }
+.tc-settings.tc-tabs-seg-glow .tc-tab:hover { background: var(--background-primary-alt); }
+.tc-settings.tc-tabs-seg-glow .tc-tab--active {
+  background: var(--background-primary);
+  color: var(--text-normal);
+  box-shadow: 0 2px 8px rgba(0,0,0,0.3), 0 0 12px 2px var(--color-accent, #e5b32a);
+}
+
+/* S06 — Gradient active */
+.tc-settings.tc-tabs-seg-grad .tc-tab-inner-wrap { background: var(--background-secondary); }
+.tc-settings.tc-tabs-seg-grad .tc-tab:hover { background: var(--background-primary-alt); }
+.tc-settings.tc-tabs-seg-grad .tc-tab--active {
+  background: linear-gradient(120deg, var(--color-accent, #e5b32a) 0%, #cba6f7 100%);
+  color: #1e1e2e;
+  font-weight: 600;
+}
+
+/* S07 — Frosted active */
+.tc-settings.tc-tabs-seg-frost .tc-tab-inner-wrap { background: rgba(var(--mono-rgb-100, 200, 200, 200), 0.04); box-shadow: inset 0 0 0 1px rgba(var(--mono-rgb-100, 200, 200, 200), 0.08); }
+.tc-settings.tc-tabs-seg-frost .tc-tab:hover { background: rgba(var(--mono-rgb-100, 200, 200, 200), 0.04); }
+.tc-settings.tc-tabs-seg-frost .tc-tab--active {
+  background: rgba(var(--mono-rgb-100, 200, 200, 200), 0.1);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  color: var(--text-normal);
+  box-shadow: inset 0 0 0 1px rgba(var(--mono-rgb-100, 200, 200, 200), 0.2), 0 2px 6px rgba(0,0,0,0.2);
+}
+
+/* S08 — Inset wrap, raised active */
+.tc-settings.tc-tabs-seg-inset .tc-tab-inner-wrap {
+  background: var(--background-primary);
+  box-shadow: inset 0 2px 6px rgba(0,0,0,0.35);
+}
+.tc-settings.tc-tabs-seg-inset .tc-tab:hover { background: var(--background-primary-alt); }
+.tc-settings.tc-tabs-seg-inset .tc-tab--active { background: var(--background-secondary); color: var(--text-normal); box-shadow: 0 1px 4px rgba(0,0,0,0.2); }
+
+/* S09 — Flat, no wrap bg */
+.tc-settings.tc-tabs-seg-flat .tc-tab-inner-wrap { background: transparent; }
+.tc-settings.tc-tabs-seg-flat .tc-tab:hover { background: var(--background-modifier-hover); }
+.tc-settings.tc-tabs-seg-flat .tc-tab--active { background: var(--background-secondary); color: var(--text-normal); }
+
+/* S10 — Underline indicator inside wrap */
+.tc-settings.tc-tabs-seg-underline .tc-tab-inner-wrap { background: var(--background-secondary); border-radius: 8px 8px 0 0; }
+.tc-settings.tc-tabs-seg-underline .tc-tab { border-radius: 0; border-bottom: 2px solid transparent; }
+.tc-settings.tc-tabs-seg-underline .tc-tab:hover { background: transparent; }
+.tc-settings.tc-tabs-seg-underline .tc-tab--active { background: transparent; color: var(--text-normal); border-bottom-color: var(--color-accent, #e5b32a); }
+
+/* S11 — Dot below active */
+.tc-settings.tc-tabs-seg-dot .tc-tab-inner-wrap { background: var(--background-secondary); }
+.tc-settings.tc-tabs-seg-dot .tc-tab { padding-bottom: 12px; }
+.tc-settings.tc-tabs-seg-dot .tc-tab::after {
+  content: '';
+  position: absolute;
+  bottom: 3px; left: 50%;
+  transform: translateX(-50%) scale(0);
+  width: 4px; height: 4px;
+  border-radius: 50%;
+  background: var(--color-accent, #e5b32a);
+  transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+.tc-settings.tc-tabs-seg-dot .tc-tab--active { background: var(--background-primary); color: var(--text-normal); }
+.tc-settings.tc-tabs-seg-dot .tc-tab--active::after { transform: translateX(-50%) scale(1); }
+
+/* S12 — Neon dark wrap */
+.tc-settings.tc-tabs-seg-neon .tc-tab-inner-wrap { background: rgba(0,0,0,0.5); box-shadow: inset 0 0 0 1px var(--color-accent, #e5b32a); }
+.tc-settings.tc-tabs-seg-neon .tc-tab:hover { background: rgba(var(--mono-rgb-100, 200, 200, 200), 0.05); }
+.tc-settings.tc-tabs-seg-neon .tc-tab--active {
+  background: rgba(0,0,0,0.3);
+  color: var(--color-accent, #e5b32a);
+  box-shadow: inset 0 0 0 1px var(--color-accent, #e5b32a), 0 0 10px 1px var(--color-accent, #e5b32a);
+  text-shadow: 0 0 6px var(--color-accent, #e5b32a);
+}
+
+/* S13 — Minimal ultra-subtle */
+.tc-settings.tc-tabs-seg-minimal .tc-tab-inner-wrap { background: color-mix(in srgb, var(--background-modifier-border) 30%, transparent); }
+.tc-settings.tc-tabs-seg-minimal .tc-tab:hover { background: var(--background-modifier-hover); }
+.tc-settings.tc-tabs-seg-minimal .tc-tab--active { background: var(--background-secondary); color: var(--text-normal); }
+
+/* S14 — Sharp corners */
+.tc-settings.tc-tabs-seg-sharp .tc-tab-inner-wrap { background: var(--background-secondary); border-radius: 2px; }
+.tc-settings.tc-tabs-seg-sharp .tc-tab { border-radius: 1px; }
+.tc-settings.tc-tabs-seg-sharp .tc-tab:hover { background: var(--background-primary-alt); }
+.tc-settings.tc-tabs-seg-sharp .tc-tab--active { background: var(--interactive-accent); color: var(--text-on-accent); }
+
+/* S15 — Outline active only */
+.tc-settings.tc-tabs-seg-outline .tc-tab-inner-wrap { background: var(--background-secondary); }
+.tc-settings.tc-tabs-seg-outline .tc-tab:hover { background: var(--background-primary-alt); }
+.tc-settings.tc-tabs-seg-outline .tc-tab--active { background: transparent; color: var(--text-normal); box-shadow: inset 0 0 0 1.5px var(--background-modifier-border); }
+
+/* S16 — Gradient wrap */
+.tc-settings.tc-tabs-seg-gradwrap .tc-tab-inner-wrap {
+  background: linear-gradient(120deg, color-mix(in srgb, var(--color-accent, #e5b32a) 15%, var(--background-secondary)), color-mix(in srgb, #cba6f7 15%, var(--background-secondary)));
+}
+.tc-settings.tc-tabs-seg-gradwrap .tc-tab:hover { background: rgba(var(--mono-rgb-100, 200, 200, 200), 0.05); }
+.tc-settings.tc-tabs-seg-gradwrap .tc-tab--active { background: var(--background-primary); color: var(--text-normal); box-shadow: 0 1px 4px rgba(0,0,0,0.2); }
+
+/* S17 — Dividers between tabs */
+.tc-settings.tc-tabs-seg-split .tc-tab-inner-wrap { background: var(--background-secondary); gap: 0; }
+.tc-settings.tc-tabs-seg-split .tc-tab { margin-right: 0 !important; border-right: 1px solid var(--background-modifier-border); border-radius: 0; }
+.tc-settings.tc-tabs-seg-split .tc-tab:first-child { border-radius: 6px 0 0 6px; }
+.tc-settings.tc-tabs-seg-split .tc-tab:last-child  { border-radius: 0 6px 6px 0; border-right: none; }
+.tc-settings.tc-tabs-seg-split .tc-tab:hover { background: var(--background-primary-alt); }
+.tc-settings.tc-tabs-seg-split .tc-tab--active { background: var(--interactive-accent); color: var(--text-on-accent); }
+
+/* S18 — Thick padding, substantial feel */
+.tc-settings.tc-tabs-seg-thick .tc-tab-inner-wrap { background: var(--background-secondary); border-radius: 10px; padding: 5px; }
+.tc-settings.tc-tabs-seg-thick .tc-tab { border-radius: 7px; padding: 8px 20px; }
+.tc-settings.tc-tabs-seg-thick .tc-tab:hover { background: var(--background-primary-alt); }
+.tc-settings.tc-tabs-seg-thick .tc-tab--active { background: var(--background-primary); color: var(--text-normal); box-shadow: 0 2px 6px rgba(0,0,0,0.25); }
+
+/* S19 — Badge active */
+.tc-settings.tc-tabs-seg-badge .tc-tab-inner-wrap { background: transparent; }
+.tc-settings.tc-tabs-seg-badge .tc-tab:hover { background: var(--background-modifier-hover); }
+.tc-settings.tc-tabs-seg-badge .tc-tab--active {
+  background: var(--interactive-accent);
+  color: var(--text-on-accent);
+  box-shadow: 0 0 0 2px var(--background-primary), 0 0 0 3.5px var(--color-accent, #e5b32a);
+}
+
+/* S20 — Mono inverted */
+.tc-settings.tc-tabs-seg-mono .tc-tab-inner-wrap { background: var(--background-secondary); }
+.tc-settings.tc-tabs-seg-mono .tc-tab:hover { background: var(--background-primary-alt); }
+.tc-settings.tc-tabs-seg-mono .tc-tab--active { background: var(--text-normal); color: var(--background-primary); font-weight: 600; }
+
+/* S-Soft — surface + inset border (mirrors pill-soft) */
+.tc-settings.tc-tabs-seg-soft .tc-tab-inner-wrap { background: var(--background-secondary); }
+.tc-settings.tc-tabs-seg-soft .tc-tab:hover { background: var(--background-primary-alt); }
+.tc-settings.tc-tabs-seg-soft .tc-tab--active {
+  background: var(--background-primary);
+  color: var(--text-normal);
+  box-shadow: inset 0 0 0 1px var(--background-modifier-border), 0 1px 3px rgba(0,0,0,0.15);
+}
+
+/* S-Ghost — transparent wrap, accent outline on active (mirrors pill-ghost) */
+.tc-settings.tc-tabs-seg-ghost .tc-tab-inner-wrap {
+  background: transparent;
+  box-shadow: inset 0 0 0 1.5px var(--background-modifier-border);
+}
+.tc-settings.tc-tabs-seg-ghost .tc-tab:hover { background: var(--background-modifier-hover); }
+.tc-settings.tc-tabs-seg-ghost .tc-tab--active {
+  background: transparent;
+  color: var(--color-accent, #e5b32a);
+  box-shadow: inset 0 0 0 1.5px var(--color-accent, #e5b32a);
+}
+
+/* S21 — Tint: accent wash bg + accent text */
+.tc-settings.tc-tabs-seg-tint .tc-tab-inner-wrap { background: var(--background-secondary); }
+.tc-settings.tc-tabs-seg-tint .tc-tab:hover { background: color-mix(in srgb, var(--color-accent, #e5b32a) 8%, transparent); }
+.tc-settings.tc-tabs-seg-tint .tc-tab--active {
+  background: color-mix(in srgb, var(--color-accent, #e5b32a) 15%, transparent);
+  color: var(--color-accent, #e5b32a);
+  font-weight: 600;
+}
+
+/* S22 — Sweep: diagonal accent sweep across active tab */
+.tc-settings.tc-tabs-seg-sweep .tc-tab-inner-wrap { background: var(--background-secondary); }
+.tc-settings.tc-tabs-seg-sweep .tc-tab:hover { background: color-mix(in srgb, var(--color-accent, #e5b32a) 6%, transparent); }
+.tc-settings.tc-tabs-seg-sweep .tc-tab--active {
+  background: linear-gradient(
+    110deg,
+    transparent 0%,
+    color-mix(in srgb, var(--color-accent, #e5b32a) 22%, transparent) 40%,
+    color-mix(in srgb, var(--color-accent, #e5b32a) 10%, transparent) 70%,
+    transparent 100%
+  );
+  color: var(--color-accent, #e5b32a);
+  font-weight: 600;
+}
+
+/* S23 — Frost + Tint: accent-washed frosted glass wrap + active tab */
+.tc-settings.tc-tabs-seg-frosttint .tc-tab-inner-wrap {
+  background: color-mix(in srgb, var(--color-accent, #e5b32a) 6%, rgba(var(--mono-rgb-100, 200, 200, 200), 0.04));
+  backdrop-filter: blur(8px) saturate(1.4);
+  -webkit-backdrop-filter: blur(8px) saturate(1.4);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--color-accent, #e5b32a) 25%, rgba(var(--mono-rgb-100, 200, 200, 200), 0.1));
+}
+.tc-settings.tc-tabs-seg-frosttint .tc-tab:hover {
+  background: color-mix(in srgb, var(--color-accent, #e5b32a) 8%, rgba(var(--mono-rgb-100, 200, 200, 200), 0.04));
+}
+.tc-settings.tc-tabs-seg-frosttint .tc-tab--active {
+  background: color-mix(in srgb, var(--color-accent, #e5b32a) 18%, rgba(var(--mono-rgb-100, 200, 200, 200), 0.08));
+  backdrop-filter: blur(12px) saturate(1.8);
+  -webkit-backdrop-filter: blur(12px) saturate(1.8);
+  color: var(--color-accent, #e5b32a);
+  font-weight: 600;
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--color-accent, #e5b32a) 40%, rgba(var(--mono-rgb-100, 200, 200, 200), 0.2)),
+              0 2px 8px rgba(0,0,0,0.2);
+}
+
+/* ── Tab style switcher ── */
+.tc-settings .tc-tab-style-switcher {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin-bottom: 8px;
+}
+.tc-settings .tc-tab-style-btn {
+  font-size: 10px;
+  padding: 3px 8px;
+  border-radius: 4px;
+  border: 1px solid var(--background-modifier-border);
+  background: transparent;
+  color: var(--text-muted);
+  cursor: pointer;
+  font-family: inherit;
+  transition: background 0.1s, color 0.1s;
+}
+.tc-settings .tc-tab-style-btn:hover { background: var(--background-modifier-hover); color: var(--text-normal); }
+.tc-settings .tc-tab-style-btn--active { background: var(--interactive-accent); color: var(--text-on-accent); border-color: transparent; }
+
+/* ── Tab spacing slider ── */
+.tc-settings .tc-tab-spacing-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 6px;
+}
+.tc-settings .tc-tab-spacing-label {
+  font-size: 11px;
+  color: var(--text-muted);
+  white-space: nowrap;
+}
+.tc-settings .tc-tab-spacing-row input[type="range"] {
+  flex: 1;
+  accent-color: var(--color-accent, #e5b32a);
+  height: 4px;
+  cursor: pointer;
+}
+.tc-settings .tc-tab-spacing-value {
+  font-size: 11px;
+  color: var(--text-faint);
+  font-family: var(--font-monospace, monospace);
+  min-width: 28px;
+  text-align: right;
 }
 
 /* Section titles */
@@ -33,62 +974,222 @@
   text-transform: uppercase;
   letter-spacing: 0.05em;
   color: var(--text-muted);
-  margin: 16px 0 8px;
+  margin: 22px 0 10px;
 }
+
+/* Divider */
+.tc-settings .tc-divider {
+  height: 1px;
+  background: var(--background-modifier-border);
+  margin: 24px 0;
+}
+
+/* Setting rows */
+.tc-settings .tc-setting-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 11px 0;
+  border-bottom: 1px solid rgba(var(--mono-rgb-100, 200, 200, 200), 0.04);
+  gap: 16px;
+}
+.tc-settings .tc-setting-row:last-child { border-bottom: none; }
+.tc-settings .tc-setting-info { flex: 1; min-width: 0; }
+.tc-settings .tc-setting-name { font-size: 13px; color: var(--text-normal); }
+.tc-settings .tc-setting-desc { font-size: 11px; color: var(--text-muted); margin-top: 2px; line-height: 1.4; }
+
+/* Segmented control */
+.tc-settings .tc-segment {
+  display: flex;
+  background: var(--background-secondary);
+  border-radius: 6px;
+  padding: 2px;
+  gap: 2px;
+  flex-shrink: 0;
+}
+.tc-settings .tc-segment-btn {
+  padding: 5px 12px;
+  border-radius: 4px;
+  font-size: 11px;
+  font-family: inherit;
+  border: none;
+  background: transparent;
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: background 0.1s, color 0.1s;
+  white-space: nowrap;
+}
+.tc-settings .tc-segment-btn:hover { color: var(--text-normal); }
+.tc-settings .tc-segment-btn--active {
+  background: var(--background-primary-alt);
+  color: var(--text-normal);
+}
+
+/* Control group */
+.tc-settings .tc-ctrl-group {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-shrink: 0;
+}
+.tc-settings .tc-ctrl-group input[type="range"] {
+  width: 120px;
+  accent-color: #e5b32a;
+}
+
+/* Inline colour swatch (used inside native .setting-item-control) */
+.tc-settings .tc-color-swatch {
+  width: 22px; height: 22px;
+  border-radius: 50%;
+  cursor: pointer;
+  border: 1px solid rgba(var(--mono-rgb-100, 200, 200, 200), 0.15);
+  flex-shrink: 0;
+  transition: transform 0.12s;
+  margin-right: 4px;
+}
+.tc-settings .tc-color-swatch:hover { transform: scale(1.12); border-color: rgba(var(--mono-rgb-100, 200, 200, 200), 0.3); }
 
 /* Swatch grid */
 .tc-settings .tc-swatch-grid {
   display: grid;
-  grid-template-columns: repeat(5, 48px);
+  grid-template-columns: repeat(auto-fill, minmax(64px, 1fr));
   gap: 8px;
   margin-bottom: 8px;
 }
-.tc-settings .tc-swatch {
-  width: 48px;
-  height: 48px;
-  border-radius: 8px;
-  position: relative;
+.tc-settings .tc-swatch-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 5px;
   cursor: pointer;
-  border: 2px solid transparent;
-  transition: border-color 0.1s;
 }
-.tc-settings .tc-swatch:hover   { border-color: var(--text-muted); }
-.tc-settings .tc-swatch--active { border-color: #e5b32a; }
+.tc-settings .tc-swatch {
+  width: 100%;
+  aspect-ratio: 1;
+  border-radius: 6px;
+  position: relative;
+  border: 1px solid rgba(var(--mono-rgb-100, 200, 200, 200), 0.1);
+  transition: border-color 0.12s, box-shadow 0.12s;
+  overflow: hidden;
+}
+.tc-settings .tc-swatch:hover   { border-color: rgba(var(--mono-rgb-100, 200, 200, 200), 0.28); }
+.tc-settings .tc-swatch--active {
+  border-color: var(--color-accent, #e5b32a);
+  box-shadow: 0 0 0 2px var(--color-accent, #e5b32a);
+}
 .tc-settings .tc-swatch-dot {
   position: absolute;
-  bottom: 4px; right: 4px;
+  bottom: 5px; right: 5px;
   width: 10px; height: 10px;
   border-radius: 50%;
-  border: 1px solid rgba(0,0,0,0.2);
+  border: 1px solid rgba(0,0,0,0.25);
+}
+.tc-settings .tc-swatch-name {
+  font-size: 10px;
+  color: var(--text-muted);
+  text-align: center;
+  line-height: 1.2;
+  word-break: break-word;
+  max-width: 100%;
 }
 
 /* Extend toggle row */
 .tc-settings .tc-extend-row {
   display: flex;
   align-items: center;
-  gap: 8px;
-  font-size: 12px;
+  justify-content: space-between;
+  margin: 10px 0 0;
+  cursor: pointer;
+  user-select: none;
+}
+.tc-settings .tc-extend-label {
+  font-size: 11px;
   color: var(--text-muted);
-  margin: 4px 0 12px;
 }
 
 /* Accent dots */
+/* Row aligns items to the top so dots across labelled and unlabelled pips
+   sit on the same y-axis — captions just hang below without budging them. */
+.tc-settings .tc-accent-row.tc-accent-row { align-items: flex-start; }
 .tc-settings .tc-accent-row {
   display: flex;
   align-items: center;
   gap: 10px;
   flex-wrap: wrap;
+  margin-bottom: 4px;
 }
 .tc-settings .tc-accent-dot {
-  width: 28px; height: 28px;
+  width: 26px; height: 26px;
   border-radius: 50%;
   cursor: pointer;
   border: 2px solid transparent;
   transition: border-color 0.1s;
+  flex-shrink: 0;
 }
 .tc-settings .tc-accent-dot:hover { border-color: var(--text-muted); }
+/* Selected pip: inner ring turns white, no outline halo around it.
+   Applies to preset dots, custom, and auto alike for a unified look. */
 .tc-settings .tc-accent-dot--active {
-  box-shadow: 0 0 0 2px var(--background-primary), 0 0 0 4px var(--text-normal);
+  border-color: #ffffff;
+  box-shadow: none;
+}
+.tc-settings .tc-accent-sep {
+  width: 1px; height: 24px;
+  background: var(--background-modifier-border);
+  margin: 1px 2px 0;   /* 1px top offset centres the 24px bar on the 26px dots */
+  flex-shrink: 0;
+}
+.tc-settings .tc-accent-dot--custom {
+  background: conic-gradient(#f38ba8, #fab387, #f9e2af, #a6e3a1, #89dceb, #89b4fa, #cba6f7, #f38ba8);
+  border: 2px solid var(--background-modifier-border);
+  opacity: 0.85;
+}
+.tc-settings .tc-accent-dot--custom:hover { opacity: 1; border-color: var(--text-muted); }
+.tc-settings .tc-accent-dot--custom.tc-accent-dot--active { opacity: 1; }
+
+/* Column-stacked accent item with a subtle caption underneath */
+.tc-settings .tc-accent-item {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 3px;
+  flex-shrink: 0;
+  /* Reserve the full dot + caption height on every pip so the dot row
+     stays aligned whether the caption is present or not. */
+  min-height: 38px;
+}
+.tc-settings .tc-accent-caption {
+  font-size: 9px;
+  line-height: 1;
+  color: var(--text-faint);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  opacity: 0.7;
+}
+
+/* Auto: transparent, dashed border in a muted neutral tone so it reads as
+   a placeholder pip rather than a coloured choice. When the Auto option
+   IS selected, the ring switches to the active accent + solid so it
+   matches the other dots' "selected" treatment. */
+.tc-settings .tc-accent-dot--auto {
+  background: transparent;
+  border: 2px dashed var(--text-muted);
+  opacity: 0.7;
+}
+.tc-settings .tc-accent-dot--auto:hover { opacity: 1; border-color: var(--text-normal); }
+
+/* Selected auto: solid accent ring (tracks whatever flavour is active) */
+.tc-settings .tc-accent-dot--auto.tc-accent-dot--active {
+  border-color: var(--color-accent, #ffffff);
+  border-style: solid;
+  opacity: 1;
+  box-shadow: none;
+}
+
+/* Extra breathing room between auto and custom — they're a pair, not a stream */
+.tc-settings .tc-accent-row .tc-accent-item--auto + .tc-accent-item--custom {
+  margin-left: 10px;
 }
 
 /* Slider rows */
@@ -130,35 +1231,369 @@
 .tc-settings .tc-reset-btn:hover { color: var(--text-normal); }
 
 /* Typography two-column layout */
+/* Typography layout — controls on top, mini-Obsidian preview full-width below */
 .tc-settings .tc-typo-wrap {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
 }
-@media (max-width: 500px) {
-  .tc-settings .tc-typo-wrap { grid-template-columns: 1fr; }
+.tc-settings .tc-typo-controls {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
 }
 
-/* Typography preview panel */
-.tc-settings .tc-typo-preview {
-  background: var(--background-secondary);
-  border-radius: 8px;
-  padding: 16px;
-  border: 1px solid var(--background-modifier-border);
-  overflow-y: auto;
-  max-height: 400px;
+/* Heading + spacing row — compact group, inline live preview on the right */
+.tc-settings .tc-h-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
 }
-.tc-settings .tc-typo-preview h1 { font-size: var(--h1-size, 2em);   margin: 0.2em 0; }
-.tc-settings .tc-typo-preview h2 { font-size: var(--h2-size, 1.6em); margin: 0.2em 0; }
-.tc-settings .tc-typo-preview h3 { font-size: var(--h3-size, 1.3em); margin: 0.2em 0; }
-.tc-settings .tc-typo-preview h4 { font-size: var(--h4-size, 1.1em); margin: 0.2em 0; }
-.tc-settings .tc-typo-preview h5 { font-size: var(--h5-size, 1em);   margin: 0.2em 0; }
-.tc-settings .tc-typo-preview h6 { font-size: var(--h6-size, 0.9em); margin: 0.2em 0; }
-.tc-settings .tc-preview-hint {
+.tc-settings .tc-h-row {
+  display: grid;
+  grid-template-columns: 34px 1fr 64px 26px;
+  align-items: center;
+  gap: 12px;
+  padding: 4px 0;
+}
+.tc-settings .tc-h-row--spacing { grid-template-columns: 110px 1fr 74px 26px; }
+
+.tc-settings .tc-h-chip {
+  font-size: 10px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: var(--text-muted);
+  background: var(--background-secondary);
+  border-radius: 4px;
+  padding: 2px 5px;
+  text-align: center;
+}
+.tc-settings .tc-spacing-label {
+  font-size: 11px;
+  color: var(--text-muted);
+  letter-spacing: 0.02em;
+}
+.tc-settings .tc-h-slider {
+  width: 100%;
+  accent-color: var(--color-accent);
+  height: 3px;
+}
+.tc-settings .tc-h-val {
   font-size: 10px;
   color: var(--text-muted);
-  margin-top: 12px;
+  font-family: var(--font-monospace, monospace);
+  text-align: right;
+  letter-spacing: 0.02em;
 }
+
+/* Reset button — small circular chevron */
+.tc-settings .tc-reset-btn {
+  background: none;
+  border: 1px solid var(--background-modifier-border);
+  color: var(--text-muted);
+  width: 22px; height: 22px;
+  padding: 0;
+  border-radius: 50%;
+  cursor: pointer;
+  font-size: 11px;
+  line-height: 1;
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
+}
+.tc-settings .tc-reset-btn:hover { color: var(--text-normal); border-color: var(--text-muted); }
+
+/* (inline per-slider previews removed — the mini-Obsidian preview at the
+   bottom of the Typography tab does the live rendering.) */
+
+/* ── Rhythm accordion divider — between heading sizes and list spacing.
+   Hairline + a bit of breathing room so the two groups read as siblings
+   under the same heading, not two separate sections. */
+.tc-settings .tc-rhythm-divider {
+  height: 1px;
+  background: var(--background-modifier-border);
+  margin: 10px 0;
+  opacity: 0.6;
+}
+
+/* ── Dynamic Preview header — sits above the mini-Obsidian mock.
+   A proper section title so the preview isn't an orphan slab hanging
+   off the bottom of the tab. */
+.tc-settings .tc-typo-preview-header {
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
+  padding: 16px 2px 10px;
+  flex-wrap: wrap;
+}
+.tc-settings .tc-typo-preview-title {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-normal);
+  letter-spacing: -0.01em;
+}
+.tc-settings .tc-typo-preview-desc {
+  font-size: 11px;
+  color: var(--text-muted);
+  font-style: italic;
+}
+
+/* ════════════════════════════════════════════════════════════════════════
+   Typography preview — micro-Obsidian lookalike.
+   Reads the same CSS variables the applier pushes to Obsidian itself, so
+   the preview = what the editor becomes. Ribbon + sidebar + tabs + editor.
+   ════════════════════════════════════════════════════════════════════════ */
+/* Preview uses realistic editor dimensions: 14px base (matches Obsidian's
+   default), taller pane, wider sidebar. Lower density, more air. */
+.tc-settings .tc-mini-obsidian {
+  display: grid;
+  grid-template-columns: 28px 160px 1fr;
+  grid-template-rows: 28px 1fr;
+  height: 520px;
+  max-height: 70vh;
+  border-radius: 8px;
+  border: 1px solid var(--background-modifier-border);
+  overflow: hidden;
+  background: var(--background-primary);
+  color: var(--text-normal);
+  font-family: var(--font-interface);
+  font-size: 14px;
+  line-height: 1.6;
+}
+.tc-settings .tc-mini-obsidian .mini-title {
+  grid-column: 1 / -1;
+  background: var(--background-secondary);
+  border-bottom: 1px solid var(--background-modifier-border);
+  display: flex; align-items: center; gap: 6px;
+  padding: 0 8px;
+  font-size: 10px;
+  color: var(--text-muted);
+}
+/* macOS traffic-light pips — real red / amber / green plus extra breathing
+   room between the dots and the "Obsidian" window title so it doesn't
+   feel cramped. */
+.tc-settings .tc-mini-obsidian .mini-dots {
+  display: inline-flex;
+  gap: 5px;
+  margin-right: 12px;
+}
+.tc-settings .tc-mini-obsidian .mini-dots i {
+  width: 7px; height: 7px; border-radius: 50%;
+  background: var(--background-modifier-border);
+}
+.tc-settings .tc-mini-obsidian .mini-dots i:nth-child(1) { background: #ff5f57; } /* close */
+.tc-settings .tc-mini-obsidian .mini-dots i:nth-child(2) { background: #febc2e; } /* minimise */
+.tc-settings .tc-mini-obsidian .mini-dots i:nth-child(3) { background: #28c840; } /* zoom */
+.tc-settings .tc-mini-obsidian .mini-name { color: var(--text-normal); font-weight: 500; }
+.tc-settings .tc-mini-obsidian .mini-vault { margin-left: auto; opacity: 0.6; font-size: 9px; }
+
+.tc-settings .tc-mini-obsidian .mini-ribbon {
+  background: var(--background-secondary);
+  border-right: 1px solid var(--background-modifier-border);
+  display: flex; flex-direction: column; align-items: center;
+  padding: 6px 0; gap: 7px;
+}
+.tc-settings .tc-mini-obsidian .mini-rib {
+  width: 10px; height: 10px; border-radius: 2px;
+  background: var(--text-muted); opacity: 0.4;
+}
+.tc-settings .tc-mini-obsidian .mini-rib.active {
+  background: var(--color-accent); opacity: 1;
+}
+
+.tc-settings .tc-mini-obsidian .mini-side {
+  background: var(--background-secondary);
+  border-right: 1px solid var(--background-modifier-border);
+  padding: 6px 8px;
+  overflow-y: auto;
+  font-size: 10.5px;
+  /* Interface font applies to the sidebar — same as Obsidian's real sidebar.
+     !important so the settings-modal font rules don't leak through. */
+  font-family: var(--font-interface, inherit) !important;
+}
+.tc-settings .tc-mini-obsidian .mini-side h4,
+.tc-settings .tc-mini-obsidian .mini-side li,
+.tc-settings .tc-mini-obsidian .mini-side ul {
+  font-family: inherit !important;
+}
+.tc-settings .tc-mini-obsidian .mini-side h4 {
+  margin: 0 0 5px;
+  font-size: 9px; font-weight: 600;
+  text-transform: uppercase; letter-spacing: 0.08em;
+  color: var(--text-muted);
+}
+.tc-settings .tc-mini-obsidian .mini-side ul { list-style: none; margin: 0; padding: 0; }
+.tc-settings .tc-mini-obsidian .mini-side li {
+  padding: 2px 5px;
+  border-radius: 3px;
+  color: var(--text-normal);
+}
+.tc-settings .tc-mini-obsidian .mini-side li.mini-active {
+  background: color-mix(in srgb, var(--color-accent) 18%, transparent);
+  color: var(--color-accent);
+  font-weight: 500;
+}
+.tc-settings .tc-mini-obsidian .mini-side li.mini-nested { padding-left: 14px; font-size: 10px; }
+
+.tc-settings .tc-mini-obsidian .mini-main {
+  padding: 22px 32px;
+  overflow-y: auto;
+  max-width: 720px;
+  /* Editor display font for rendered body text. !important beats
+     Obsidian's Setting-modal font-family rules that otherwise bleed into
+     our preview via `.modal-content *` selectors. */
+  font-family: var(--tc-font-editor, var(--font-text, inherit)) !important;
+}
+/* Force the editor font cascade onto every body-text element inside the
+   preview so paragraphs, lists, and callouts always match the Editor
+   font pick (and not, say, Obsidian's default modal font). */
+.tc-settings .tc-mini-obsidian .mini-main p,
+.tc-settings .tc-mini-obsidian .mini-main ul,
+.tc-settings .tc-mini-obsidian .mini-main li,
+.tc-settings .tc-mini-obsidian .mini-main .mini-callout {
+  font-family: inherit !important;
+}
+.tc-settings .tc-mini-obsidian .mini-tabs {
+  display: flex; gap: 3px;
+  margin-bottom: 10px;
+  padding-bottom: 3px;
+  border-bottom: 1px solid var(--background-modifier-border);
+}
+.tc-settings .tc-mini-obsidian .mini-tab {
+  padding: 3px 8px;
+  font-size: 10px;
+  background: var(--background-secondary);
+  border-radius: 4px 4px 0 0;
+  color: var(--text-muted);
+}
+.tc-settings .tc-mini-obsidian .mini-tab.active {
+  background: var(--background-primary);
+  color: var(--text-normal);
+  border: 1px solid var(--background-modifier-border);
+  border-bottom: 1px solid var(--background-primary);
+  margin-bottom: -1px;
+}
+
+/* ── Headings — vertical rhythm that actually reads as typography.
+   Rule of thumb: space BEFORE a heading is generous (introducing a new
+   section), space AFTER is tight (it belongs to the following body).
+   Margins are em-relative so they scale with each heading's size — an
+   H1 at 2em auto-gets roughly twice the breathing room of an H3.
+   Margin collapse handles the p→heading transition: the larger of the
+   p's bottom (0.85em of body font-size) and the heading's top (1.4em of
+   heading font-size) wins, which is almost always the heading's. */
+.tc-settings .tc-mini-obsidian h1,
+.tc-settings .tc-mini-obsidian h2,
+.tc-settings .tc-mini-obsidian h3,
+.tc-settings .tc-mini-obsidian h4,
+.tc-settings .tc-mini-obsidian h5,
+.tc-settings .tc-mini-obsidian h6 {
+  font-family: var(--tc-font-heading, inherit);
+  font-weight: 600;
+  line-height: 1.2;
+  margin: 1.4em 0 0.4em;
+  color: var(--text-normal);
+}
+/* Each heading uses its slider value at full scale — no compression —
+   so dragging an H1 from 2em → 3em shows a real 50% larger H1. Scoped
+   to .mini-main for specificity over Obsidian's Settings-modal heading
+   rules; `display: block` forced because the modal hides top-level H1s
+   by default, which was clipping our preview heading-one entirely.
+
+   Horizontal indent explicitly zeroed — Obsidian's own settings modal
+   CSS sprinkles padding-left / margin-left / text-indent onto h1/h2 etc
+   (those modals have indent-heavy typography). In the preview we want
+   headings FLUSH-LEFT with body text, same as a real Obsidian note. */
+.tc-settings .tc-mini-obsidian .mini-main h1,
+.tc-settings .tc-mini-obsidian .mini-main h2,
+.tc-settings .tc-mini-obsidian .mini-main h3,
+.tc-settings .tc-mini-obsidian .mini-main h4,
+.tc-settings .tc-mini-obsidian .mini-main h5,
+.tc-settings .tc-mini-obsidian .mini-main h6 {
+  display: block !important;
+  visibility: visible !important;
+  margin-left: 0 !important;
+  margin-right: 0 !important;
+  padding-left: 0 !important;
+  padding-right: 0 !important;
+  text-indent: 0 !important;
+}
+/* Same treatment for paragraphs — the modal pushes p elements around too. */
+.tc-settings .tc-mini-obsidian .mini-main p,
+.tc-settings .tc-mini-obsidian .mini-main .mini-callout {
+  margin-left: 0 !important;
+  margin-right: 0 !important;
+  padding-left: 0 !important;
+  text-indent: 0 !important;
+}
+/* Callout keeps its internal padding (the 10px/14px the element-level
+   rule set) — the selector above only zeroes what the modal inherited. */
+.tc-settings .tc-mini-obsidian .mini-main .mini-callout {
+  padding-left: 14px !important;
+  padding-right: 14px !important;
+}
+.tc-settings .tc-mini-obsidian .mini-main h1 { font-size: var(--h1-size, 2em) !important; }
+.tc-settings .tc-mini-obsidian .mini-main h2 { font-size: var(--h2-size, 1.6em) !important; }
+.tc-settings .tc-mini-obsidian .mini-main h3 { font-size: var(--h3-size, 1.3em) !important; }
+.tc-settings .tc-mini-obsidian .mini-main h4 { font-size: var(--h4-size, 1.1em) !important; }
+.tc-settings .tc-mini-obsidian .mini-main h5 { font-size: var(--h5-size, 1em) !important; }
+.tc-settings .tc-mini-obsidian .mini-main h6 { font-size: var(--h6-size, 0.9em) !important; }
+/* First child (usually the H1) gets no top margin — we don't want a gap
+   between the tab strip and the first heading. Applies to whatever the
+   first block element is, in case the preview HTML changes. */
+.tc-settings .tc-mini-obsidian .mini-main > *:first-child,
+.tc-settings .tc-mini-obsidian .mini-main .mini-tabs + * {
+  margin-top: 0;
+}
+
+/* ── Body text: tight to the heading above, comfortable gap to the next
+   paragraph. Line-height 1.6 matches Obsidian's default reading rhythm. */
+.tc-settings .tc-mini-obsidian p {
+  margin: 0 0 0.85em;
+  line-height: 1.6;
+  color: var(--text-normal);
+}
+
+/* ── Lists: real indent (one full --list-indent) so bullets sit visibly
+   outside the body column. 0.7 multiplier gave us 1.1em which was just
+   enough to be awkward — now the bullets are clearly an indented group.
+   li spacing scales with --list-spacing, multiplied ×4 so the slider has
+   meaningful range (0 → compact, 0.5 → airy). */
+.tc-settings .tc-mini-obsidian ul,
+.tc-settings .tc-mini-obsidian ol {
+  margin: 0.2em 0 0.85em;
+  padding-left: var(--list-indent, 2em);
+}
+.tc-settings .tc-mini-obsidian li {
+  margin-bottom: calc(var(--list-spacing, 0.075em) * 4);
+  line-height: 1.55;
+  color: var(--text-normal);
+}
+.tc-settings .tc-mini-obsidian li:last-child { margin-bottom: 0; }
+.tc-settings .tc-mini-obsidian li::marker { color: var(--color-accent); }
+
+/* ── Inline code: nothing fancy, just a monospaced chip. */
+.tc-settings .tc-mini-obsidian code {
+  font-family: var(--font-monospace, monospace);
+  font-size: 0.88em;
+  background: var(--background-secondary);
+  padding: 1px 5px;
+  border-radius: 3px;
+}
+
+/* ── Callout: em-based spacing so it lives in the same rhythm as
+   paragraphs instead of a fixed 10px that stayed constant while the
+   heading sliders made everything around it grow/shrink. */
+.tc-settings .tc-mini-obsidian .mini-callout {
+  margin: 1em 0 0.2em;
+  padding: 10px 14px;
+  background: var(--background-secondary);
+  border-left: 3px solid var(--color-accent);
+  border-radius: 4px;
+  font-size: 0.95em;
+  line-height: 1.55;
+}
+.tc-settings .tc-mini-obsidian .mini-callout strong { color: var(--color-accent); }
 
 /* Layout groups */
 .tc-settings .tc-layout-group { margin-bottom: 16px; }
@@ -186,6 +1621,19 @@
   display: flex;
   align-items: center;
   gap: 6px;
+  /* Accordion header titles tinted with the active accent so the
+     structural rhythm of the panel reinforces the chosen palette. */
+  color: var(--color-accent, var(--text-normal));
+  letter-spacing: 0.02em;
+}
+
+/* Obsidian Settings sidebar section headers ("Options", "Core plugins",
+   "Community plugins") — tint them with the active accent too so the
+   palette reaches into Obsidian's own Settings chrome, not just ours.
+   Unscoped from .tc-settings because these elements live outside our
+   plugin's UI in Obsidian's Settings modal. */
+.vertical-tab-header-group-title {
+  color: var(--color-accent) !important;
 }
 .tc-settings .tc-feat-meta {
   display: flex;
@@ -207,6 +1655,182 @@
 .tc-settings .tc-feat-group--open .tc-feat-chevron { transform: rotate(90deg); }
 .tc-settings .tc-feat-body { display: none; }
 .tc-settings .tc-feat-group--open .tc-feat-body { display: block; }
+/* Theme & Colour flat body */
+.tc-settings .tc-theme-body { padding: 0; }
+.tc-settings .tc-theme-section {
+  padding: 12px 14px;
+  border-top: 1px solid var(--background-modifier-border);
+}
+.tc-settings .tc-theme-section:first-child { border-top: none; }
+.tc-settings .tc-theme-label {
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--text-muted);
+  margin: 0 0 10px;
+}
+/* setting-card body — holds native .setting-item rows */
+.tc-settings .tc-feat-body.tc-setting-card { padding: 0 14px; }
+.tc-settings .tc-feat-body.tc-setting-card .setting-item {
+  padding-left: 0 !important;
+  padding-right: 0 !important;
+  /* Kill Obsidian's default card-blob background behind each row — the
+     Features tab never shows this because its rows are custom flex divs.
+     Here we use native Setting(), so strip the blob globally. */
+  background: transparent !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
+  /* Subtle row divider — matches the Features tab's row-bottom line */
+  border-top: 1px solid rgba(var(--mono-rgb-100, 200, 200, 200), 0.08);
+}
+.tc-settings .tc-feat-body.tc-setting-card .setting-item:first-child {
+  border-top: none;
+}
+
+/* Swatch grids appear as full-width strips BETWEEN setting-item rows.
+   They inherit top border from .setting-item + .tc-swatch-grid-wrap pair,
+   and their padding matches. */
+.tc-settings .tc-feat-body.tc-setting-card .tc-swatch-grid-wrap {
+  padding: 10px 0 14px;
+}
+/* Extended (full-width) grids — columns stretch to fill the row so every
+   swatch is equally sized and the grid reads as a neat block rather than a
+   left-packed stream with empty space on the right. */
+.tc-settings .tc-feat-body.tc-setting-card .tc-swatch-grid-wrap .tc-swatch-grid {
+  grid-template-columns: repeat(auto-fill, minmax(44px, 1fr));
+  gap: 6px;
+  width: 100%;
+}
+.tc-settings .tc-feat-body.tc-setting-card .tc-swatch-grid-wrap .tc-swatch { border-radius: 5px; }
+.tc-settings .tc-feat-body.tc-setting-card .tc-swatch-grid-wrap .tc-swatch-dot {
+  width: 7px; height: 7px; right: 4px; bottom: 4px;
+}
+.tc-settings .tc-feat-body.tc-setting-card .tc-swatch-grid-wrap .tc-swatch-name {
+  font-size: 9px;
+  letter-spacing: 0.02em;
+}
+
+/* ── Extended swatch group labels (Tegenlicht / AnuPuccin) ── */
+.tc-settings .tc-swatch-grouped .tc-swatch-group-label {
+  display: block;
+  font-size: 9px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--text-muted);
+  margin: 8px 0 5px;
+  padding-left: 2px;
+  opacity: 0.7;
+}
+.tc-settings .tc-swatch-grouped .tc-swatch-group-label:first-child {
+  margin-top: 2px;
+}
+
+/* Inline variant — lives inside a .setting-item's controlEl, like pips.
+   Uses flex so the wrapper hugs its content and the parent's flex-end
+   alignment pushes it flush right. */
+.tc-settings .tc-swatch-grid-inline .tc-swatch-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+  justify-content: flex-end;
+}
+.tc-settings .tc-swatch-grid-inline .tc-swatch-item {
+  width: 44px;
+  gap: 3px;
+}
+.tc-settings .tc-swatch-grid-inline .tc-swatch {
+  border-radius: 5px;
+}
+.tc-settings .tc-swatch-grid-inline .tc-swatch-dot {
+  width: 7px; height: 7px;
+  right: 4px; bottom: 4px;
+}
+
+/* ── "+" pseudo-swatch — dashed outline, sits at the end of a base
+   swatch row. Clicking toggles the extended grid below the row.
+   When the extended row is already open, the + rotates 45° to read
+   as ×, and the "more" caption below flips to "less". ── */
+.tc-settings .tc-swatch-item--plus {
+  cursor: pointer;
+}
+.tc-settings .tc-swatch.tc-swatch-plus {
+  background: transparent !important;
+  border: 1.5px dashed var(--text-muted);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-muted);
+  font-size: 16px;
+  font-weight: 500;
+  transition: border-color 0.14s ease, color 0.14s ease, background 0.14s ease;
+  opacity: 0.85;
+}
+.tc-settings .tc-swatch-item--plus:hover .tc-swatch.tc-swatch-plus {
+  border-color: var(--text-normal);
+  color: var(--text-normal);
+  opacity: 1;
+}
+/* Open state: accent-coloured solid border, background wash. The glyph
+   rotation happens on the inner span (see below) so the swatch itself
+   stays the same pixel box as every sibling pip — no overflow. */
+.tc-settings .tc-swatch.tc-swatch-plus--active {
+  border-style: solid;
+  border-color: var(--color-accent);
+  color: var(--color-accent);
+  opacity: 1;
+  background: color-mix(in srgb, var(--color-accent) 8%, transparent) !important;
+}
+.tc-settings .tc-swatch-item--plus:hover .tc-swatch.tc-swatch-plus--active {
+  border-color: var(--color-accent);
+  color: var(--color-accent);
+}
+/* Icon: "+" by default. When the swatch is active, rotate the span 45°
+   so the plus reads as ×. Rotation is on the inner span, not the swatch,
+   which means the swatch bounding box stays flush with its neighbours. */
+.tc-settings .tc-swatch-plus-icon {
+  display: inline-flex;
+  line-height: 1;
+  transition: transform 0.2s cubic-bezier(0.4, 0.0, 0.2, 1);
+}
+.tc-settings .tc-swatch.tc-swatch-plus--active .tc-swatch-plus-icon {
+  transform: rotate(45deg);
+}
+.tc-settings .tc-swatch-grid-inline .tc-swatch-name {
+  font-size: 9px;
+  letter-spacing: 0.02em;
+}
+/* Make sure the control slot actually right-aligns what's inside it */
+.tc-settings .tc-feat-body.tc-setting-card .setting-item .setting-item-control {
+  justify-content: flex-end;
+}
+/* Suppress the top-border on the Setting row that follows a grid — the grid
+   already gives visual separation and a doubled divider looks cluttered. */
+.tc-settings .tc-feat-body.tc-setting-card .tc-swatch-grid-wrap + .setting-item {
+  border-top: none;
+}
+
+/* Accent pips when sitting inside a native .setting-item control slot */
+.tc-settings .setting-item .tc-accent-row {
+  margin-bottom: 0;
+  row-gap: 4px;
+}
+
+/* Drop the divider on rows that sit directly under a swatch grid — the
+   grid's vertical breathing room already creates the separation. */
+.tc-settings .tc-theme-body .tc-swatch-grid-wrap + .setting-item {
+  border-top: none !important;
+}
+
+/* Flat accordion: strip the outer encadrement. Used for Theme & Colour
+   because its inner rhythm is carried by the swatch grids, not by a frame. */
+.tc-settings .tc-feat-group--flat {
+  border: none;
+  border-radius: 0;
+}
+.tc-settings .tc-feat-group--flat .tc-feat-header { background: transparent; }
+.tc-settings .tc-feat-group--flat .tc-feat-header:hover { background: var(--background-secondary); }
 
 .tc-settings .tc-feat-row {
   display: flex;
@@ -221,16 +1845,16 @@
 .tc-settings .tc-feat-name { font-size: 12px; color: var(--text-normal); }
 .tc-settings .tc-feat-desc { font-size: 10px; color: var(--text-muted); margin-top: 2px; }
 
-/* Toggle switch */
+/* Toggle switch — stable track colour, independent of border-intensity */
 .tc-settings .tc-toggle {
   width: 30px; height: 17px;
   border-radius: 9px;
-  background: var(--background-modifier-border);
+  background: rgba(var(--mono-rgb-100, 200, 200, 200), 0.22);
   position: relative;
   flex-shrink: 0;
   cursor: pointer;
 }
-.tc-settings .tc-toggle--on { background: #e5b32a; }
+.tc-settings .tc-toggle--on { background: var(--interactive-accent, var(--color-accent, #e5b32a)); }
 .tc-settings .tc-toggle::after {
   content: '';
   width: 13px; height: 13px;
@@ -253,6 +1877,23 @@
   min-width: 90px;
 }
 
+/* ── Pickr overrides (nano theme, scoped to match Obsidian) ── */
+/* Button: circular swatch dot to match our tc-color-swatch style */
+.tc-settings .pickr .pcr-button {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  overflow: hidden;
+}
+.tc-settings .pickr .pcr-button::after {
+  border-radius: 50%;
+}
+/* Pickr override block lives below the bundled nano theme — see § Pickr dress */
+
+/* ── Pickr nano theme (bundled) ── */
+/*! Pickr 1.9.1 MIT | https://github.com/Simonwep/pickr */
+.pickr{position:relative;overflow:visible;transform:translateY(0)}.pickr *{box-sizing:border-box;outline:none;border:none;-webkit-appearance:none}.pickr .pcr-button{position:relative;height:2em;width:2em;padding:.5em;cursor:pointer;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","Roboto","Helvetica Neue",Arial,sans-serif;border-radius:.15em;background:url("data:image/svg+xml;utf8, <svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 50 50' stroke='%2342445A' stroke-width='5px' stroke-linecap='round'><path d='M45,45L5,5'></path><path d='M45,5L5,45'></path></svg>") no-repeat center;background-size:0;transition:all .3s}.pickr .pcr-button::before{position:absolute;content:'';top:0;left:0;width:100%;height:100%;background:url("data:image/svg+xml;utf8, <svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 2 2'><path fill='white' d='M1,0H2V1H1V0ZM0,1H1V2H0V1Z'/><path fill='gray' d='M0,0H1V1H0V0ZM1,1H2V2H1V1Z'/></svg>");background-size:.5em;border-radius:.15em;z-index:-1}.pickr .pcr-button::before{z-index:initial}.pickr .pcr-button::after{position:absolute;content:'';top:0;left:0;height:100%;width:100%;transition:background .3s;background:var(--pcr-color);border-radius:.15em}.pickr .pcr-button.clear{background-size:70%}.pickr .pcr-button.clear::before{opacity:0}.pickr .pcr-button.clear:focus{box-shadow:0 0 0 1px rgba(var(--mono-rgb-100, 200, 200, 200), .85),0 0 0 3px var(--pcr-color)}.pickr .pcr-button.disabled{cursor:not-allowed}.pcr-app{position:fixed;display:flex;flex-direction:column;z-index:10000;border-radius:.1em;background:#fff;opacity:0;visibility:hidden;transition:opacity .3s,visibility 0s .3s;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","Roboto","Helvetica Neue",Arial,sans-serif;box-shadow:0 .15em 1.5em 0 rgba(0,0,0,.1),0 0 1em 0 rgba(0,0,0,.03);left:0;top:0}.pcr-app.visible{transition:opacity .3s;visibility:visible;opacity:1}.pcr-app .pcr-swatches{display:flex;flex-wrap:wrap;margin-top:.75em}.pcr-app .pcr-swatches>button{font-size:1em;position:relative;width:calc(1.75em - 5px);height:calc(1.75em - 5px);border-radius:.15em;cursor:pointer;margin:2.5px;flex-shrink:0;transition:all .15s;overflow:hidden;background:rgba(0,0,0,0);z-index:1}.pcr-app .pcr-swatches>button::before{position:absolute;content:'';top:0;left:0;width:100%;height:100%;z-index:-1}.pcr-app .pcr-swatches>button::after{content:'';position:absolute;top:0;left:0;width:100%;height:100%;background:var(--pcr-color);border:1px solid rgba(0,0,0,.05);border-radius:.15em;box-sizing:border-box}.pcr-app .pcr-interaction{display:flex;flex-wrap:wrap;align-items:center;margin:0 -.2em 0 -.2em}.pcr-app .pcr-interaction>*{margin:0 .2em}.pcr-app .pcr-interaction input{letter-spacing:.07em;font-size:.75em;text-align:center;cursor:pointer;color:#75797e;background:#f1f3f4;border-radius:.15em;transition:all .15s;padding:.45em .5em;margin-top:.75em}.pcr-app .pcr-interaction .pcr-result{color:#75797e;text-align:left;flex:1 1 8em;min-width:8em;transition:all .2s;border-radius:.15em;background:#f1f3f4;cursor:text}.pcr-app .pcr-interaction .pcr-type.active{color:#fff;background:#4285f4}.pcr-app .pcr-interaction .pcr-save,.pcr-app .pcr-interaction .pcr-cancel{color:#fff;width:auto}.pcr-app .pcr-interaction .pcr-save{background:#4285f4}.pcr-app .pcr-interaction .pcr-cancel{background:#f44250}.pcr-app .pcr-selection .pcr-picker{position:absolute;height:18px;width:18px;border:2px solid #fff;border-radius:100%;user-select:none}.pcr-app .pcr-selection .pcr-color-palette,.pcr-app .pcr-selection .pcr-color-chooser,.pcr-app .pcr-selection .pcr-color-opacity{position:relative;user-select:none;display:flex;flex-direction:column;cursor:grab}.pcr-app[data-theme=nano]{width:14.25em;max-width:95vw}.pcr-app[data-theme=nano] .pcr-swatches{margin-top:.6em;padding:0 .6em}.pcr-app[data-theme=nano] .pcr-interaction{padding:0 .6em .6em .6em}.pcr-app[data-theme=nano] .pcr-selection{display:grid;grid-gap:.6em;grid-template-columns:1fr 4fr;grid-template-rows:5fr auto auto;align-items:center;height:10.5em;width:100%;align-self:flex-start}.pcr-app[data-theme=nano] .pcr-selection .pcr-color-preview{grid-area:2/1/4/1;height:100%;width:100%;display:flex;flex-direction:row;justify-content:center;margin-left:.6em}.pcr-app[data-theme=nano] .pcr-selection .pcr-color-preview .pcr-last-color{display:none}.pcr-app[data-theme=nano] .pcr-selection .pcr-color-preview .pcr-current-color{position:relative;background:var(--pcr-color);width:2em;height:2em;border-radius:50em;overflow:hidden}.pcr-app[data-theme=nano] .pcr-selection .pcr-color-palette{grid-area:1/1/2/3;width:100%;height:100%;z-index:1}.pcr-app[data-theme=nano] .pcr-selection .pcr-color-palette .pcr-palette{border-radius:.15em;width:100%;height:100%}.pcr-app[data-theme=nano] .pcr-selection .pcr-color-chooser{grid-area:2/2/2/2}.pcr-app[data-theme=nano] .pcr-selection .pcr-color-opacity{grid-area:3/2/3/2}.pcr-app[data-theme=nano] .pcr-selection .pcr-color-chooser,.pcr-app[data-theme=nano] .pcr-selection .pcr-color-opacity{height:.5em;margin:0 .6em}.pcr-app[data-theme=nano] .pcr-selection .pcr-color-chooser .pcr-picker,.pcr-app[data-theme=nano] .pcr-selection .pcr-color-opacity .pcr-picker{top:50%;transform:translateY(-50%)}.pcr-app[data-theme=nano] .pcr-selection .pcr-color-chooser .pcr-slider,.pcr-app[data-theme=nano] .pcr-selection .pcr-color-opacity .pcr-slider{flex-grow:1;border-radius:50em}.pcr-app[data-theme=nano] .pcr-selection .pcr-color-chooser .pcr-slider{background:linear-gradient(to right,hsl(0,100%,50%),hsl(60,100%,50%),hsl(120,100%,50%),hsl(180,100%,50%),hsl(240,100%,50%),hsl(300,100%,50%),hsl(0,100%,50%))}
+
 /* Feature preview image */
 .tc-settings .tc-feat-preview { padding: 8px 14px; border-bottom: 1px solid var(--background-secondary); }
 .tc-settings .tc-feat-preview-img {
@@ -260,4 +1901,1083 @@
   border-radius: 4px;
   max-height: 120px;
   object-fit: cover;
+  transition: opacity 180ms ease, filter 180ms ease;
+}
+/* Demo preview grows to full width with a desaturation when the toggle is off */
+.tc-settings .tc-feat-preview--demo .tc-feat-preview-img { max-height: 180px; }
+.tc-settings .tc-feat-preview--demo .tc-feat-preview-img[style*="opacity: 0.35"] {
+  filter: saturate(0) contrast(0.9);
+}
+
+/* Editor mood preview image — lives under the segment, full width, animates
+   opacity on src change so the swap reads as "live". */
+.tc-settings .tc-mood-preview { padding: 10px 0 4px; }
+.tc-settings .tc-mood-preview-img {
+  width: 100%;
+  max-height: 160px;
+  object-fit: cover;
+  border-radius: 8px;
+  /* Dashed frame telegraphs that this is an experimental/preview image */
+  border: 1.5px dashed var(--text-muted);
+  padding: 4px;
+  transition: opacity 220ms ease;
+}
+
+/* ════════════════════════════════════════════════════════════════════════
+   Interface tab: real effects for the body classes the applier sets
+   ════════════════════════════════════════════════════════════════════════ */
+
+/* UI density — tighten or loosen spacing across nav, headers, ribbon.
+   Narrowly scoped to density-specific vars so we don't bulldoze --size-4-*
+   (which Obsidian's layout depends on for min-widths, icon padding, etc.) */
+body.tc-density-compact {
+  --nav-item-padding: 3px 8px;
+  --header-height: 32px;
+  --ribbon-width: 34px;
+  --tab-font-size: 11px;
+  --sidebar-tab-size: 30px;
+}
+body.tc-density-spacious {
+  --nav-item-padding: 7px 14px;
+  --header-height: 52px;
+  --ribbon-width: 52px;
+  --tab-font-size: 14px;
+  --sidebar-tab-size: 46px;
+}
+
+/* Safety net: nav items in the file explorer truncate cleanly and keep a
+   healthy right-hand breathing room so titles don't butt up against the
+   sidebar edge regardless of density. */
+.workspace-leaf-content[data-type="file-explorer"] .nav-file-title,
+.workspace-leaf-content[data-type="file-explorer"] .nav-folder-title,
+.workspace-leaf-content[data-type="file-explorer"] .nav-file-title-content,
+.workspace-leaf-content[data-type="file-explorer"] .nav-folder-title-content {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  min-width: 0;
+}
+/* Extra right padding on the whole nav tree — gives titles a buffer zone */
+.workspace-leaf-content[data-type="file-explorer"] .nav-files-container {
+  padding-right: 12px;
+}
+
+/* Icon stroke weight — affects every Lucide icon in the chrome */
+body.tc-icon-stroke-thin    { --icon-stroke: 1px;    --icon-stroke-width: 1px; }
+body.tc-icon-stroke-regular { --icon-stroke: 1.75px; --icon-stroke-width: 1.75px; }
+body.tc-icon-stroke-bold    { --icon-stroke: 2.5px;  --icon-stroke-width: 2.5px; }
+
+/* Corner radius — drives Obsidian's --radius-* scale + our own card radius.
+   Values follow Tom's intent: Subtle ≈ 5% of element, Rounded ≈ 15%. */
+body.tc-radius-sharp {
+  --radius-s: 0px; --radius-m: 0px; --radius-l: 0px;
+  --anp-card-radius: 0px; --anp-border-radius: 0px;
+}
+body.tc-radius-subtle {
+  --radius-s: 2px; --radius-m: 4px; --radius-l: 6px;
+  --anp-card-radius: 4px; --anp-border-radius: 4px;
+}
+body.tc-radius-rounded {
+  --radius-s: 6px; --radius-m: 12px; --radius-l: 18px;
+  --anp-card-radius: 12px; --anp-border-radius: 12px;
+}
+
+/* Border intensity — drives the strength of EVERY border in the Obsidian
+   UI (sidebars, tabs, callouts, inputs, modals, …) by remapping the
+   --background-modifier-border variable that the theme + core both use.
+
+   Why the double-class selectors: when Obsidian's Translucent window
+   is on, the theme/core inject is-translucent rules that re-set
+   --background-modifier-border at a 2-class specificity. A plain
+   `body.tc-borders-X` (1 class) ties or loses source-order. Matching
+   on `body.is-translucent.tc-borders-X` and `body.theme-X.tc-borders-X`
+   bumps us to the same 2-class specificity and later source order, so
+   we reliably win against translucent-mode theme rules. */
+body.tc-borders-none,
+body.theme-dark.tc-borders-none,
+body.theme-light.tc-borders-none,
+body.is-translucent.tc-borders-none {
+  --background-modifier-border: transparent !important;
+  --background-modifier-border-hover: transparent !important;
+  --background-modifier-border-focus: rgba(var(--mono-rgb-100, 200, 200, 200), 0.15) !important;
+}
+body.tc-borders-whisper,
+body.theme-dark.tc-borders-whisper,
+body.theme-light.tc-borders-whisper,
+body.is-translucent.tc-borders-whisper {
+  --background-modifier-border: rgba(var(--mono-rgb-100, 200, 200, 200), 0.05) !important;
+  --background-modifier-border-hover: rgba(var(--mono-rgb-100, 200, 200, 200), 0.10) !important;
+  --background-modifier-border-focus: rgba(var(--mono-rgb-100, 200, 200, 200), 0.18) !important;
+}
+body.tc-borders-subtle,
+body.theme-dark.tc-borders-subtle,
+body.theme-light.tc-borders-subtle,
+body.is-translucent.tc-borders-subtle {
+  --background-modifier-border: rgba(var(--mono-rgb-100, 200, 200, 200), 0.15) !important;
+  --background-modifier-border-hover: rgba(var(--mono-rgb-100, 200, 200, 200), 0.22) !important;
+  --background-modifier-border-focus: rgba(var(--mono-rgb-100, 200, 200, 200), 0.32) !important;
+}
+body.tc-borders-ligne-claire,
+body.theme-dark.tc-borders-ligne-claire,
+body.theme-light.tc-borders-ligne-claire,
+body.is-translucent.tc-borders-ligne-claire {
+  --background-modifier-border: rgba(var(--mono-rgb-100, 200, 200, 200), 0.42) !important;
+  --background-modifier-border-hover: rgba(var(--mono-rgb-100, 200, 200, 200), 0.58) !important;
+  --background-modifier-border-focus: rgba(var(--mono-rgb-100, 200, 200, 200), 0.75) !important;
+}
+
+/* Direct border-color overrides for workspace elements — catches any
+   theme/core rule that hardcodes `border-color: X` instead of reading
+   the var. This is where the translucent-mode regression lives: many
+   theme rules switch to direct rgba() values when is-translucent is on,
+   so the var remap alone doesn't reach them. We target the panels and
+   dividers that users actually see. */
+body.tc-borders-none .workspace-leaf-content,
+body.tc-borders-none .workspace-tab-header-container,
+body.tc-borders-none .workspace-tab-container,
+body.tc-borders-none .workspace-ribbon,
+body.tc-borders-none .workspace-split,
+body.tc-borders-none .workspace-tabs,
+body.tc-borders-none .nav-files-container,
+body.tc-borders-none .status-bar,
+body.tc-borders-none .view-header,
+body.tc-borders-none .titlebar {
+  border-color: transparent !important;
+}
+body.tc-borders-whisper .workspace-leaf-content,
+body.tc-borders-whisper .workspace-tab-header-container,
+body.tc-borders-whisper .workspace-tab-container,
+body.tc-borders-whisper .workspace-ribbon,
+body.tc-borders-whisper .workspace-split,
+body.tc-borders-whisper .workspace-tabs,
+body.tc-borders-whisper .nav-files-container,
+body.tc-borders-whisper .status-bar,
+body.tc-borders-whisper .view-header,
+body.tc-borders-whisper .titlebar {
+  border-color: rgba(var(--mono-rgb-100, 200, 200, 200), 0.05) !important;
+}
+body.tc-borders-subtle .workspace-leaf-content,
+body.tc-borders-subtle .workspace-tab-header-container,
+body.tc-borders-subtle .workspace-tab-container,
+body.tc-borders-subtle .workspace-ribbon,
+body.tc-borders-subtle .workspace-split,
+body.tc-borders-subtle .workspace-tabs,
+body.tc-borders-subtle .nav-files-container,
+body.tc-borders-subtle .status-bar,
+body.tc-borders-subtle .view-header,
+body.tc-borders-subtle .titlebar {
+  border-color: rgba(var(--mono-rgb-100, 200, 200, 200), 0.15) !important;
+}
+body.tc-borders-ligne-claire .workspace-leaf-content,
+body.tc-borders-ligne-claire .workspace-tab-header-container,
+body.tc-borders-ligne-claire .workspace-tab-container,
+body.tc-borders-ligne-claire .workspace-ribbon,
+body.tc-borders-ligne-claire .workspace-split,
+body.tc-borders-ligne-claire .workspace-tabs,
+body.tc-borders-ligne-claire .nav-files-container,
+body.tc-borders-ligne-claire .status-bar,
+body.tc-borders-ligne-claire .view-header,
+body.tc-borders-ligne-claire .titlebar {
+  border-color: rgba(var(--mono-rgb-100, 200, 200, 200), 0.42) !important;
+}
+
+/* The plugin's own control surfaces — settings tab AND the floating
+   QuickPanel — keep full-strength borders regardless of the intensity
+   picked for the workspace. The user's slider, toggle, input, and
+   accordion borders should never disappear when intensity is set to
+   None for the workspace.
+
+   Specificity note: `body.tc-borders-X` has specificity (0,1,1). A bare
+   `.tc-settings` rule at (0,1,0) LOSES the cascade fight. Duplicating
+   the class (`.tc-settings.tc-settings`) bumps us to (0,2,0) which
+   reliably beats the intensity rules without `!important` gymnastics
+   layered on top of `!important`. Same trick for the QuickPanel modal.
+
+   TODO (class-hygiene audit): the plugin currently relies on Obsidian's
+   global --background-modifier-border for its own sliders/inputs, which
+   is why we fight here. A proper refactor scopes a private var like
+   --tc-border and wires our controls to that, leaving the Obsidian var
+   untouched inside our UI. That's a bigger change; track separately. */
+.tc-settings.tc-settings,
+.tc-quick-modal.tc-quick-modal {
+  --background-modifier-border: rgba(var(--mono-rgb-100, 200, 200, 200), 0.15) !important;
+  --background-modifier-border-hover: rgba(var(--mono-rgb-100, 200, 200, 200), 0.22) !important;
+  --background-modifier-border-focus: rgba(var(--mono-rgb-100, 200, 200, 200), 0.32) !important;
+  /* Lock the radius-* vars inside the plugin's own UI so the user's
+     Corner radius pick (Sharp/Subtle/Rounded on body) doesn't leak in
+     and squish or balloon the accordion + setting-row borders. Same
+     specificity trick as the border vars above (double class). */
+  --radius-s: 4px !important;
+  --radius-m: 6px !important;
+  --radius-l: 8px !important;
+  --anp-card-radius: 6px !important;
+  --anp-border-radius: 6px !important;
+}
+
+/* "Show extended" rows belong with their parent flavour row — no divider.
+   Selector is specific enough (4 classes) to beat the intensity rule. */
+.tc-settings .tc-feat-body.tc-setting-card .setting-item.tc-show-ext-row {
+  border-top: none !important;
+}
+
+/* ════════════════════════════════════════════════════════════════════════
+   Segmented pill picker — pill group for enum settings (replaces dropdowns)
+   ════════════════════════════════════════════════════════════════════════ */
+.tc-settings .tc-seg {
+  display: inline-flex;
+  background: var(--background-secondary);
+  border-radius: 999px;
+  padding: 3px;
+  gap: 2px;
+}
+/* Individual pill buttons strip EVERY stray border/shadow Obsidian puts on
+   <button> tags. The container frame is the only rim you should see. */
+.tc-settings .tc-seg-btn,
+.tc-settings .tc-seg-btn:hover,
+.tc-settings .tc-seg-btn:focus,
+.tc-settings .tc-seg-btn:active {
+  appearance: none;
+  background: transparent;
+  border: 0 !important;
+  outline: none !important;
+  box-shadow: none !important;
+  color: var(--text-muted);
+  padding: 4px 12px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 120ms ease, color 120ms ease;
+  white-space: nowrap;
+  min-height: 24px;
+}
+.tc-settings .tc-seg-btn:hover { color: var(--text-normal); }
+.tc-settings .tc-seg-btn--active,
+.tc-settings .tc-seg-btn--active:hover {
+  background: var(--background-primary) !important;
+  color: var(--text-normal) !important;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.18) !important;
+}
+
+/* Placeholder accordion body — used by Sidebar Outliner + Graph shells
+   until they get real settings. */
+.tc-settings .tc-empty-hint {
+  margin: 0;
+  padding: 14px 0;
+  font-size: 12px;
+  color: var(--text-faint);
+  font-style: italic;
+  letter-spacing: 0.01em;
+}
+
+/* ════════════════════════════════════════════════════════════════════════
+   Typography → Fonts — pairing segment + custom-entry inputs
+   ════════════════════════════════════════════════════════════════════════ */
+.tc-settings .tc-seg--wrap {
+  flex-wrap: wrap;
+  gap: 3px;
+  max-width: 100%;
+}
+.tc-settings .tc-font-pair-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 6px 0 10px;
+  flex-wrap: wrap;
+}
+.tc-settings .tc-font-pair-row .tc-slider-label { width: 80px; flex-shrink: 0; }
+.tc-settings .tc-font-custom-block {
+  display: none;
+  padding: 8px 0 4px 90px;
+  border-top: 1px dashed var(--background-modifier-border);
+  margin-top: 4px;
+}
+.tc-settings .tc-font-custom-block.is-visible { display: block; }
+.tc-settings .tc-font-input-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 4px 0;
+}
+.tc-settings .tc-font-input-row .tc-slider-label {
+  width: 74px;
+  font-size: 11px;
+  color: var(--text-muted);
+}
+.tc-settings .tc-font-input {
+  flex: 1;
+  background: var(--background-secondary);
+  border: 1px solid var(--background-modifier-border);
+  border-radius: 6px;
+  padding: 4px 8px;
+  font-size: 12px;
+  color: var(--text-normal);
+  min-height: 26px;
+}
+.tc-settings .tc-font-input:focus {
+  border-color: var(--interactive-accent);
+  outline: none;
+}
+.tc-settings .tc-font-hint {
+  margin: 6px 0 0;
+  font-size: 10px;
+  color: var(--text-faint);
+  letter-spacing: 0.03em;
+}
+
+/* ════════════════════════════════════════════════════════════════════════
+   Pickr dress — sits AFTER the bundled nano theme so these win via cascade.
+   Goal: the floating colour picker reads as a native Obsidian modal.
+   ════════════════════════════════════════════════════════════════════════ */
+.pcr-app {
+  background: var(--background-primary) !important;
+  /* A slightly heavier border + faint outer ring so the popover reads
+     as a distinct card rather than a flat overlay. */
+  border: 1.5px solid var(--background-modifier-border) !important;
+  border-radius: 10px !important;
+  box-shadow:
+    0 0 0 1px rgba(var(--mono-rgb-100, 200, 200, 200), 0.05),
+    0 14px 40px rgba(0, 0, 0, 0.36),
+    0 1px 3px rgba(0, 0, 0, 0.18) !important;
+  font-family: var(--font-interface) !important;
+  padding: 10px !important;
+  color: var(--text-normal) !important;
+}
+.pcr-app[data-theme="nano"] { width: 16em !important; }
+.pcr-app[data-theme="nano"] .pcr-swatches { padding: 0 !important; }
+.pcr-app[data-theme="nano"] .pcr-selection { height: 9.5em !important; }
+.pcr-app[data-theme="nano"] .pcr-selection .pcr-color-palette .pcr-palette {
+  border-radius: 6px !important;
+}
+
+/* Hue / opacity sliders — slightly thicker, neutral track. The opacity
+   slider below the hue strip acts as the "brightness/transparency" control
+   (alpha is stripped on save so the stored value stays #RRGGBB). */
+.pcr-app[data-theme="nano"] .pcr-selection .pcr-color-chooser,
+.pcr-app[data-theme="nano"] .pcr-selection .pcr-color-opacity { height: 8px !important; }
+
+/* Current-colour dot — matches the accent pip shape */
+.pcr-app[data-theme="nano"] .pcr-selection .pcr-color-preview .pcr-current-color {
+  width: 1.6em !important;
+  height: 1.6em !important;
+  border: 2px solid var(--background-modifier-border) !important;
+}
+
+/* ── Interaction row: grid layout ───────────────────────────────────
+   Row 1 — [HEX label chip] [  HEX input spanning right  ]
+   Row 2 — [  Cancel  ] [   Save   ] [  Clear  ]   (equal thirds)
+   The HEX pill (.pcr-type) Pickr normally renders is useless here (we
+   only support hex) and, in our config, clicking it triggered a save.
+   We hide it and render "HEX" as a static label via ::before so there
+   is no button to accidentally press. */
+.pcr-app .pcr-interaction {
+  /* 6-column grid with named areas — guarantees Cancel/Save/Clear are
+     exactly 2 cols each = equal thirds, regardless of HTML source order. */
+  display: grid !important;
+  grid-template-columns: repeat(6, 1fr);
+  grid-template-areas:
+    "label label input input input input"
+    "cancel cancel save save clear clear";
+  gap: 6px !important;
+  padding: 0 !important;
+  margin-top: 10px !important;
+  align-items: center;
+}
+.pcr-app .pcr-interaction::before {
+  content: 'HEX';
+  grid-area: label;
+  font-family: var(--font-monospace, monospace);
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  color: var(--text-muted);
+  background: var(--background-secondary);
+  border: 1px solid var(--background-modifier-border);
+  border-radius: 6px;
+  padding: 5px 0;
+  text-align: center;
+  min-height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Text inputs + result field */
+.pcr-app .pcr-interaction input,
+.pcr-app .pcr-interaction .pcr-result {
+  background: var(--background-secondary) !important;
+  color: var(--text-normal) !important;
+  border: 1px solid var(--background-modifier-border) !important;
+  border-radius: 6px !important;
+  font-family: var(--font-monospace, monospace) !important;
+  font-size: 11px !important;
+  padding: 5px 8px !important;
+  margin: 0 !important;
+  letter-spacing: 0 !important;
+  min-height: 26px;
+}
+.pcr-app .pcr-interaction .pcr-result {
+  grid-area: input;
+  width: 100% !important;
+  box-sizing: border-box;
+}
+.pcr-app .pcr-interaction input:focus,
+.pcr-app .pcr-interaction .pcr-result:focus {
+  border-color: var(--interactive-accent) !important;
+  outline: none !important;
+}
+
+/* HEX/RGBA/HSLA pill — redundant, hidden. Clicking it in our single-format
+   setup triggered a save, which confused users. */
+.pcr-app .pcr-interaction .pcr-type { display: none !important; }
+
+/* Shared button styling — all three identical shape/size so they read
+   as a set. Differences live in the colour, not the geometry. */
+.pcr-app .pcr-interaction .pcr-save,
+.pcr-app .pcr-interaction .pcr-cancel,
+.pcr-app .pcr-interaction .pcr-clear {
+  width: 100% !important;
+  margin: 0 !important;
+  font-family: var(--font-interface) !important;
+  font-size: 11px !important;
+  font-weight: 600 !important;
+  padding: 5px 0 !important;
+  letter-spacing: 0.02em !important;
+  text-transform: none !important;
+  min-height: 28px !important;
+  box-sizing: border-box !important;
+  border: 1px solid var(--background-modifier-border) !important;
+  border-radius: 6px !important;
+  cursor: pointer;
+  transition: outline 0.12s, background 0.12s, border-color 0.12s, color 0.12s, filter 0.12s;
+}
+
+/* Cancel (left third) — neutral/secondary */
+.pcr-app .pcr-interaction .pcr-cancel {
+  grid-area: cancel;
+  background: var(--background-secondary) !important;
+  color: var(--text-muted) !important;
+}
+.pcr-app .pcr-interaction .pcr-cancel:hover {
+  color: var(--text-normal) !important;
+  border-color: var(--text-muted) !important;
+}
+
+/* Save (middle third) — accent-filled primary; green outline on hover */
+.pcr-app .pcr-interaction .pcr-save {
+  grid-area: save;
+  background: var(--interactive-accent) !important;
+  color: var(--text-on-accent) !important;
+  border-color: transparent !important;
+}
+.pcr-app .pcr-interaction .pcr-save:hover {
+  outline: 2px solid var(--color-green, #a6e3a1) !important;
+  outline-offset: 1px !important;
+  filter: brightness(1.05);
+}
+
+/* Clear (right third) — quiet, red on hover */
+.pcr-app .pcr-interaction .pcr-clear {
+  grid-area: clear;
+  background: var(--background-secondary) !important;
+  color: var(--text-muted) !important;
+}
+.pcr-app .pcr-interaction .pcr-clear:hover {
+  color: var(--text-error, #e88) !important;
+  border-color: var(--text-error, #e88) !important;
+}
+
+/* ════════════════════════════════════════════════════════════════════════
+   QuickPanel — floating, draggable, non-blocking settings panel opened
+   from the ribbon. Uses Obsidian's Modal under the hood but strips the
+   modal-bg backdrop so Obsidian stays fully interactive behind it.
+   ════════════════════════════════════════════════════════════════════════ */
+.modal-container.tc-quick-container {
+  /* Allow clicks to pass through the backdrop to Obsidian behind */
+  pointer-events: none;
+}
+.modal-container.tc-quick-container .modal-bg {
+  background: transparent !important;
+  pointer-events: none !important;
+}
+.modal-container.tc-quick-container .modal.tc-quick-modal {
+  /* Re-enable pointer events on the panel itself (its parent is none) */
+  pointer-events: auto;
+  position: fixed;
+  top: 88px;
+  right: 40px;
+  left: auto;
+  transform: none;
+  /* Fixed width for now — 720px gives every font row, swatch strip, and
+     slider enough room without flex-stretching. No resize handle; if we
+     re-enable it later we'll bring the clamps back. Viewport clamp kept
+     so the panel shrinks on narrow windows instead of overflowing. */
+  width: 720px;
+  min-width: 720px;
+  max-width: min(720px, 94vw);
+  max-height: 80vh;
+  resize: none;
+  padding: 0 !important;
+  border-radius: 12px;
+  border: 1px solid var(--background-modifier-border);
+  box-shadow: 0 14px 48px rgba(0, 0, 0, 0.38), 0 2px 6px rgba(0, 0, 0, 0.22);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  background: var(--background-primary);
+}
+
+/* ── QuickPanel focal dim: when the floating panel is open, blur and
+   darken the workspace behind it so the panel jumps to prominence.
+   Applied via body.tc-quick-panel-open (set by quick-panel.ts onOpen).
+   Filter sits on .app-container so it blurs everything Obsidian renders
+   behind our modal; the .modal-container is a sibling of .app-container
+   (not a descendant), so our panel itself stays crisp. */
+body .app-container {
+  transition: filter 0.24s ease;
+}
+body.tc-quick-panel-open .app-container {
+  filter: blur(2.5px) brightness(0.58) saturate(0.85);
+}
+/* The default .modal-content from Obsidian wraps everything inside the
+   modal — we need it to participate in the column flex so the body can
+   claim remaining space and scroll independently of the title bar. */
+.modal-container.tc-quick-container .modal.tc-quick-modal > .modal-content {
+  flex: 1;
+  min-height: 0;
+  padding: 0 !important;
+  margin: 0 !important;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+/* Hide Obsidian's default close button — our title bar has its own */
+.modal-container.tc-quick-container .modal-close-button { display: none !important; }
+
+.tc-quick-titlebar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 10px 8px 14px;
+  background: var(--background-secondary);
+  border-bottom: 1px solid var(--background-modifier-border);
+  cursor: grab;
+  user-select: none;
+  flex-shrink: 0;
+}
+.tc-quick-titlebar.tc-quick-dragging { cursor: grabbing; }
+.tc-quick-icon {
+  color: var(--color-accent, #e5b32a);
+  font-size: 14px;
+  line-height: 1;
+}
+.tc-quick-title {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-normal);
+  letter-spacing: -0.01em;
+}
+.tc-quick-spacer { flex: 1; }
+.tc-quick-close {
+  /* 22px circle — sits flush with title-bar height, generous hit target
+     without feeling chunky. SVG X inside scales to 12px for legibility. */
+  background: transparent;
+  border: none;
+  color: var(--text-muted);
+  width: 22px;
+  height: 22px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  cursor: pointer;
+  padding: 0;
+  line-height: 1;
+  transition: background 0.12s, color 0.12s;
+}
+.tc-quick-close:hover {
+  background: var(--background-modifier-hover);
+  color: var(--text-normal);
+}
+.tc-quick-close:active {
+  background: var(--background-modifier-border);
+}
+.tc-quick-close svg { display: block; }
+
+/* Tabs — compact pill strip, stuck to top of scrolling content.
+   Generous bottom padding + hairline under the tabs so content has
+   room to breathe before it starts scrolling. */
+.tc-quick-tabs {
+  display: flex;
+  gap: 4px;
+  padding: 12px 14px 12px;
+  background: var(--background-primary);
+  border-bottom: 1px solid var(--background-modifier-border);
+  flex-shrink: 0;
+}
+.tc-quick-tab {
+  background: transparent;
+  border: none;
+  color: var(--text-muted);
+  font-size: 11px;
+  font-weight: 500;
+  padding: 5px 12px;
+  border-radius: 100px;
+  cursor: pointer;
+  transition: color 0.12s, background 0.12s;
+}
+.tc-quick-tab:hover { color: var(--text-normal); background: var(--background-modifier-hover); }
+.tc-quick-tab--active {
+  background: var(--interactive-accent);
+  color: var(--text-on-accent);
+}
+
+/* Scrolling body — owns the overflow so the title bar and tabs stay put */
+.tc-quick-body {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  padding: 10px 14px 14px;
+}
+
+/* ════════════════════════════════════════════════════════════════════════
+   Background effects — three depth steps.
+
+   These REQUIRE Obsidian's native "Translucent window" (Settings →
+   Appearance → Advanced → Translucent window). Obsidian/Electron makes
+   the window itself translucent there — on macOS via NSWindow vibrancy,
+   on Windows via acrylic/mica — so OS-level blur shows behind your panels.
+
+   Our earlier versions ALSO overrode the panel background with another
+   layer of transparency via color-mix(). That stacked on top of the
+   theme's already-semi-transparent backgrounds and washed the panels out
+   — nothing was readable. The fix is to STOP overriding background
+   and just augment: `backdrop-filter` composites its effect onto whatever
+   alpha the theme/Obsidian has already applied.
+
+   Modes:
+     Solid   — no overrides, panels stay exactly as Obsidian/theme renders.
+     Frosted — augment with blur + mild saturation. Native alpha preserved.
+     Glass   — heavier blur, pronounced saturation, brightness lift, and
+               inner 1px rim highlights for the macOS "liquid glass" feel.
+   ════════════════════════════════════════════════════════════════════════ */
+
+/* ── Solid: force opaque panels even when is-translucent is still on.
+   Obsidian's translucent window is an Electron-level setting; toggling
+   it via `app:toggle-translucent-window` only takes effect after a
+   restart on some versions. In the meantime, if the user picks Solid,
+   we still want the panels to READ as solid — so we explicitly paint
+   them opaque here. This wins via `!important` over any theme rule
+   that would otherwise keep them semi-transparent. */
+body.is-translucent.tc-bg-effect-solid .workspace-leaf-content,
+body.is-translucent.tc-bg-effect-solid .nav-files-container,
+body.is-translucent.tc-bg-effect-solid .workspace-tab-container,
+body.is-translucent.tc-bg-effect-solid .workspace-tab-header-container {
+  background: var(--background-primary) !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+body.is-translucent.tc-bg-effect-solid .workspace-split.mod-left-split,
+body.is-translucent.tc-bg-effect-solid .workspace-split.mod-right-split,
+body.is-translucent.tc-bg-effect-solid .workspace-ribbon {
+  background: var(--background-secondary) !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+body.is-translucent.tc-bg-effect-solid .app-container,
+body.is-translucent.tc-bg-effect-solid .horizontal-main-container,
+body.is-translucent.tc-bg-effect-solid .workspace,
+body.is-translucent.tc-bg-effect-solid .workspace > .mod-root {
+  background: var(--background-primary) !important;
+}
+
+/* ── Ancestor transparency ────────────────────────────────────────────
+   When Frosted/Glass is on, every ancestor up to <body> goes transparent
+   so the backdrop-filter below has one, and only one, opaque-ish layer
+   to render against. Without this, alpha-stacking from nested solid
+   backgrounds (leaf ∈ tab-container ∈ workspace-split ∈ workspace ∈
+   app-container, each with their own partial fill) compounds and
+   "colour crushes" — the blurred layers pile up into a dark/washed mess.
+
+   Scoped tightly: only active when the user has picked Frosted or Glass
+   AND Obsidian's native Translucent window is on. Outside that we leave
+   every surface alone — the theme's defaults stand. */
+body.is-translucent.tc-bg-effect-frosted,
+body.is-translucent.tc-bg-effect-glass,
+body.is-translucent.tc-bg-effect-frosted .app-container,
+body.is-translucent.tc-bg-effect-glass .app-container,
+body.is-translucent.tc-bg-effect-frosted .horizontal-main-container,
+body.is-translucent.tc-bg-effect-glass .horizontal-main-container,
+body.is-translucent.tc-bg-effect-frosted .workspace,
+body.is-translucent.tc-bg-effect-glass .workspace,
+body.is-translucent.tc-bg-effect-frosted .workspace > .mod-root,
+body.is-translucent.tc-bg-effect-glass .workspace > .mod-root,
+body.is-translucent.tc-bg-effect-frosted .workspace-split,
+body.is-translucent.tc-bg-effect-glass .workspace-split,
+body.is-translucent.tc-bg-effect-frosted .workspace-tabs,
+body.is-translucent.tc-bg-effect-glass .workspace-tabs,
+body.is-translucent.tc-bg-effect-frosted .workspace-tab-container,
+body.is-translucent.tc-bg-effect-glass .workspace-tab-container,
+body.is-translucent.tc-bg-effect-frosted .workspace-tab-header-container,
+body.is-translucent.tc-bg-effect-glass .workspace-tab-header-container,
+body.is-translucent.tc-bg-effect-frosted .workspace-leaf,
+body.is-translucent.tc-bg-effect-glass .workspace-leaf {
+  background: transparent !important;
+  background-color: transparent !important;
+}
+
+/* ── Frosted ──────────────────────────────────────────────────────────
+   SINGLE surface takes the effect: the active pane's leaf-content plus
+   the file-explorer's nav-files-container. Nothing else. Everything
+   above is forced transparent (rule block above) so the blur has a
+   clean render chain instead of multiple alpha layers stacking.
+
+   Saturation held at 1.0 — any boost amplifies whatever the blur catches. */
+body.is-translucent.tc-bg-effect-frosted .workspace-leaf-content,
+body.is-translucent.tc-bg-effect-frosted .nav-files-container {
+  background: rgba(var(--background-primary-rgb, 30, 30, 46), 0.78) !important;
+  backdrop-filter: blur(var(--tc-frost-depth, 20px));
+  -webkit-backdrop-filter: blur(var(--tc-frost-depth, 20px));
+}
+
+/* ── Glass: macOS-26-style liquid glass ── ⚗️ WIP ────────────────────
+   Design inspired by liquid-glass-js (https://github.com/dashersw/liquid-glass-js,
+   MIT licensed — credit in README Acknowledgements). That library uses
+   WebGL shaders for real-time refraction against a captured page
+   snapshot; we attempt the same visual language through CSS alone.
+
+   KNOWN ISSUE: `backdrop-filter` blurs everything behind the element in
+   the stacking context, which in Obsidian includes Obsidian's own DOM
+   (workspace splits, ribbons, status bar). The user expects the desktop
+   BEHIND the app to show through — but Chromium composites the window
+   above the OS at the WM layer, so we can't easily reach the vibrancy
+   pixels from inside the DOM. A proper fix probably requires opting the
+   panels into full transparency (background: transparent) and relying
+   entirely on OS vibrancy; we approximate that below but it's fragile.
+
+   Leave WIP on this setting until the behaviour is solved.
+   ────────────────────────────────────────────────────────────────── */
+body.is-translucent.tc-bg-effect-glass .workspace-leaf-content,
+body.is-translucent.tc-bg-effect-glass .nav-files-container {
+  position: relative; /* anchors the ::before refraction highlight */
+  /* Single layer takes the effect. Glass is one notch more transparent
+     than Frosted (0.60 vs 0.78) so edges feel glassier while still
+     preventing colour-crush from whatever the blur catches. */
+  background: rgba(var(--background-primary-rgb, 30, 30, 46), 0.60) !important;
+  backdrop-filter: blur(calc(var(--tc-frost-depth, 20px) * 1.4));
+  -webkit-backdrop-filter: blur(calc(var(--tc-frost-depth, 20px) * 1.4));
+  box-shadow:
+    inset 0 1px 0 rgba(var(--mono-rgb-100, 255, 255, 255), 0.12),
+    inset 0 0 0 1px rgba(var(--mono-rgb-100, 255, 255, 255), 0.04);
+}
+/* Soft diagonal refraction — echoes the highlight WebGL shaders draw on
+   a curved glass surface. Non-interactive pseudo so nothing in the
+   workspace loses click handling. */
+body.is-translucent.tc-bg-effect-glass .workspace-leaf-content::before,
+body.is-translucent.tc-bg-effect-glass .nav-files-container::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+  background: linear-gradient(
+    135deg,
+    rgba(var(--mono-rgb-100, 255, 255, 255), 0.10) 0%,
+    rgba(var(--mono-rgb-100, 255, 255, 255), 0.03) 22%,
+    transparent 55%,
+    rgba(var(--mono-rgb-100, 255, 255, 255), 0.02) 100%
+  );
+  mix-blend-mode: overlay;
+}
+/* Ensure the pseudo-highlight sits *behind* the workspace content, not on
+   top of it. The content has no explicit z-index so we lift it above 0. */
+body.is-translucent.tc-bg-effect-glass .workspace-leaf-content > *,
+body.is-translucent.tc-bg-effect-glass .nav-files-container > * {
+  position: relative;
+  z-index: 1;
+}
+
+/* If the user hasn't turned on Obsidian's Translucent window, neither
+   Frosted nor Glass are visible (backdrop-filter needs a semi-transparent
+   parent to have content to blur). The plugin shows a description note
+   pointing to the setting; there's nothing more to do from CSS. */
+
+/* ════════════════════════════════════════════════════════════════════════
+   Film-grain noise — a CSS pseudo-element scoped to .workspace so it
+   never smears over modals, the settings dialog, or any floating overlay.
+   Opacity is driven by --tc-noise-opacity (0 = invisible).
+
+   The SVG uses high-frequency fractal noise (baseFrequency 1.2) and an
+   explicit <feComponentTransfer> contrast stretch so the grain is PUNCHY
+   — visible black and white specks rather than the grey mush that plain
+   turbulence + blend-mode:overlay produced before. mix-blend-mode:soft-light
+   reads warmer and more paper-like than overlay, which was being crushed
+   into invisibility on the darker workspace surfaces.
+   ════════════════════════════════════════════════════════════════════════ */
+body.tc-has-noise .workspace {
+  position: relative; /* anchors the ::before pseudo-element */
+}
+body.tc-has-noise .workspace::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 100;
+  opacity: var(--tc-noise-opacity, 0);
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='1.2' numOctaves='3' stitchTiles='stitch'/%3E%3CfeComponentTransfer%3E%3CfeFuncR type='linear' slope='2.2' intercept='-0.6'/%3E%3CfeFuncG type='linear' slope='2.2' intercept='-0.6'/%3E%3CfeFuncB type='linear' slope='2.2' intercept='-0.6'/%3E%3C/feComponentTransfer%3E%3C/filter%3E%3Crect width='300' height='300' filter='url(%23n)'/%3E%3C/svg%3E");
+  mix-blend-mode: soft-light;
+}
+
+/* ════════════════════════════════════════════════════════════════════════
+   Typography tab — font role rows (Interface / Editor / Source).
+   Each row: label + pill quick-picks + free-text input with datalist.
+   ════════════════════════════════════════════════════════════════════════ */
+.tc-settings .tc-font-role-group {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 2px 0 10px;
+}
+.tc-settings .tc-font-role-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 5px 0;
+  flex-wrap: wrap;
+}
+.tc-settings .tc-font-role-label {
+  min-width: 62px;
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--text-muted);
+  flex-shrink: 0;
+}
+.tc-settings .tc-font-role-pills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  flex-shrink: 0;
+}
+.tc-settings .tc-font-role-pill {
+  font-size: 10px !important;
+  padding: 2px 7px !important;
+  height: 22px;
+}
+.tc-settings .tc-font-role-input {
+  flex: 1;
+  min-width: 100px;
+  height: 26px;
+  padding: 0 8px;
+  font-size: 11px;
+  background: var(--background-secondary);
+  border: 1px solid var(--background-modifier-border);
+  border-radius: 5px;
+  color: var(--text-normal);
+  transition: border-color 0.12s;
+}
+.tc-settings .tc-font-role-input:focus {
+  border-color: var(--interactive-accent);
+  outline: none;
+}
+
+/* Font role row — combobox on the left, system + reset circles on the
+   right. Fixed width on the combobox so all three role rows (Interface,
+   Editor, Source) render their input at identical pixel widths instead
+   of whatever the flex layout hands them. */
+.tc-settings .tc-font-role-row {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 6px;
+  width: 100%;
+}
+.tc-settings .tc-font-role-row .tc-font-combobox {
+  flex: 0 1 260px;
+  width: 260px;
+  max-width: 260px;
+}
+
+/* ── .tc-circle-btn: shared circular mini-button style ─────────────────
+   Used by the per-role System + Reset buttons in Typography AND the
+   tab-bar Reset-All. 24px circle, Lucide SVG icon, muted default tone,
+   hover = normal text colour + soft fill. The Reset-All adds the armed
+   pulse animation on top via .tc-reset-all-btn--armed. */
+.tc-settings .tc-circle-btn {
+  flex: 0 0 auto;
+  width: 24px;
+  height: 24px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  border: 1.5px solid transparent;
+  border-radius: 50%;
+  color: var(--text-muted);
+  padding: 0;
+  cursor: pointer;
+  transition: color 0.12s, border-color 0.12s, background 0.12s;
+}
+.tc-settings .tc-circle-btn:hover {
+  color: var(--text-normal);
+  background: var(--background-modifier-hover);
+}
+.tc-settings .tc-circle-btn:active {
+  background: var(--background-modifier-border);
+}
+.tc-settings .tc-circle-btn svg {
+  width: 13px;
+  height: 13px;
+  display: block;
+}
+
+/* ── Searchable font combobox ────────────────────────────────────────── */
+.tc-settings .tc-font-combobox {
+  position: relative;
+  flex: 1;
+  min-width: 0;
+}
+.tc-settings .tc-font-combobox-input {
+  width: 100%;
+  height: 28px;
+  padding: 0 10px;
+  font-size: 11px;
+  background: var(--background-secondary);
+  border: 1px solid var(--background-modifier-border);
+  border-radius: 6px;
+  color: var(--text-normal);
+  transition: border-color 0.12s, box-shadow 0.12s;
+  box-sizing: border-box;
+}
+.tc-settings .tc-font-combobox-input:focus {
+  border-color: var(--interactive-accent);
+  outline: none;
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--interactive-accent) 18%, transparent);
+}
+/* Dropdown is appended directly to <body> so its visibility class lives
+   on itself (not the wrap). Also unscoped to .tc-settings because body
+   isn't a descendant of the settings tab. */
+.tc-font-combobox-dropdown {
+  display: none;
+  position: fixed; /* positioned by JS from input.getBoundingClientRect() */
+  max-height: 260px;
+  overflow-y: auto;
+  background: var(--background-primary);
+  border: 1px solid var(--background-modifier-border);
+  border-radius: 6px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.28), 0 1px 3px rgba(0, 0, 0, 0.14);
+  z-index: 10000;
+  padding: 4px 0;
+  font-family: var(--font-interface);
+  color: var(--text-normal);
+}
+.tc-font-combobox-dropdown--open {
+  display: block;
+}
+.tc-font-combobox-group {
+  padding: 6px 10px 2px;
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-faint);
+}
+.tc-font-combobox-option {
+  padding: 5px 10px;
+  font-size: 12px;
+  color: var(--text-normal);
+  cursor: pointer;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.tc-font-combobox-option--highlighted {
+  background: var(--background-modifier-hover);
+}
+.tc-font-combobox-option--selected {
+  background: color-mix(in srgb, var(--interactive-accent) 18%, transparent);
+  color: var(--text-normal);
+  font-weight: 600;
+}
+.tc-font-combobox-option--selected.tc-font-combobox-option--highlighted {
+  background: var(--interactive-accent);
+  color: var(--text-on-accent);
+}
+.tc-font-combobox-empty {
+  padding: 10px;
+  font-size: 11px;
+  color: var(--text-muted);
+  font-style: italic;
+}
+.tc-settings .tc-font-combobox-group {
+  padding: 6px 10px 2px;
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-faint);
+}
+.tc-settings .tc-font-combobox-option {
+  padding: 5px 10px;
+  font-size: 12px;
+  color: var(--text-normal);
+  cursor: pointer;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.tc-settings .tc-font-combobox-option--highlighted {
+  background: var(--background-modifier-hover);
+}
+.tc-settings .tc-font-combobox-option--selected {
+  background: color-mix(in srgb, var(--interactive-accent) 18%, transparent);
+  color: var(--text-normal);
+  font-weight: 600;
+}
+.tc-settings .tc-font-combobox-option--selected.tc-font-combobox-option--highlighted {
+  background: var(--interactive-accent);
+  color: var(--text-on-accent);
+}
+.tc-settings .tc-font-combobox-empty {
+  padding: 10px;
+  font-size: 11px;
+  color: var(--text-muted);
+  font-style: italic;
+}
+
+/* Google Fonts toggle row */
+.tc-settings .tc-gf-toggle-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 6px 0 10px;
+}
+.tc-settings .tc-gf-toggle {
+  width: 16px;
+  height: 16px;
+  accent-color: var(--interactive-accent);
+  cursor: pointer;
+  flex-shrink: 0;
+}
+.tc-settings .tc-gf-hint {
+  font-size: 10px;
+  color: var(--text-faint);
+}
+
+/* ════════════════════════════════════════════════════════════════════════
+   Typography preview — rich inline text styles.
+   ════════════════════════════════════════════════════════════════════════ */
+.tc-settings .tc-mini-obsidian strong { font-weight: 700; }
+.tc-settings .tc-mini-obsidian em     { font-style: italic; }
+.tc-settings .tc-mini-obsidian u      { text-decoration: underline; text-underline-offset: 2px; }
+.tc-settings .tc-mini-obsidian .mini-link {
+  color: var(--color-accent);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  opacity: 0.9;
+}
+.tc-settings .tc-mini-obsidian .mini-lede {
+  color: var(--text-muted);
+  font-style: italic;
+  margin-top: -2px;
+  margin-bottom: 0.9em;
 }

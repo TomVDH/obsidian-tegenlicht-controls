@@ -10,6 +10,7 @@ interface ToggleItem {
   label: string;
   desc?: string;
   previewId?: string;
+  previewUrls?: { on: string; off: string }; // direct-URL preview variant
 }
 
 interface SelectItem {
@@ -86,6 +87,20 @@ const GROUPS: FeatureGroup[] = [
       { key: "calendar",    label: "Calendar" },
     ],
   },
+  {
+    icon: "🖼️", label: "Preview demo",
+    items: [
+      {
+        key: "demoImageToggle",
+        label: "Show random preview image",
+        desc: "Flip the switch — the image swaps between two random Picsum shots",
+        previewUrls: {
+          off: "https://picsum.photos/seed/tegenlicht-off/480/180",
+          on:  "https://picsum.photos/seed/tegenlicht-on/480/180",
+        },
+      },
+    ],
+  },
 ];
 
 function buildToggleRow(
@@ -101,18 +116,34 @@ function buildToggleRow(
 
   const toggle = row.createDiv("tc-toggle");
   if (plugin.settings[item.key]) toggle.addClass("tc-toggle--on");
+
+  // Optional URL-based preview — created once, swapped on toggle
+  let urlPreview: HTMLImageElement | null = null;
+  if (item.previewUrls) {
+    const wrap = container.createDiv("tc-feat-preview tc-feat-preview--demo");
+    urlPreview = wrap.createEl("img", { cls: "tc-feat-preview-img" });
+    const on = plugin.settings[item.key] as boolean;
+    urlPreview.src = on ? item.previewUrls.on : item.previewUrls.off;
+    urlPreview.alt = `${item.label} preview`;
+    urlPreview.style.opacity = on ? "1" : "0.35";
+  }
+
   toggle.addEventListener("click", async () => {
     (plugin.settings[item.key] as boolean) = !(plugin.settings[item.key] as boolean);
-    toggle.toggleClass("tc-toggle--on", plugin.settings[item.key] as boolean);
+    const on = plugin.settings[item.key] as boolean;
+    toggle.toggleClass("tc-toggle--on", on);
     await onChange();
     if (item.previewId) {
       const img = container.querySelector<HTMLImageElement>(
         `[data-preview-id="${item.previewId}"]`,
       );
       if (img) {
-        const state = plugin.settings[item.key] ? "on" : "off";
-        img.src = `app://obsidian.md/plugins/tegenlicht-controls/assets/previews/${item.previewId}-${state}.png`;
+        img.src = `app://obsidian.md/plugins/tegenlicht-controls/assets/previews/${item.previewId}-${on ? "on" : "off"}.png`;
       }
+    }
+    if (urlPreview && item.previewUrls) {
+      urlPreview.src = on ? item.previewUrls.on : item.previewUrls.off;
+      urlPreview.style.opacity = on ? "1" : "0.35";
     }
   });
 

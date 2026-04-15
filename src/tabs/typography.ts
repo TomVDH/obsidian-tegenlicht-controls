@@ -1,5 +1,15 @@
+import { Setting, setIcon } from "obsidian";
 import TegenlichtControlsPlugin from "../main";
 import { DEFAULT_SETTINGS, TegenlichtSettings } from "../settings";
+import { buildFontCombobox } from "../font-combobox";
+
+// ── Module-level accordion state — survives redisplay() like Appearance does,
+// so flipping a font or dragging a slider doesn't snap sections shut.
+// The `rhythm` accordion merges heading sizes and list spacing; they're the
+// same visual concept (vertical rhythm) separated by a hairline divider.
+const accordionOpen: Record<string, boolean> = {
+  fonts: true, rhythm: true,
+};
 
 interface SliderCfg {
   key: keyof TegenlichtSettings;
@@ -24,6 +34,85 @@ const SPACING_SLIDERS: SliderCfg[] = [
   { key: "listSpacing", label: "List spacing", min: 0,   max: 0.5, step: 0.005, unit: "em" },
 ];
 
+// ── Font combobox replaces the old preset pills + raw input. See
+//    ../font-combobox.ts for the search/filter/keyboard behaviour.
+
+/** Build a collapsible accordion matching the Appearance tab's shell. */
+function buildAccordion(
+  container: HTMLElement,
+  key: keyof typeof accordionOpen,
+  title: string,
+): HTMLElement {
+  const accordion = container.createDiv(
+    "tc-feat-group" + (accordionOpen[key] ? " tc-feat-group--open" : "")
+  );
+  const header = accordion.createDiv("tc-feat-header");
+  header.createDiv("tc-feat-title").createSpan({ text: title });
+  header.createDiv("tc-feat-meta").createSpan({ text: "▶", cls: "tc-feat-chevron" });
+  header.addEventListener("click", () => {
+    accordionOpen[key] = !accordionOpen[key];
+    accordion.toggleClass("tc-feat-group--open", accordionOpen[key]);
+  });
+  return accordion.createDiv("tc-feat-body tc-setting-card");
+}
+
+/** Font role row — Name/Desc on the left, searchable combobox + system
+ *  + reset buttons on the right. Matches Appearance tab's Setting-row
+ *  language. `defaultValue` is the DEFAULT_SETTINGS value for this role
+ *  (Things-inspired: Inter / Inter / JetBrains Mono). */
+function buildFontRoleSetting(
+  container: HTMLElement,
+  name: string,
+  desc: string,
+  includeGoogleFonts: boolean,
+  currentValue: string,
+  defaultValue: string,
+  onChange: (val: string) => Promise<void>,
+): void {
+  const setting = new Setting(container).setName(name).setDesc(desc);
+  setting.settingEl.addClass("tc-font-role-setting");
+
+  const row = setting.controlEl.createDiv("tc-font-role-row");
+
+  buildFontCombobox({
+    container: row,
+    currentValue,
+    includeGoogleFonts,
+    placeholder: "Search fonts…",
+    onChange,
+  });
+
+  // Both mini-buttons need `mousedown preventDefault` so the combobox's
+  // input doesn't blur before the click lands — the blur handler commits
+  // whatever's typed, which would race and clobber the button's action.
+  // Both are single-click commit; no double-click arming (that's the
+  // reset-ALL button in the tab bar, a different beast).
+  const applyValue = async (value: string) => {
+    await onChange(value);
+    const inp = row.querySelector<HTMLInputElement>(".tc-font-combobox-input");
+    if (inp) inp.value = value;
+  };
+
+  // System — snap back to OS default font (empty string). Lucide `monitor`.
+  const systemBtn = row.createEl("button", { cls: "tc-circle-btn tc-font-role-system" });
+  systemBtn.setAttribute("title", "Use system font");
+  systemBtn.setAttribute("aria-label", "Use system font");
+  setIcon(systemBtn, "monitor");
+  systemBtn.addEventListener("mousedown", e => e.preventDefault());
+  systemBtn.addEventListener("click", () => applyValue(""));
+
+  // Reset — back to the plugin-provided default (Inter / JetBrains Mono).
+  // Lucide `rotate-ccw`, same circular treatment.
+  const resetBtn = row.createEl("button", { cls: "tc-circle-btn tc-font-role-reset" });
+  resetBtn.setAttribute("title", `Reset to default (${defaultValue || "system"})`);
+  resetBtn.setAttribute("aria-label", "Reset to default");
+  setIcon(resetBtn, "rotate-ccw");
+  resetBtn.addEventListener("mousedown", e => e.preventDefault());
+  resetBtn.addEventListener("click", () => applyValue(defaultValue));
+}
+
+/** Slider row — label chip, slider, value badge, reset. Compact layout so
+ *  six H1-H6 sliders read as a family rather than six separate rows. */
 function buildSliderRow(
   container: HTMLElement,
   cfg: SliderCfg,
@@ -31,30 +120,39 @@ function buildSliderRow(
   onChange: (val: number) => void,
   onReset: () => void,
 ): void {
-  const row = container.createDiv("tc-slider-row");
-  row.createSpan({ text: cfg.label, cls: "tc-slider-label" });
+  const isHeading = cfg.key.toString().startsWith("h") && cfg.key.toString().endsWith("Size");
+  const row = container.createDiv("tc-h-row" + (isHeading ? "" : " tc-h-row--spacing"));
 
-  const slider = row.createEl("input", { type: "range" });
+  if (isHeading) {
+    row.createSpan({ text: cfg.label, cls: "tc-h-chip" });
+  } else {
+    row.createSpan({ text: cfg.label, cls: "tc-spacing-label" });
+  }
+
+  const slider = row.createEl("input", { type: "range", cls: "tc-h-slider" });
   slider.min   = String(cfg.min);
   slider.max   = String(cfg.max);
   slider.step  = String(cfg.step);
   slider.value = String(currentVal);
 
-  const badge = row.createSpan({ cls: "tc-slider-value" });
-  badge.setText(`${currentVal}${cfg.unit}`);
+  const digits = isHeading ? 2 : 3;
+  const badge = row.createSpan({ cls: "tc-h-val" });
+  badge.setText(`${currentVal.toFixed(digits)}${cfg.unit}`);
+
+  const resetBtn = row.createEl("button", { cls: "tc-reset-btn" });
+  resetBtn.setAttribute("title", "Reset to default");
+  resetBtn.setAttribute("aria-label", "Reset to default");
+  setIcon(resetBtn, "rotate-ccw");
 
   slider.addEventListener("input", () => {
     const v = parseFloat(slider.value);
-    badge.setText(`${v}${cfg.unit}`);
+    badge.setText(`${v.toFixed(digits)}${cfg.unit}`);
     onChange(v);
   });
-
-  const resetBtn = row.createEl("button", { text: "↺", cls: "tc-reset-btn" });
-  resetBtn.setAttribute("title", "Reset to default");
   resetBtn.addEventListener("click", () => {
     const def = DEFAULT_SETTINGS[cfg.key] as number;
     slider.value = String(def);
-    badge.setText(`${def}${cfg.unit}`);
+    badge.setText(`${def.toFixed(digits)}${cfg.unit}`);
     onReset();
   });
 }
@@ -63,42 +161,163 @@ export function build(
   containerEl: HTMLElement,
   plugin: TegenlichtControlsPlugin,
   onChange: () => Promise<void>,
+  redisplay?: () => void,
 ): void {
   const s = plugin.settings;
+
+  /** Change handlers that need the tab re-rendered (to refresh preset
+   *  pills, descriptions, show/hide rows) use refresh(); pure value
+   *  changes use onChange() directly so sliders don't flash-rebuild. */
+  const refresh = async () => {
+    await onChange();
+    redisplay?.();
+  };
+
+  // ── Accent-coloured divider bar (matches Appearance tab's top bar,
+  //    but solid accent instead of the rainbow gradient) ──────────────
+  containerEl.createDiv("tc-color-bar tc-color-bar--accent");
+
   const wrap = containerEl.createDiv("tc-typo-wrap");
+
+  // ── Controls (top, as accordion stack) ────────────────────────────
   const controls = wrap.createDiv("tc-typo-controls");
 
-  // Preview panel (right column)
-  const preview = wrap.createDiv("tc-typo-preview");
-  preview.innerHTML = `
-    <h1>Heading 1</h1>
-    <h2>Heading 2</h2>
-    <h3>Heading 3</h3>
-    <h4>Heading 4</h4>
-    <h5>Heading 5</h5>
-    <h6>Heading 6</h6>
-    <p>Body text — the quick brown fox jumps over the lazy dog.</p>
-    <ul><li>First item</li><li>Second item</li><li>Third item</li></ul>
-    <p class="tc-preview-hint">Updates as you drag sliders</p>
-  `;
+  // ── Fonts accordion ───────────────────────────────────────────────
+  const fontsBody = buildAccordion(controls, "fonts", "Fonts");
 
-  // Heading sliders
-  controls.createEl("h3", { text: "Headings", cls: "tc-section-title" });
+  // Google Fonts master toggle — native Setting row for consistency.
+  // Toggling requires a redisplay so the font-role pills update their
+  // preset list (empty list when Google Fonts are disabled).
+  new Setting(fontsBody)
+    .setName("Load Google Fonts")
+    .setDesc(
+      s.googleFontsEnabled !== false
+        ? "Fetches family files from fonts.google.com on pick"
+        : "System fonts only — no network requests"
+    )
+    .addToggle(t => t
+      .setValue(s.googleFontsEnabled !== false)
+      .onChange(async v => {
+        s.googleFontsEnabled = v;
+        await refresh();
+      })
+    );
+
+  const gfOn = s.googleFontsEnabled !== false;
+
+  buildFontRoleSetting(
+    fontsBody,
+    "Interface",
+    "Sidebar, tabs, ribbon — the UI chrome",
+    gfOn,
+    s.fontInterface ?? "",
+    DEFAULT_SETTINGS.fontInterface,
+    async v => { s.fontInterface = v; await onChange(); },
+  );
+  buildFontRoleSetting(
+    fontsBody,
+    "Editor",
+    "Body text and rendered headings in the document",
+    gfOn,
+    s.fontEditor ?? "",
+    DEFAULT_SETTINGS.fontEditor,
+    async v => { s.fontEditor = v; await onChange(); },
+  );
+  buildFontRoleSetting(
+    fontsBody,
+    "Source",
+    "Code blocks and source-mode editor",
+    gfOn,
+    s.fontSource ?? "",
+    DEFAULT_SETTINGS.fontSource,
+    async v => { s.fontSource = v; await onChange(); },
+  );
+
+  // ── Rhythm accordion — merged Heading sizes + List spacing ───────
+  // Same conceptual family (vertical rhythm of the document), separated
+  // by a single hairline so the two groups are still legible at a glance.
+  const rhythmBody = buildAccordion(controls, "rhythm", "Rhythm");
+  rhythmBody.addClass("tc-h-accordion-body");
+
+  const headingGroup = rhythmBody.createDiv("tc-h-group");
   HEADING_SLIDERS.forEach(cfg => {
     buildSliderRow(
-      controls, cfg, s[cfg.key] as number,
+      headingGroup, cfg, s[cfg.key] as number,
       async (v) => { (s as unknown as Record<string, unknown>)[cfg.key as string] = v; await onChange(); },
       async () => { (s as unknown as Record<string, unknown>)[cfg.key as string] = DEFAULT_SETTINGS[cfg.key]; await onChange(); },
     );
   });
 
-  // Spacing sliders
-  controls.createEl("h3", { text: "Spacing", cls: "tc-section-title" });
+  // Hairline divider + subtle section label between headings and spacing
+  rhythmBody.createDiv("tc-rhythm-divider");
+
+  const spacingGroup = rhythmBody.createDiv("tc-h-group");
   SPACING_SLIDERS.forEach(cfg => {
     buildSliderRow(
-      controls, cfg, s[cfg.key] as number,
+      spacingGroup, cfg, s[cfg.key] as number,
       async (v) => { (s as unknown as Record<string, unknown>)[cfg.key as string] = v; await onChange(); },
       async () => { (s as unknown as Record<string, unknown>)[cfg.key as string] = DEFAULT_SETTINGS[cfg.key]; await onChange(); },
     );
   });
+
+  // ── Dynamic Preview header + preview (bottom, full width) ────────
+  const previewHeader = wrap.createDiv("tc-typo-preview-header");
+  previewHeader.createSpan({ text: "Dynamic Preview", cls: "tc-typo-preview-title" });
+  previewHeader.createSpan({ text: "Live Obsidian mock — reads your sliders as you drag", cls: "tc-typo-preview-desc" });
+
+  const preview = wrap.createDiv("tc-typo-preview tc-mini-obsidian");
+  preview.innerHTML = `
+    <header class="mini-title">
+      <span class="mini-dots"><i></i><i></i><i></i></span>
+      <span class="mini-name">Obsidian</span>
+      <span class="mini-vault">Lorem ipsum dolor sit amet</span>
+    </header>
+    <aside class="mini-ribbon">
+      <i class="mini-rib active"></i>
+      <i class="mini-rib"></i>
+      <i class="mini-rib"></i>
+      <i class="mini-rib"></i>
+    </aside>
+    <aside class="mini-side">
+      <h4>Notes</h4>
+      <ul>
+        <li>Daily</li>
+        <li class="mini-active">Typography study</li>
+        <li class="mini-nested">Heading rhythm</li>
+        <li class="mini-nested">Body voice</li>
+        <li>Archive</li>
+      </ul>
+    </aside>
+    <main class="mini-main">
+      <div class="mini-tabs">
+        <div class="mini-tab active">Typography study</div>
+        <div class="mini-tab">Calibration</div>
+      </div>
+      <h1>Typography study — a heading one</h1>
+      <p class="mini-lede">An opening paragraph set at the editor's reading
+      size. The H1 above is the heaviest weight in the rhythm; every slider
+      you move propagates down through this page.</p>
+      <h2>A heading two</h2>
+      <p>The quick brown fox jumps over the lazy dog — body text reflecting
+      the interface font, line-height, and reading rhythm you've picked.
+      Words flow with <strong>bold conviction</strong>, curl into
+      <em>italic asides</em>, carry <u>underlined weight</u>, and link back
+      with <a href="#" class="mini-link">a quiet hyperlink</a>.</p>
+      <h3>A heading three</h3>
+      <ul>
+        <li>List indent and spacing respond to the sliders above</li>
+        <li>Bullet markers inherit the accent colour</li>
+        <li>Monospace lives here: <code>const rhythm = true;</code></li>
+      </ul>
+      <h4>Heading four</h4>
+      <p>A quieter paragraph for sub-sections — kerning, line-height, and size
+      settle into their places as you drag. <em>Source Serif, Playfair, Lora</em>
+      each bring their own colour to this sentence.</p>
+      <div class="mini-callout">
+        <strong>Note</strong> — this preview reads the same CSS variables the
+        plugin writes to the live Obsidian workspace, so what you see is what
+        you'll get.
+      </div>
+    </main>
+  `;
 }
