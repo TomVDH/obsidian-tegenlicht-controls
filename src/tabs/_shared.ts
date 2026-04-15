@@ -1,6 +1,21 @@
 import { Setting } from "obsidian";
 
 /**
+ * Create an inset-card cluster inside an accordion body. Used to group
+ * semantically-related settings (e.g. "Palette", "Surface", "Accent
+ * application") into visually-distinct sub-sections within a single
+ * accordion. The returned element is the cluster container — append
+ * Setting rows or other controls to it directly.
+ *
+ * Relies on .tc-cluster and .tc-cluster-label CSS in styles.css.
+ */
+export function buildCluster(parent: HTMLElement, label: string): HTMLElement {
+  const cluster = parent.createDiv("tc-cluster");
+  cluster.createEl("div", { cls: "tc-cluster-label", text: label });
+  return cluster;
+}
+
+/**
  * Segmented pill picker: label + desc on the left, pill group on the right.
  *
  * Preferred over dropdowns for small option sets (<=4) — visually clearer

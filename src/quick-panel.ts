@@ -82,6 +82,26 @@ export class TegenlichtQuickPanel extends Modal {
       syncBlurBtn();
     });
 
+    // Gear → opens Obsidian's full Settings modal and navigates directly
+    // to this plugin's tab. Closes the QuickPanel first so the user ends
+    // up in the big settings screen rather than stacked dialogs.
+    const settingsBtn = titleBar.createEl("button", { cls: "tc-quick-blur-toggle" });
+    settingsBtn.setAttribute("aria-label", "Open full settings");
+    settingsBtn.setAttribute("title", "Open full settings");
+    setIcon(settingsBtn, "settings");
+    settingsBtn.addEventListener("click", () => {
+      this.close();
+      // `app.setting` is internal — typed as any. Guard both calls in
+      // case Obsidian's API shape changes on future releases.
+      const setting = (this.plugin.app as any).setting;
+      try {
+        setting?.open?.();
+        setting?.openTabById?.(this.plugin.manifest.id);
+      } catch (err) {
+        console.warn("[tegenlicht-controls] could not open full settings", err);
+      }
+    });
+
     // Close button with Lucide-style SVG X so it matches Obsidian's icon
     // language rather than sitting as a raw unicode glyph.
     const closeBtn = titleBar.createEl("button", { cls: "tc-quick-close" });

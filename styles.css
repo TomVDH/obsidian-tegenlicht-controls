@@ -2211,6 +2211,110 @@ body.tc-radius-rounded .tc-settings .tc-feat-group { border-radius: 14px !import
   border-top: none;
 }
 
+/* Appearance-tab section headers — flat alternative to accordions.
+   Appearance no longer uses collapsible accordions; every section is
+   always visible. The header replaces the old tc-feat-header + chevron
+   with a neat, non-interactive label that delimits sections.
+   Bottom hairline creates visual separation without adding boxes. */
+.tc-settings .tc-section-header {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--color-accent);
+  letter-spacing: 0.03em;
+  margin: 28px 0 10px 0;
+  padding: 0 0 6px 0;
+  border-bottom: 1px solid var(--background-modifier-border);
+}
+.tc-settings .tc-section-header:first-of-type {
+  margin-top: 14px;
+}
+/* Sections still reuse the accordion body's className (tc-feat-body
+   tc-setting-card) so all existing setting-item CSS continues to apply.
+   Overrides:
+   - `display: none` → block (no accordion wrapper to toggle
+     `tc-feat-group--open` on)
+   - horizontal padding → 0 so inset-card clusters span the section
+     full-width, flush with the header above them */
+.tc-settings .tc-section-body.tc-feat-body {
+  display: block;
+}
+.tc-settings .tc-section-body.tc-feat-body.tc-setting-card {
+  padding-left: 0;
+  padding-right: 0;
+}
+
+/* Inset-card clusters — semantic sub-grouping inside an accordion body.
+   Each cluster has a small-caps label and a subtly-tinted rounded box so
+   related settings read as a coherent unit rather than a flat list.
+   Dense accordions (Theme & Colour, Interface, Outliner, Workspace) use
+   clusters to break 4+ heterogeneous settings into 2-3 clear semantics. */
+.tc-settings .tc-cluster {
+  background: var(--background-secondary-alt);
+  border: 1px solid var(--background-modifier-border);
+  border-radius: 8px;
+  padding: 10px 14px 12px;
+  margin: 14px 0 0 0;
+}
+.tc-settings .tc-feat-body.tc-setting-card > .tc-cluster:first-child {
+  margin-top: 0;
+}
+.tc-settings .tc-cluster-label {
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--text-muted);
+  margin: 0 0 4px 0;
+}
+/* Strip the top-border of the first setting-item inside a cluster — the
+   cluster's own padding already provides separation, the divider line
+   would be visual noise right after the cluster label. */
+.tc-settings .tc-cluster .setting-item:first-of-type {
+  border-top: none;
+}
+
+/* Advanced disclosure — integrated foldable section inside a cluster
+   (used by Rainbow folders for per-mode sub-toggles). No card background
+   so it reads as continuation of the parent cluster, not a nested card.
+   Collapsed by default; header click rotates the chevron and reveals
+   the body. */
+.tc-settings .tc-advanced {
+  margin-top: 10px;
+}
+.tc-settings .tc-advanced-header {
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 0;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--text-muted);
+  user-select: none;
+}
+.tc-settings .tc-advanced-header:hover {
+  color: var(--text-normal);
+}
+.tc-settings .tc-advanced-chevron {
+  font-size: 9px;
+  display: inline-block;
+  transition: transform 0.15s ease;
+}
+.tc-settings .tc-advanced--open .tc-advanced-chevron {
+  transform: rotate(90deg);
+}
+.tc-settings .tc-advanced-body {
+  display: none;
+}
+.tc-settings .tc-advanced--open .tc-advanced-body {
+  display: block;
+}
+/* First setting-item inside the revealed body skips its top-border —
+   the disclosure header already marks the boundary. */
+.tc-settings .tc-advanced-body .setting-item:first-of-type {
+  border-top: none;
+}
+
 /* Control slots: always center children vertically. Covers sliders,
    toggles, dropdowns, pill segments, and any custom widget we drop into
    a Setting's controlEl. Wrap allows multi-line content (swatch grids)

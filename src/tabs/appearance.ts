@@ -6,16 +6,14 @@ import {
   DARK_BASE, DARK_EXTENDED, DARK_EXTENDED_TC, DARK_EXTENDED_ANP,
   LIGHT_BASE, LIGHT_EXTENDED, LIGHT_EXTENDED_TC, LIGHT_EXTENDED_ANP,
 } from "../flavours";
-import { buildSegmentSetting } from "./_shared";
+import { buildSegmentSetting, buildCluster } from "./_shared";
 
-// Session-scoped accordion state — survives redisplay() rebuilds so the
-// user's open/closed choice isn't lost every time a setting is changed.
-// Default: only the top accordion (`theme`) is open. Tom can expand the
-// rest as needed; we don't want a wall of expanded sections on first load.
-const accordionOpen: Record<string, boolean> = {
-  theme: true, interface: false, sidebarOutliner: false, graph: false,
-  workspace: false, highlights: false,
-};
+// Section-header pattern replaces accordions on Appearance. Every
+// section is always visible — the tab reads as a continuous scroll with
+// neat header bars delimiting each section. Accordion collapse state is
+// no longer tracked because there's nothing to collapse. Typography,
+// Editing, and other tabs still use accordions; only Appearance has
+// switched to flat sections.
 
 // Flat UI Colors v2 — India palette. See https://flatuicolors.com/palette/in
 const ACCENT_PRESETS = [
@@ -233,23 +231,15 @@ export function build(
   // ── Colour bar ─────────────────────────────────────────
   containerEl.createDiv("tc-color-bar");
 
-  // ── Theme & Colour accordion ───────────────────────────
-  const themeAccordion = containerEl.createDiv(
-    "tc-feat-group" + (accordionOpen.theme ? " tc-feat-group--open" : "")
-  );
-  const themeHeader = themeAccordion.createDiv("tc-feat-header");
-  const themeTitle  = themeHeader.createDiv("tc-feat-title");
-  themeTitle.createSpan({ text: "Theme & Colour" });
-  const themeMeta = themeHeader.createDiv("tc-feat-meta");
-  themeMeta.createSpan({ text: "▶", cls: "tc-feat-chevron" });
-  themeHeader.addEventListener("click", () => {
-    accordionOpen.theme = !accordionOpen.theme;
-    themeAccordion.toggleClass("tc-feat-group--open", accordionOpen.theme);
-  });
-  const themeBody = themeAccordion.createDiv("tc-feat-body tc-setting-card tc-theme-body");
+  // ── Theme & Colour section ─────────────────────────────
+  containerEl.createEl("div", { cls: "tc-section-header", text: "Theme & Colour" });
+  const themeBody = containerEl.createDiv("tc-section-body tc-feat-body tc-setting-card");
+
+  // ── Palette cluster — accent + dark/light flavours ────
+  const paletteCluster = buildCluster(themeBody, "Palette");
 
   // ── Accent Colour — native Setting row, pips in the control slot ──
-  const accentSetting = new Setting(themeBody)
+  const accentSetting = new Setting(paletteCluster)
     .setName("Accent colour")
     .setDesc("Drives the highlight colour across the interface");
   const accentRow = accentSetting.controlEl.createDiv("tc-accent-row");
@@ -373,7 +363,7 @@ export function build(
     await refresh();
   };
 
-  const darkSetting = new Setting(themeBody)
+  const darkSetting = new Setting(paletteCluster)
     .setName("Dark flavour")
     .setDesc("Applied when Obsidian is in dark mode");
   const darkInlineWrap = darkSetting.controlEl.createDiv("tc-swatch-grid-inline");
@@ -383,7 +373,7 @@ export function build(
     await refresh();
   });
   if (s.showExtendedDark) {
-    const darkExtWrap = themeBody.createDiv("tc-swatch-grid-wrap tc-swatch-grouped");
+    const darkExtWrap = paletteCluster.createDiv("tc-swatch-grid-wrap tc-swatch-grouped");
     darkExtWrap.createSpan({ text: "Tegenlicht", cls: "tc-swatch-group-label" });
     buildSwatchGrid(darkExtWrap, DARK_EXTENDED_TC, s.darkFlavour, cls => pickFlavour('dark', cls));
     darkExtWrap.createSpan({ text: "AnuPuccin", cls: "tc-swatch-group-label" });
@@ -391,7 +381,7 @@ export function build(
   }
 
   // ── Light Flavours ─────────────────────────────────────
-  const lightSetting = new Setting(themeBody)
+  const lightSetting = new Setting(paletteCluster)
     .setName("Light flavour")
     .setDesc("Applied when Obsidian is in light mode");
   const lightInlineWrap = lightSetting.controlEl.createDiv("tc-swatch-grid-inline");
@@ -401,7 +391,7 @@ export function build(
     await refresh();
   });
   if (s.showExtendedLight) {
-    const lightExtWrap = themeBody.createDiv("tc-swatch-grid-wrap tc-swatch-grouped");
+    const lightExtWrap = paletteCluster.createDiv("tc-swatch-grid-wrap tc-swatch-grouped");
     lightExtWrap.createSpan({ text: "Tegenlicht", cls: "tc-swatch-group-label" });
     buildSwatchGrid(lightExtWrap, LIGHT_EXTENDED_TC, s.lightFlavour, cls => pickFlavour('light', cls));
     lightExtWrap.createSpan({ text: "AnuPuccin", cls: "tc-swatch-group-label" });
@@ -421,35 +411,19 @@ export function build(
   // previously-saved values don't break on migration. Their UI will
   // return once we have a reliable translucency path.
 
-  new Setting(themeBody)
-    .setName("Background Grain")
-    .setDesc("Film-grain texture overlaid on the workspace")
-    .addSlider(sl => sl
-      .setLimits(0, 100, 1)
-      .setValue(s.noiseAmount ?? 0)
-      .setDynamicTooltip()
-      .onChange(async v => { s.noiseAmount = v; await onChange(); })
-    );
+  // Surface and Accent application clusters live in the Workspace
+  // section now — grain is a canvas-texture concern and the colourful
+  // window frame is a chrome-level effect, both fit Workspace better
+  // than Theme & Colour (which is now strictly palette + shape/weight).
 
-  // ── Interface accordion ────────────────────────────────
-  const ifaceAccordion = containerEl.createDiv(
-    "tc-feat-group" + (accordionOpen.interface ? " tc-feat-group--open" : "")
-  );
-  const ifaceHeader = ifaceAccordion.createDiv("tc-feat-header");
-  const ifaceTitle  = ifaceHeader.createDiv("tc-feat-title");
-  ifaceTitle.createSpan({ text: "Interface" });
-  const ifaceMeta = ifaceHeader.createDiv("tc-feat-meta");
-  ifaceMeta.createSpan({ text: "▶", cls: "tc-feat-chevron" });
-  ifaceHeader.addEventListener("click", () => {
-    accordionOpen.interface = !accordionOpen.interface;
-    ifaceAccordion.toggleClass("tc-feat-group--open", accordionOpen.interface);
-  });
-  const interfaceCard = ifaceAccordion.createDiv("tc-feat-body tc-setting-card");
+  // ── Shape cluster — how UI elements bend and breathe ──
+  // Lives inside Theme & Colour now that the Interface section has been
+  // retired; shape knobs read naturally alongside palette + surface.
+  const shapeCluster = buildCluster(themeBody, "Shape");
 
-  // Corner radius leads the Interface section — it's the most visually
-  // global setting (buttons, cards, inputs, images) so giving it the
-  // top slot matches how the rest of the card reads top-down.
-  buildSegmentSetting(interfaceCard,
+  // Corner radius leads the Shape cluster — the most visually global
+  // setting (buttons, cards, inputs, images) so it gets the top slot.
+  buildSegmentSetting(shapeCluster,
     "Corner radius", "Roundness of buttons, cards, inputs, and images",
     [
       { label: "Sharp",   value: "sharp" },
@@ -460,7 +434,7 @@ export function build(
     async v => { s.cornerRadius = v; await refresh(); },
   );
 
-  buildSegmentSetting(interfaceCard,
+  buildSegmentSetting(shapeCluster,
     "UI density", "Spacing across nav, tabs, ribbon, and header",
     [
       { label: "Compact",     value: "compact" },
@@ -471,12 +445,15 @@ export function build(
     async v => { s.uiDensity = v; await refresh(); },
   );
 
+  // ── Weight cluster — line weight of icons and borders ─
+  const weightCluster = buildCluster(themeBody, "Weight");
+
   // Icon intensity — weight pills + auto/mono tint pair.
   // 'auto' = theme default (accent). 'mono' = monochrome via the
   // mono-rgb scale. Flavour switching resets to '' so each theme starts
   // at its own default.
   buildSegmentWithColor(
-    interfaceCard,
+    weightCluster,
     "Icon intensity", "Weight + tint of every Lucide icon in the chrome",
     [
       { label: "Thin",    value: "thin" },
@@ -494,7 +471,7 @@ export function build(
 
   // Border intensity — strength pills + auto/mono tint pair.
   buildSegmentWithColor(
-    interfaceCard,
+    weightCluster,
     "Border intensity", "Strength + tint of borders across the Obsidian interface",
     [
       { label: "None",         value: "none" },
@@ -511,37 +488,53 @@ export function build(
     },
   );
 
-  // ── Outliner accordion — file tree / nav-files pane settings ─────
+  // ── Outliner section — file tree / nav-files pane settings ─────
   // Ports the file-browser knobs from AnuPuccin (rainbow folders, file
   // type icons, collapse arrows, custom vault title) into one home so
-  // the "left sidebar look" lives in one accordion.
-  const outlinerAccordion = containerEl.createDiv(
-    "tc-feat-group" + (accordionOpen.sidebarOutliner ? " tc-feat-group--open" : "")
-  );
-  const outlinerHeader = outlinerAccordion.createDiv("tc-feat-header");
-  const outlinerTitle  = outlinerHeader.createDiv("tc-feat-title");
-  outlinerTitle.createSpan({ text: "Outliner" });
-  const outlinerMeta = outlinerHeader.createDiv("tc-feat-meta");
-  outlinerMeta.createSpan({ text: "▶", cls: "tc-feat-chevron" });
-  outlinerHeader.addEventListener("click", () => {
-    accordionOpen.sidebarOutliner = !accordionOpen.sidebarOutliner;
-    outlinerAccordion.toggleClass("tc-feat-group--open", accordionOpen.sidebarOutliner);
-  });
-  const outlinerBody = outlinerAccordion.createDiv("tc-feat-body tc-setting-card");
+  // the "left sidebar look" lives in one section.
+  containerEl.createEl("div", { cls: "tc-section-header", text: "Outliner" });
+  const outlinerBody = containerEl.createDiv("tc-section-body tc-feat-body tc-setting-card");
 
-  // Rainbow folders — three modes mirroring AnuPuccin's Style Settings
-  // dropdown (and its `anp-alt-rainbow-style` class-select):
-  //   Off    — no colouring (native Obsidian look)
-  //   Full   — folder background tinted with its rotating hue
+  // ── File tree cluster — three toggles for how nav-files pane renders ─
+  const fileTreeCluster = buildCluster(outlinerBody, "File tree");
+
+  new Setting(fileTreeCluster)
+    .setName("File type icons")
+    .setDesc("Show a glyph next to each file in the tree based on its extension")
+    .addToggle(t => t
+      .setValue(s.fileIcons)
+      .onChange(async v => { s.fileIcons = v; await onChange(); })
+    );
+
+  new Setting(fileTreeCluster)
+    .setName("Collapsed folder arrows")
+    .setDesc("Use the theme's compact chevron for collapsed folders (less chrome)")
+    .addToggle(t => t
+      .setValue(s.collapseFolderIcons)
+      .onChange(async v => { s.collapseFolderIcons = v; await onChange(); })
+    );
+
+  new Setting(fileTreeCluster)
+    .setName("Custom vault title")
+    .setDesc("Style the vault root entry — larger and set apart from the file tree")
+    .addToggle(t => t
+      .setValue(s.customVaultTitle)
+      .onChange(async v => { s.customVaultTitle = v; await onChange(); })
+    );
+
+  // ── Rainbow folders cluster ───────────────────────────
+  // Three modes mirroring AnuPuccin's Style Settings dropdown
+  //   Off    — no colouring
   //   Simple — title + indent + file-icon take the hue (no bg fill)
-  // Each maps to one of AnuPuccin's rainbow-color-toggle body classes.
-  // `rainbowInherit` below is the orthogonal "subfolders inherit parent"
-  // modifier — applies on top of either Full or Simple.
-  // Sub-toggle blocks (`fullDetails`, `simpleDetails`) are built up-front
-  // and shown/hidden based on the current mode — captured in closure so
-  // the segment's onChange can flip their display without a redisplay.
-  let fullDetails: HTMLElement;
-  let simpleDetails: HTMLElement;
+  //   Full   — folder background tinted
+  // `rainbowInherit` is the orthogonal "subfolders inherit parent"
+  // modifier. Per-mode sub-toggles live under a single foldable
+  // "Advanced" disclosure: integrated inline (no card-within-card),
+  // collapsed by default, hidden entirely when mode === 'off'. Mode
+  // change repopulates the Advanced body in place but preserves the
+  // user's open/closed choice.
+  const rainbowCluster = buildCluster(outlinerBody, "Rainbow folders");
+
   const computedMode = (() => {
     if ((s.rainbowStyle ?? 'off') === 'off' && s.rainbowFileBrowser) return 'full';
     const v = s.rainbowStyle ?? 'off';
@@ -549,7 +542,11 @@ export function build(
     return v;
   })();
 
-  buildSegmentSetting(outlinerBody,
+  // Forward-declared so the segment's onChange can repopulate the
+  // Advanced body when mode changes.
+  let populateAdvanced: (mode: string) => void = () => {};
+
+  buildSegmentSetting(rainbowCluster,
     "Coloured folders",
     "Full tints folder backgrounds, Simple tints titles + indents — matches AnuPuccin's Style Settings",
     [
@@ -562,13 +559,12 @@ export function build(
       s.rainbowStyle = v;
       // Also clear the legacy boolean so the migration doesn't re-fire
       s.rainbowFileBrowser = v !== 'off' && s.rainbowFileBrowser;
-      fullDetails.style.display   = v === 'full'   ? '' : 'none';
-      simpleDetails.style.display = v === 'simple' ? '' : 'none';
+      populateAdvanced(v);
       await onChange();
     },
   );
 
-  new Setting(outlinerBody)
+  new Setting(rainbowCluster)
     .setName("Subfolders inherit colour")
     .setDesc("Child folders pick up their parent's hue instead of rolling through the rainbow themselves")
     .addToggle(t => t
@@ -576,157 +572,109 @@ export function build(
       .onChange(async v => { s.rainbowInherit = v; await onChange(); })
     );
 
-  // ── Simple mode details ───────────────────────────────
-  simpleDetails = outlinerBody.createDiv("tc-rainbow-mode-details");
-  simpleDetails.style.display = computedMode === 'simple' ? '' : 'none';
-  buildDivider(simpleDetails);
-  simpleDetails.createEl("div", { cls: "tc-theme-label", text: "Simple mode" });
-
-  new Setting(simpleDetails)
-    .setName("Recolour folder titles")
-    .setDesc("Folder name text takes the rotating hue")
-    .addToggle(t => t
-      .setValue(s.rainbowSimpleTitle)
-      .onChange(async v => { s.rainbowSimpleTitle = v; await onChange(); })
-    );
-
-  new Setting(simpleDetails)
-    .setName("Recolour collapse arrows")
-    .setDesc("The chevron / disclosure triangle takes the folder's hue")
-    .addToggle(t => t
-      .setValue(s.rainbowSimpleCollapseIcon)
-      .onChange(async v => { s.rainbowSimpleCollapseIcon = v; await onChange(); })
-    );
-
-  new Setting(simpleDetails)
-    .setName("Recolour indent guides")
-    .setDesc("Vertical indent lines under each folder take the hue")
-    .addToggle(t => t
-      .setValue(s.rainbowSimpleIndent)
-      .onChange(async v => { s.rainbowSimpleIndent = v; await onChange(); })
-    );
-
-  new Setting(simpleDetails)
-    .setName("Show file dot")
-    .setDesc("Add a small coloured circle next to each file in a coloured folder")
-    .addToggle(t => t
-      .setValue(s.rainbowSimpleFileIcon)
-      .onChange(async v => { s.rainbowSimpleFileIcon = v; await onChange(); })
-    );
-
-  // ── Full mode details ─────────────────────────────────
-  fullDetails = outlinerBody.createDiv("tc-rainbow-mode-details");
-  fullDetails.style.display = computedMode === 'full' ? '' : 'none';
-  buildDivider(fullDetails);
-  fullDetails.createEl("div", { cls: "tc-theme-label", text: "Full mode" });
-
-  new Setting(fullDetails)
-    .setName("Recolour files")
-    .setDesc("Tint files inside coloured folders to match their parent's hue")
-    .addToggle(t => t
-      .setValue(s.rainbowFullFileRecolor)
-      .onChange(async v => { s.rainbowFullFileRecolor = v; await onChange(); })
-    );
-
-  new Setting(fullDetails)
-    .setName("Invert title text — light mode")
-    .setDesc("Use the regular text colour for folder titles in light themes (better contrast)")
-    .addToggle(t => t
-      .setValue(s.rainbowFullInvertLight)
-      .onChange(async v => { s.rainbowFullInvertLight = v; await onChange(); })
-    );
-
-  new Setting(fullDetails)
-    .setName("Invert title text — dark mode")
-    .setDesc("Use the regular text colour for folder titles in dark themes (better contrast)")
-    .addToggle(t => t
-      .setValue(s.rainbowFullInvertDark)
-      .onChange(async v => { s.rainbowFullInvertDark = v; await onChange(); })
-    );
-
-  new Setting(fullDetails)
-    .setName("Folder background opacity")
-    .setDesc("How much of the folder's hue shows through (0 = transparent, 100 = solid)")
-    .addSlider(sl => sl
-      .setLimits(0, 100, 1)
-      .setValue(s.rainbowFullBgOpacity ?? 70)
-      .setDynamicTooltip()
-      .onChange(async v => { s.rainbowFullBgOpacity = v; await onChange(); })
-    );
-
-  new Setting(outlinerBody)
-    .setName("File type icons")
-    .setDesc("Show a glyph next to each file in the tree based on its extension")
-    .addToggle(t => t
-      .setValue(s.fileIcons)
-      .onChange(async v => { s.fileIcons = v; await onChange(); })
-    );
-
-  new Setting(outlinerBody)
-    .setName("Collapsed folder arrows")
-    .setDesc("Use the theme's compact chevron for collapsed folders (less chrome)")
-    .addToggle(t => t
-      .setValue(s.collapseFolderIcons)
-      .onChange(async v => { s.collapseFolderIcons = v; await onChange(); })
-    );
-
-  new Setting(outlinerBody)
-    .setName("Custom vault title")
-    .setDesc("Style the vault root entry — larger and set apart from the file tree")
-    .addToggle(t => t
-      .setValue(s.customVaultTitle)
-      .onChange(async v => { s.customVaultTitle = v; await onChange(); })
-    );
-
-  new Setting(outlinerBody)
-    .setName("Colourful window frame")
-    .setDesc("Tint Obsidian's window frame with the active flavour's accent")
-    .addToggle(t => t
-      .setValue(s.colorfulFrame)
-      .onChange(async v => { s.colorfulFrame = v; await onChange(); })
-    );
-
-  // ── Graph accordion (placeholder shell) ────────────────
-  const graphAccordion = containerEl.createDiv(
-    "tc-feat-group" + (accordionOpen.graph ? " tc-feat-group--open" : "")
-  );
-  const graphHeader = graphAccordion.createDiv("tc-feat-header");
-  const graphTitle  = graphHeader.createDiv("tc-feat-title");
-  graphTitle.createSpan({ text: "Graph" });
-  const graphMeta = graphHeader.createDiv("tc-feat-meta");
-  graphMeta.createSpan({ text: "▶", cls: "tc-feat-chevron" });
-  graphHeader.addEventListener("click", () => {
-    accordionOpen.graph = !accordionOpen.graph;
-    graphAccordion.toggleClass("tc-feat-group--open", accordionOpen.graph);
+  // ── Advanced disclosure (integrated, collapsed by default) ──────
+  const advanced = rainbowCluster.createDiv("tc-advanced");
+  const advHeader = advanced.createDiv("tc-advanced-header");
+  advHeader.createSpan({ cls: "tc-advanced-chevron", text: "▶" });
+  advHeader.createSpan({ text: "Advanced" });
+  const advBody = advanced.createDiv("tc-advanced-body");
+  advHeader.addEventListener("click", () => {
+    advanced.toggleClass("tc-advanced--open", !advanced.hasClass("tc-advanced--open"));
   });
-  const graphBody = graphAccordion.createDiv("tc-feat-body tc-setting-card");
+
+  populateAdvanced = (mode: string) => {
+    advBody.empty();
+    // Hide the whole disclosure when mode is off — no per-mode
+    // settings apply to "Off" so there's nothing to reveal.
+    advanced.style.display = mode === "off" ? "none" : "";
+    if (mode === "simple") {
+      new Setting(advBody)
+        .setName("Recolour folder titles")
+        .setDesc("Folder name text takes the rotating hue")
+        .addToggle(t => t
+          .setValue(s.rainbowSimpleTitle)
+          .onChange(async v => { s.rainbowSimpleTitle = v; await onChange(); })
+        );
+      new Setting(advBody)
+        .setName("Recolour collapse arrows")
+        .setDesc("The chevron / disclosure triangle takes the folder's hue")
+        .addToggle(t => t
+          .setValue(s.rainbowSimpleCollapseIcon)
+          .onChange(async v => { s.rainbowSimpleCollapseIcon = v; await onChange(); })
+        );
+      new Setting(advBody)
+        .setName("Recolour indent guides")
+        .setDesc("Vertical indent lines under each folder take the hue")
+        .addToggle(t => t
+          .setValue(s.rainbowSimpleIndent)
+          .onChange(async v => { s.rainbowSimpleIndent = v; await onChange(); })
+        );
+      new Setting(advBody)
+        .setName("Show file dot")
+        .setDesc("Add a small coloured circle next to each file in a coloured folder")
+        .addToggle(t => t
+          .setValue(s.rainbowSimpleFileIcon)
+          .onChange(async v => { s.rainbowSimpleFileIcon = v; await onChange(); })
+        );
+    } else if (mode === "full") {
+      new Setting(advBody)
+        .setName("Recolour files")
+        .setDesc("Tint files inside coloured folders to match their parent's hue")
+        .addToggle(t => t
+          .setValue(s.rainbowFullFileRecolor)
+          .onChange(async v => { s.rainbowFullFileRecolor = v; await onChange(); })
+        );
+      new Setting(advBody)
+        .setName("Invert title text — light mode")
+        .setDesc("Use the regular text colour for folder titles in light themes (better contrast)")
+        .addToggle(t => t
+          .setValue(s.rainbowFullInvertLight)
+          .onChange(async v => { s.rainbowFullInvertLight = v; await onChange(); })
+        );
+      new Setting(advBody)
+        .setName("Invert title text — dark mode")
+        .setDesc("Use the regular text colour for folder titles in dark themes (better contrast)")
+        .addToggle(t => t
+          .setValue(s.rainbowFullInvertDark)
+          .onChange(async v => { s.rainbowFullInvertDark = v; await onChange(); })
+        );
+      new Setting(advBody)
+        .setName("Folder background opacity")
+        .setDesc("How much of the folder's hue shows through (0 = transparent, 100 = solid)")
+        .addSlider(sl => sl
+          .setLimits(0, 100, 1)
+          .setValue(s.rainbowFullBgOpacity ?? 70)
+          .setDynamicTooltip()
+          .onChange(async v => { s.rainbowFullBgOpacity = v; await onChange(); })
+        );
+    }
+  };
+  populateAdvanced(computedMode);
+
+  // ── Graph section (placeholder shell) ──────────────────
+  containerEl.createEl("div", { cls: "tc-section-header", text: "Graph" });
+  const graphBody = containerEl.createDiv("tc-section-body tc-feat-body tc-setting-card");
   graphBody.createEl("p", { cls: "tc-empty-hint",
     text: "Graph-view controls arrive here — node size, link thickness, hover halo, cluster tinting." });
 
-  // ── Workspace accordion ────────────────────────────────
-  const wsAccordion = containerEl.createDiv(
-    "tc-feat-group" + (accordionOpen.workspace ? " tc-feat-group--open" : "")
-  );
-  const wsHeader = wsAccordion.createDiv("tc-feat-header");
-  const wsTitle  = wsHeader.createDiv("tc-feat-title");
-  wsTitle.createSpan({ text: "Workspace" });
-  const wsMeta = wsHeader.createDiv("tc-feat-meta");
-  wsMeta.createSpan({ text: "▶", cls: "tc-feat-chevron" });
-  wsHeader.addEventListener("click", () => {
-    accordionOpen.workspace = !accordionOpen.workspace;
-    wsAccordion.toggleClass("tc-feat-group--open", accordionOpen.workspace);
-  });
-  const workspaceCard = wsAccordion.createDiv("tc-feat-body tc-setting-card");
+  // ── Workspace section ─────────────────────────────────
+  containerEl.createEl("div", { cls: "tc-section-header", text: "Workspace" });
+  const workspaceCard = containerEl.createDiv("tc-section-body tc-feat-body tc-setting-card");
 
-  buildDropdownSetting(workspaceCard,
+  // ── Sidebar cluster ───────────────────────────────────
+  const sidebarCluster = buildCluster(workspaceCard, "Sidebar");
+  buildDropdownSetting(sidebarCluster,
     "Sidebar style", "Visual treatment of the left and right sidebars",
     [{ label: "Flat", value: "flat" }, { label: "Bordered", value: "bordered" }, { label: "Cards", value: "cards" }],
     s.sidebarStyle,
     async v => { s.sidebarStyle = v; await refresh(); },
   );
 
+  // ── Canvas cluster — editor surface treatment ─────────
+  const canvasCluster = buildCluster(workspaceCard, "Canvas");
+
   let frostSetting: Setting | null = null;
-  buildDropdownSetting(workspaceCard,
+  buildDropdownSetting(canvasCluster,
     "Background", "Editor and workspace background treatment",
     [{ label: "Solid", value: "solid" }, { label: "Frosted glass", value: "frosted" }, { label: "Gradient", value: "gradient" }],
     s.backgroundStyle,
@@ -738,7 +686,7 @@ export function build(
   );
 
   // Frost depth (native Setting, hidden unless frosted)
-  frostSetting = new Setting(workspaceCard)
+  frostSetting = new Setting(canvasCluster)
     .setName("Frost depth")
     .setDesc("Intensity of the frosted glass blur effect");
   frostSetting.settingEl.style.display = s.backgroundStyle === "frosted" ? "" : "none";
@@ -749,20 +697,59 @@ export function build(
     .onChange(async v => { s.frostDepth = v; await refresh(); })
   );
 
-  // ── Highlights & Tints accordion ──────────────────────
-  const hlAccordion = containerEl.createDiv(
-    "tc-feat-group" + (accordionOpen.highlights ? " tc-feat-group--open" : "")
-  );
-  const hlHeader = hlAccordion.createDiv("tc-feat-header");
-  const hlTitle  = hlHeader.createDiv("tc-feat-title");
-  hlTitle.createSpan({ text: "Highlights & Tints" });
-  const hlMeta = hlHeader.createDiv("tc-feat-meta");
-  hlMeta.createSpan({ text: "▶", cls: "tc-feat-chevron" });
-  hlHeader.addEventListener("click", () => {
-    accordionOpen.highlights = !accordionOpen.highlights;
-    hlAccordion.toggleClass("tc-feat-group--open", accordionOpen.highlights);
+  // ── Surface cluster — grain texture knobs ─────────────
+  const surfaceCluster = buildCluster(workspaceCard, "Surface");
+
+  // Forward-declared so the grain slider's onChange can toggle the
+  // sub-dropdown's visibility when grain crosses zero.
+  let grainStyleSetting: Setting | null = null;
+
+  new Setting(surfaceCluster)
+    .setName("Background Grain")
+    .setDesc("Film-grain texture overlaid on the workspace")
+    .addSlider(sl => sl
+      .setLimits(0, 100, 1)
+      .setValue(s.noiseAmount ?? 0)
+      .setDynamicTooltip()
+      .onChange(async v => {
+        s.noiseAmount = v;
+        if (grainStyleSetting) {
+          grainStyleSetting.settingEl.style.display = v > 0 ? "" : "none";
+        }
+        await onChange();
+      })
+    );
+
+  // TRIAL — mock grain-style sub-dropdown. Inert; remove once we decide
+  // whether to keep it and wire a real `grainStyle` setting. Conditional
+  // visibility (only shown when grain > 0) matches the Frost depth pattern.
+  grainStyleSetting = new Setting(surfaceCluster)
+    .setName("Grain style")
+    .setDesc("Texture of the film-grain overlay");
+  grainStyleSetting.settingEl.style.display = (s.noiseAmount ?? 0) > 0 ? "" : "none";
+  grainStyleSetting.addDropdown(dd => {
+    dd.addOption("film",     "Film");
+    dd.addOption("paper",    "Paper");
+    dd.addOption("halftone", "Halftone");
+    dd.addOption("static",   "Static");
+    dd.setValue("film");
+    dd.onChange(async _v => { /* mock — no persistence */ });
   });
-  const highlightsCard = hlAccordion.createDiv("tc-feat-body tc-setting-card");
+
+  // ── Accent application cluster — where the accent paints beyond
+  //    the palette swatches (currently: window frame). ───────────
+  const accentAppCluster = buildCluster(workspaceCard, "Accent application");
+  new Setting(accentAppCluster)
+    .setName("Colourful window frame")
+    .setDesc("Tint Obsidian's window frame with the active flavour's accent")
+    .addToggle(t => t
+      .setValue(s.colorfulFrame)
+      .onChange(async v => { s.colorfulFrame = v; await onChange(); })
+    );
+
+  // ── Highlights & Tints section ────────────────────────
+  containerEl.createEl("div", { cls: "tc-section-header", text: "Highlights & Tints" });
+  const highlightsCard = containerEl.createDiv("tc-section-body tc-feat-body tc-setting-card");
 
   pickrs.push(buildColorToggleRow(highlightsCard,
     "Active line", "Highlight the current cursor line in the editor",
