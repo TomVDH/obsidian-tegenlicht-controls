@@ -1193,8 +1193,12 @@
   box-shadow: none;
 }
 
-/* Extra breathing room between auto and custom — they're a pair, not a stream */
-.tc-settings .tc-accent-row .tc-accent-item--auto + .tc-accent-item--custom {
+/* Extra breathing room between auto and custom — they're a pair, not a
+   stream. Applies to every row using the auto+custom pair so the spacing
+   reads the same everywhere: main Accent row AND the Icon/Border
+   intensity rows that reuse the same dot pattern. */
+.tc-settings .tc-accent-row .tc-accent-item--auto + .tc-accent-item--custom,
+.tc-settings .tc-seg-with-color .tc-accent-item--auto + .tc-accent-item--custom {
   margin-left: 10px;
 }
 
@@ -2555,12 +2559,31 @@ body .workspace .svg-icon {
   stroke: var(--tc-icon-color, currentColor);
 }
 
-/* Segment pill-select + colour swatch on one row (Icon intensity). Pills
-   hug the left, swatch sits flush right with a small gap between them. */
+/* Segment pill-select + colour dots on one row (Icon / Border intensity).
+   flex-wrap lets the dots drop under the pills on narrow control slots
+   rather than overflow horizontally. justify-content keeps everything
+   hugging the right like other Setting controls. The separator drops
+   out of view when it ends up at the edge of a wrapped row. */
 .tc-settings .tc-seg-with-color {
-  display: inline-flex;
+  display: flex;
+  flex-wrap: wrap;
   align-items: center;
-  gap: 10px;
+  justify-content: flex-end;
+  gap: 6px 10px;
+  max-width: 100%;
+}
+.tc-settings .tc-seg-with-color .tc-seg {
+  flex-shrink: 1;
+}
+.tc-settings .tc-seg-with-color .tc-accent-sep {
+  flex-shrink: 0;
+}
+/* When the dots wrap onto a new line, the separator before them looks
+   dangling on the previous line's end. Hide it in that case by ignoring
+   it when it's the last child on a row — not detectable cleanly in CSS,
+   so we reduce its opacity so it reads as a quiet divider instead. */
+.tc-settings .tc-seg-with-color .tc-accent-sep {
+  opacity: 0.6;
 }
 .tc-settings .tc-seg-with-color .pickr {
   display: inline-flex;
@@ -2572,6 +2595,13 @@ body .workspace .svg-icon {
   border-radius: 50%;
   border: 1px solid var(--background-modifier-border);
   box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+}
+/* Tighten pill padding inside this compound row so 4 labels
+   (None/Whisper/Subtle/Ligne claire) have a shot at fitting alongside
+   the auto/custom dots without wrapping on a standard settings width. */
+.tc-settings .tc-seg-with-color .tc-seg-btn {
+  padding: 3px 8px;
+  font-size: 11px;
 }
 
 /* Corner radius — drives Obsidian's --radius-* scale + our own card radius.
