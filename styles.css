@@ -1773,27 +1773,39 @@ body.tc-radius-rounded .tc-settings .tc-feat-group { border-radius: 14px !import
   border-top: none;
 }
 
-/* Pin the setting-item-name typography so hover never shifts size or
-   weight (Obsidian's native :hover on .setting-item can bump weight
-   in some themes — locking here keeps the row stable). */
+/* Pin the setting-item-name typography. Literal pixels + !important
+   so neither Obsidian's native rule nor the inherited --font-ui-medium
+   var (which can resolve large in modal scope) wins on cascade. Same
+   for the description. Hover never shifts either. */
 .tc-settings .tc-cluster .setting-item .setting-item-name,
 .tc-settings .tc-cluster .setting-item:hover .setting-item-name {
-  font-size: var(--font-ui-medium, 13px);
-  font-weight: 500;
+  font-size: 13px !important;
+  font-weight: 500 !important;
+  line-height: 1.3 !important;
+}
+.tc-settings .tc-cluster .setting-item .setting-item-description,
+.tc-settings .tc-cluster .setting-item:hover .setting-item-description {
+  font-size: 11px !important;
+  line-height: 1.4 !important;
 }
 
-/* Inside a cluster, controls (.tc-seg track, segment-with-color wrap)
-   should let the accent-gradient cluster background show through.
-   Dropping the subtle mono tint on .tc-seg inside .tc-cluster prevents
-   that "dark inset" feel Tom flagged on the Show/Hide cluster. */
+/* Inside a cluster, the .setting-item itself must be transparent so
+   the cluster's accent gradient shows through. Obsidian's native
+   .setting-item paints a near-black card bg in modal scope which read
+   as "dark insets per row" over the cluster gradient. Killing it. */
+.tc-settings .tc-cluster .setting-item,
+.tc-settings .tc-cluster .setting-item:hover {
+  background: transparent !important;
+}
+
+/* And segment tracks inside a cluster also stay transparent so the
+   active-pill frost recipe reads against the gradient, not against a
+   competing mono inset. */
 .tc-settings .tc-cluster .tc-seg {
   background: transparent;
 }
 .tc-settings .tc-cluster .tc-seg-btn--active,
 .tc-settings .tc-cluster .tc-seg-btn--active:hover {
-  /* Frost recipe still applies, but with the cluster's accent gradient
-     behind the active pill the contrast reads cleanly without any
-     extra mono backdrop. */
   background: rgba(var(--mono-rgb-100, 200, 200, 200), 0.05) !important;
 }
 
