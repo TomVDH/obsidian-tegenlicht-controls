@@ -690,9 +690,11 @@ body > div.modal-container .modal-close-button {
   transform: translateX(var(--tc-slide-x, 0));
   border-radius: var(--radius-m, 4px);
   z-index: 0;
-  transition:
-    transform 0.36s cubic-bezier(0.32, 0.72, 0, 1),
-    width 0.36s cubic-bezier(0.32, 0.72, 0, 1);
+  /* Slide/resize transitions removed per user directive — every time
+     a setting change triggers redisplay(), the indicator used to
+     animate from its initial 0 position to the measured active-tab
+     position, which read as an unwanted re-init animation. Snapping
+     directly to position keeps the pill static between state flips. */
   pointer-events: none;
   /* Pre-measurement state: hidden so we don't flash a 0-width pill
      at left:0 on first render. JS adds .tc-tab-slide-indicator--ready
@@ -2406,7 +2408,12 @@ body.tc-radius-rounded .tc-settings .tc-feat-group { border-radius: 14px !import
     color-mix(in srgb, var(--color-accent) 3%, transparent));
   border: 1px solid rgba(var(--color-accent-rgb, 229, 179, 42), 0.40);
   box-shadow: 0 1px 4px rgba(0, 0, 0, 0.08);
+  /* Wider vertical rhythm between stacked pretty accordions — the
+     accent-painted cards need more breathing room than the default
+     .tc-feat-group gap so the pane doesn't read as a solid block. */
+  margin-bottom: 18px;
 }
+.tc-settings .tc-feat-group--pretty:last-child { margin-bottom: 0; }
 .tc-settings .tc-feat-group--pretty .tc-feat-header,
 .tc-settings .tc-feat-group--pretty .tc-feat-header:hover {
   background: transparent;
@@ -2916,9 +2923,9 @@ body.tc-borders-ligne-claire .titlebar {
     0 2px 8px rgba(0, 0, 0, 0.18);
   border-radius: calc(var(--radius-m, 4px) - 1px);
   z-index: 0;
-  transition:
-    transform 0.36s cubic-bezier(0.32, 0.72, 0, 1),
-    width 0.36s cubic-bezier(0.32, 0.72, 0, 1);
+  /* Slide/resize transitions removed to match the top-tab slider —
+     segment indicator snaps directly to the active option instead of
+     animating, so settings rebuilds don't re-play the slide. */
   pointer-events: none;
   opacity: 0;
 }
@@ -4078,39 +4085,21 @@ body.tc-graph-halo .workspace-leaf-content[data-type="graph"] .graph-view.color-
    the surrounding settings is therefore identical with OR without
    the caption present — the caption "floats" as a kicker label
    instead of acting as a row of its own. */
-.tc-settings .tc-flavour-caption {
-  position: relative;
-  height: 0;
-  margin: 0;
-  padding: 0;
-  overflow: visible;
-  pointer-events: none;
-  line-height: 1;
-}
-.tc-settings .tc-flavour-caption-label {
-  position: absolute;
-  top: -2px;
-  left: 4px;
+/* Flavour kicker — small-caps "licht" / "tegenlicht" label prepended
+   DIRECTLY inside the Setting's name slot (see appearance.ts: the
+   span lives as a child of .setting-item-name, not as a preceding
+   sibling row). Anchors the kicker to its setting so the label
+   never drifts between sibling rows when the list rebuilds. */
+.tc-settings .tc-flavour-kicker {
+  display: block;
   font-size: 9px;
   letter-spacing: 0.12em;
   text-transform: lowercase;
   font-variant: small-caps;
   color: var(--text-faint);
   opacity: 0.85;
-}
-/* The setting-item that follows a caption needs room for the floating
-   label to sit on top — bump its top padding by 8px. */
-.tc-settings .tc-flavour-caption + .setting-item {
-  padding-top: 16px !important;
-  border-top: none !important;
-}
-.tc-settings .tc-flavour-caption-label {
-  font-size: 9px;
-  letter-spacing: 0.12em;
-  text-transform: lowercase;
-  font-variant: small-caps;
-  color: var(--text-faint);
-  opacity: 0.8;
+  line-height: 1;
+  margin-bottom: 4px;
 }
 
 /* Live preview wrap inside a left-rail content pane — bare wrap, no

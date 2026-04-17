@@ -313,11 +313,15 @@ function renderTheme(
   };
 
   // ── Light Flavours (light first now, per user preference) ────
-  paletteCluster.createDiv("tc-flavour-caption")
-    .createSpan({ text: "licht", cls: "tc-flavour-caption-label" });
+  // "licht" kicker sits directly in the Setting's name slot (not as a
+  // separate row) so it's always anchored to the Light flavour heading
+  // rather than drifting between settings.
   const lightSetting = new Setting(paletteCluster)
     .setName("Light flavour")
     .setDesc("Applied when Obsidian is in light mode");
+  lightSetting.nameEl.prepend(
+    createSpan({ cls: "tc-flavour-kicker", text: "licht" }),
+  );
   const lightInlineWrap = lightSetting.controlEl.createDiv("tc-swatch-grid-inline");
   buildSwatchGrid(lightInlineWrap, LIGHT_BASE, s.lightFlavour, cls => pickFlavour('light', cls));
   appendPlusSwatch(lightInlineWrap, s.showExtendedLight, async () => {
@@ -333,11 +337,14 @@ function renderTheme(
   }
 
   // ── Dark Flavours ─────────────────────────────────────────────
-  paletteCluster.createDiv("tc-flavour-caption")
-    .createSpan({ text: "tegenlicht", cls: "tc-flavour-caption-label" });
+  // "tegenlicht" kicker anchored to the Dark flavour name slot — same
+  // pattern as the Light flavour kicker above.
   const darkSetting = new Setting(paletteCluster)
     .setName("Dark flavour")
     .setDesc("Applied when Obsidian is in dark mode");
+  darkSetting.nameEl.prepend(
+    createSpan({ cls: "tc-flavour-kicker", text: "tegenlicht" }),
+  );
   const darkInlineWrap = darkSetting.controlEl.createDiv("tc-swatch-grid-inline");
   buildSwatchGrid(darkInlineWrap, DARK_BASE, s.darkFlavour, cls => pickFlavour('dark', cls));
   appendPlusSwatch(darkInlineWrap, s.showExtendedDark, async () => {
