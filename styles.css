@@ -164,6 +164,15 @@
 }
 .tc-color-bar.tc-color-bar--accent:hover { opacity: 1; }
 
+/* Header variant — lives in the settings panel header between the
+   tagline and the footer copy row. Constrained to 25% width so it reads
+   as a small accent flourish, not a full-width divider. Tighter margin
+   top/bottom because the surrounding header rows already breathe. */
+.tc-color-bar.tc-color-bar--header {
+  width: 25%;
+  margin: 8px 0 10px;
+}
+
 /* ── Swatch cards ── */
 .tc-settings .tc-swatch-card {
   background: var(--background-secondary);

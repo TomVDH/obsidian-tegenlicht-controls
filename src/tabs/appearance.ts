@@ -228,8 +228,9 @@ export function build(
     redisplay?.();
   };
 
-  // ── Colour bar ─────────────────────────────────────────
-  containerEl.createDiv("tc-color-bar");
+  // Colour bar previously rendered here has been promoted to the
+  // settings panel header (lives once globally in settings-tab.ts,
+  // between the tagline and the footer copy row).
 
   // ── Theme & Colour section ─────────────────────────────
   containerEl.createEl("div", { cls: "tc-section-header", text: "Theme & Colour" });
