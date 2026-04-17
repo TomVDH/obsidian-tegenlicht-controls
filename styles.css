@@ -3476,10 +3476,13 @@ body.tc-graph-halo .workspace-leaf-content[data-type="graph"] .graph-view.color-
 
 .tc-settings .tc-leftrail-rail {
   background: transparent;
-  border-right: 1px solid var(--background-modifier-border);
-  /* Right padding gives the active highlight breathing room between
-     its right edge and the rail's divider line. */
-  padding: 8px 8px 8px 0;
+  /* Subtle dashed divider — thinner and quieter than the solid line
+     it replaces, reads as a soft separator between rail and pane
+     instead of a structural border. */
+  border-right: 1px dashed rgba(var(--mono-rgb-100, 200, 200, 200), 0.10);
+  /* Symmetric padding so the active highlight has equal breathing
+     room on the rail's outer-left edge and the divider on the right. */
+  padding: 8px;
 }
 
 .tc-settings .tc-leftrail-item {
