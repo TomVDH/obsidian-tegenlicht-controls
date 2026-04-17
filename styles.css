@@ -2643,15 +2643,15 @@ body.tc-borders-ligne-claire .titlebar {
   right: 40px;
   left: auto;
   transform: none;
-  /* Fixed width for now — 720px gives every font row, swatch strip, and
-     slider enough room without flex-stretching. No resize handle; if we
-     re-enable it later we'll bring the clamps back. Viewport clamp kept
-     so the panel shrinks on narrow windows instead of overflowing. */
+  /* User-resizable — horizontal drag between 350px and 800px. Initial
+     width 720px (the old fixed default) keeps the first-open feel
+     familiar. Viewport clamp via min() prevents the panel overflowing
+     on narrow windows. */
   width: 720px;
-  min-width: 720px;
-  max-width: min(720px, 94vw);
+  min-width: 350px;
+  max-width: min(800px, 94vw);
   max-height: 80vh;
-  resize: none;
+  resize: horizontal;
   padding: 0 !important;
   border-radius: 12px;
   border: 1px solid var(--background-modifier-border);
@@ -2662,17 +2662,12 @@ body.tc-borders-ligne-claire .titlebar {
   background: var(--background-primary);
 }
 
-/* ── QuickPanel focal dim: when the floating panel is open, blur and
-   darken the workspace behind it so the panel jumps to prominence.
-   Applied via body.tc-quick-panel-open (set by quick-panel.ts onOpen).
-   Filter sits on .app-container so it blurs everything Obsidian renders
-   behind our modal; the .modal-container is a sibling of .app-container
-   (not a descendant), so our panel itself stays crisp. */
+/* QuickPanel focal dim — DISABLED by default (user directive).
+   Previously applied `filter: blur(2.5px) brightness(0.58) saturate(0.85)`
+   to `.app-container` when the panel was open. Transition kept in place
+   so a future opt-in toggle can re-enable without layout recalc. */
 body .app-container {
   transition: filter 0.24s ease;
-}
-body.tc-quick-panel-open .app-container {
-  filter: blur(2.5px) brightness(0.58) saturate(0.85);
 }
 /* The default .modal-content from Obsidian wraps everything inside the
    modal — we need it to participate in the column flex so the body can
