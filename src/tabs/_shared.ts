@@ -294,9 +294,18 @@ export function buildPrettyAccordion(
 /** Collapsible PREVIEW strip matching the Callouts section in
  *  Legacy: [PREVIEW label] · [dashed connector] · [chevron button].
  *  Content is built eagerly into the wrap so the first expand lands
- *  without flicker. Accent sweep on hover/open lives in styles.css. */
+ *  without flicker. Accent sweep on hover/open lives in styles.css.
+ *
+ *  Open state persists via `sectionPreviewOpen` keyed by caller-
+ *  supplied id — so when a setting change triggers redisplay() and
+ *  the whole pane rebuilds, the preview that was expanded before
+ *  lands expanded again on the new DOM. Tab-prefix the id to avoid
+ *  collisions across tabs (e.g. "typo-fonts", "app-theme"). */
+const sectionPreviewOpen: Record<string, boolean> = {};
+
 export function buildSectionPreview(
   pane: HTMLElement,
+  key: string,
   buildContent: (wrap: HTMLElement) => void,
 ): void {
   const bar = pane.createDiv("tc-section-preview-bar");
@@ -311,9 +320,21 @@ export function buildSectionPreview(
   const wrap = pane.createDiv("tc-section-preview-wrap");
   buildContent(wrap);
 
-  let open = false;
+  // Seed local state from the module-level map. If the preview was
+  // expanded before a redisplay, re-open it on the new DOM — defer
+  // two frames so layout has settled and `scrollHeight` reads the
+  // true content size, not the 0 height the transition started at.
+  let open = sectionPreviewOpen[key] ?? false;
+  if (open) {
+    btn.addClass("tc-section-preview-btn--open");
+    requestAnimationFrame(() => requestAnimationFrame(() => {
+      wrap.style.maxHeight = wrap.scrollHeight + "px";
+    }));
+  }
+
   btn.addEventListener("click", () => {
     open = !open;
+    sectionPreviewOpen[key] = open;
     if (open) {
       wrap.style.maxHeight = wrap.scrollHeight + "px";
       btn.addClass("tc-section-preview-btn--open");

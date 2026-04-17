@@ -204,7 +204,7 @@ function renderTheme(
 
   // Section-level PREVIEW strip — replaces the former in-cluster
   // palette expander. Same chevron + dashed connector as Callouts.
-  buildSectionPreview(pane, buildTypographyPreview);
+  buildSectionPreview(pane, "app-theme-preview", buildTypographyPreview);
 
   // ── Palette cluster — accent + dark/light flavours ────
   const paletteCluster = buildPrettyAccordion(pane, "app-palette", "Palette");

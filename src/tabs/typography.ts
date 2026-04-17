@@ -170,7 +170,7 @@ function renderFonts(
     text: "Role-based mapping for Interface / Editor / Source. Load optional families from Google Fonts; fall back to system when disabled." });
 
   // In-section collapsible preview, same pattern as Callouts.
-  buildSectionPreview(pane, buildTypographyPreview);
+  buildSectionPreview(pane, "typo-fonts-preview", buildTypographyPreview);
 
   const card = buildPrettyAccordion(pane, "typo-fonts", "Role mapping");
 
@@ -212,7 +212,7 @@ function renderRhythm(
     text: "Vertical rhythm of the document — heading sizes in ems, plus list indent and item spacing." });
 
   // In-section collapsible preview, same pattern as Callouts.
-  buildSectionPreview(pane, buildTypographyPreview);
+  buildSectionPreview(pane, "typo-rhythm-preview", buildTypographyPreview);
 
   const card = buildPrettyAccordion(pane, "typo-rhythm", "Sliders");
   card.addClass("tc-h-accordion-body");
