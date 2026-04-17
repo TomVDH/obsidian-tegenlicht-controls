@@ -146,6 +146,26 @@ export interface TegenlichtSettings {
   // body tags). Decoupled from propertiesBoxed so Tom can keep the box
   // treatment off while still restyling tags, or vice versa.
   tagStyle: string; // 'classic' | 'ghost' | 'solid'
+
+  // Legacy — Callouts (AnuPpuccin @settings section: Callouts)
+  calloutStyle: string;              // 'default' | 'sleek' | 'block' | 'vanilla-normal' | 'vanilla-plus'
+  calloutCustomColors: boolean;
+  calloutRadius: number;             // 0–24 px
+  calloutTitlePaddingX: number;      // 0–32 px
+  calloutTitleOpacity: number;       // 0–100 (written as 0–1 to CSS var)
+  calloutContentPadding: number;     // 0–40 px
+  calloutFoldPosition: string;       // 'left' | 'right'
+
+  // Legacy — Tables (AnuPpuccin @settings section: Tables)
+  tableStyling: boolean;
+  tableCustomWidth: boolean;
+  tableCentered: boolean;
+  tableThHighlight: boolean;
+  tableRowHighlight: string;          // 'none' | 'row-alt' | 'col-alt' | 'checkered' | 'full'
+  tableHighlightOpacity: number;      // 0–100 → 0–1 CSS var
+  tableAlignTh: string;               // 'left' | 'center' | 'right'
+  tableAlignTd: string;               // 'left' | 'center' | 'right'
+  tableBorderWidth: number;           // 0–4 px
 }
 
 export const DEFAULT_SETTINGS: TegenlichtSettings = {
@@ -259,4 +279,22 @@ export const DEFAULT_SETTINGS: TegenlichtSettings = {
   propertiesBoxed: false,
 
   tagStyle: 'classic',
+
+  calloutStyle: 'default',
+  calloutCustomColors: false,
+  calloutRadius: 8,
+  calloutTitlePaddingX: 12,
+  calloutTitleOpacity: 60,
+  calloutContentPadding: 16,
+  calloutFoldPosition: 'left',
+
+  tableStyling: false,
+  tableCustomWidth: false,
+  tableCentered: false,
+  tableThHighlight: false,
+  tableRowHighlight: 'none',
+  tableHighlightOpacity: 10,
+  tableAlignTh: 'left',
+  tableAlignTd: 'left',
+  tableBorderWidth: 1,
 };

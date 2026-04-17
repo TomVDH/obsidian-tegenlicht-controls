@@ -82,6 +82,21 @@ const ALL_GRAIN_CLASSES = [
   'tc-grain-film', 'tc-grain-paper', 'tc-grain-halftone', 'tc-grain-static',
 ];
 
+// Legacy — Callouts: the AnuPpuccin "Callouts" @settings dropdown picks ONE
+// shape class on body (sleek / block / vanilla / vanilla-plus) with "default"
+// meaning no class. Mutually exclusive, so we clear all before adding.
+const ALL_CALLOUT_STYLE_CLASSES = [
+  'anp-callout-sleek', 'anp-callout-block',
+  'anp-callout-vanilla-normal', 'anp-callout-vanilla-plus',
+];
+// Legacy — Tables: the "Row/column highlight" dropdown is mutually exclusive.
+// Theme gates each paint on a combined `.anp-table-toggle.anp-table-<mode>`
+// selector, so these classes only take effect when the master table-styling
+// toggle is also active — but we always clear them on mode switch.
+const ALL_TABLE_HIGHLIGHT_CLASSES = [
+  'anp-table-row-alt', 'anp-table-col-alt', 'anp-table-checkered', 'anp-table-full',
+];
+
 // AnuPuccin rainbow folders — three mutually-exclusive style classes
 // (None / Full / Simple) plus an orthogonal "subfolder inherit" modifier.
 // Names match AnuPuccin's Style Settings YAML at theme.css line 2122 so
@@ -237,6 +252,17 @@ export function apply(s: TegenlichtSettings): void {
   --tc-noise-opacity: ${((s.noiseAmount ?? 0) * 0.007).toFixed(4)};
   --tc-graph-node-scale: ${s.graphNodeScale ?? 1.0};
   --tc-graph-link-thickness: ${s.graphLinkThickness ?? 1.0};
+  /* Legacy — Callouts */
+  --callout-radius: ${s.calloutRadius ?? 8}px;
+  --callout-title-padding: ${s.calloutTitlePaddingX ?? 12}px;
+  --callout-title-opacity: ${((s.calloutTitleOpacity ?? 60) / 100).toFixed(2)};
+  --callout-content-padding: ${s.calloutContentPadding ?? 16}px;
+  --callout-fold-position: ${s.calloutFoldPosition === 'right' ? '1' : '0'};
+  /* Legacy — Tables */
+  --anp-table-highlight-opacity: ${((s.tableHighlightOpacity ?? 10) / 100).toFixed(2)};
+  --anp-table-align-th: ${s.tableAlignTh || 'left'};
+  --anp-table-align-td: ${s.tableAlignTd || 'left'};
+  --anp-table-thickness: ${s.tableBorderWidth ?? 1}px;
 }
 ${headingVar !== 'inherit' ? `
 .markdown-rendered h1, .markdown-rendered h2, .markdown-rendered h3,
@@ -446,6 +472,27 @@ ${s.caretColourEnabled ? `.cm-cursor { border-left-color: ${caretClr} !important
   if (noiseOn) document.body.classList.add(`tc-grain-${s.grainStyle || 'film'}`);
   document.getElementById('tc-noise-overlay')?.remove();
 
+  // Legacy — theme-owned controls (Callouts + Tables). Plugin flips body
+  // classes and writes CSS vars (the :root, body block above); all paint
+  // is done by AnuPpuccin's existing theme.css rules. No plugin CSS.
+
+  // Legacy — Callouts
+  ALL_CALLOUT_STYLE_CLASSES.forEach(c => document.body.classList.remove(c));
+  if (s.calloutStyle && s.calloutStyle !== 'default') {
+    document.body.classList.add(`anp-callout-${s.calloutStyle}`);
+  }
+  cls('anp-callout-color-toggle', !!s.calloutCustomColors);
+
+  // Legacy — Tables
+  cls('anp-table-toggle',        s.tableStyling);
+  cls('anp-table-width',         s.tableCustomWidth);
+  cls('anp-table-auto',          s.tableCentered);
+  cls('anp-table-th-highlight',  s.tableThHighlight);
+  ALL_TABLE_HIGHLIGHT_CLASSES.forEach(c => document.body.classList.remove(c));
+  if (s.tableRowHighlight && s.tableRowHighlight !== 'none') {
+    document.body.classList.add(`anp-table-${s.tableRowHighlight}`);
+  }
+
   // No-ops: metadataMods, itsCallouts, kanban, calendar, cardsMinimal
   // These settings have no body class equivalent in the theme.
   // They're stored in settings for UI completeness / future expansion.
@@ -489,4 +536,10 @@ export function remove(): void {
    'anp-toggle-scrollbars', 'anp-hide-status-bar', 'tc-fm-boxed',
    'tc-tags-classic', 'tc-tags-ghost', 'tc-tags-solid',
   ].forEach(c => document.body.classList.remove(c));
+  // Legacy — Callouts + Tables cleanup
+  ALL_CALLOUT_STYLE_CLASSES.forEach(c => document.body.classList.remove(c));
+  document.body.classList.remove('anp-callout-color-toggle');
+  ALL_TABLE_HIGHLIGHT_CLASSES.forEach(c => document.body.classList.remove(c));
+  ['anp-table-toggle', 'anp-table-width', 'anp-table-auto', 'anp-table-th-highlight']
+    .forEach(c => document.body.classList.remove(c));
 }
