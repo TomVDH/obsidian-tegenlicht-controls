@@ -831,6 +831,21 @@ export function build(
     async v => { s.tabBarStyle = v; await refresh(); },
   );
 
+  // Active-tab indicator paint — Glow (radial accent gradient with
+  // randomised origin) or Pill (solid accent fill + ring, fully
+  // rounded). Body class flip in applier.ts; CSS branches in
+  // styles.css under .tc-tabs-active-{glow|pill}.
+  buildSegmentSetting(interfaceCluster,
+    "Tab active style",
+    "How the active tab indicator paints",
+    [
+      { label: "Glow", value: "glow" },
+      { label: "Pill", value: "pill" },
+    ],
+    s.tabActiveStyle,
+    async v => { s.tabActiveStyle = v; await onChange(); },
+  );
+
   new Setting(interfaceCluster)
     .setName("Tab spacing")
     .setDesc("Gap between tab buttons (0–16px)")

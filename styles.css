@@ -684,13 +684,6 @@ body > div.modal-container .modal-close-button {
   left: 0;
   width: var(--tc-slide-w, 0);
   transform: translateX(var(--tc-slide-x, 0));
-  background: radial-gradient(
-    ellipse 120% 200% at var(--tc-slide-glow-x, 50%) var(--tc-slide-glow-y, 50%),
-    rgba(var(--color-accent-rgb, 229, 179, 42), 0.22) 0%,
-    rgba(var(--color-accent-rgb, 229, 179, 42), 0.09) 38%,
-    rgba(var(--color-accent-rgb, 229, 179, 42), 0.03) 70%,
-    transparent 100%
-  );
   border-radius: var(--radius-m, 4px);
   z-index: 0;
   transition:
@@ -703,6 +696,35 @@ body > div.modal-container .modal-close-button {
   opacity: 0;
 }
 .tc-settings .tc-tab-slide-indicator--ready { opacity: 1; }
+
+/* Active-indicator variant — GLOW (default).
+   Radial accent gradient with a randomised origin (--tc-slide-glow-x/y
+   rolled fresh per tab click in settings-tab.ts). Reads as a glow
+   rather than a tinted surface. */
+.tc-settings.tc-tabs-active-glow .tc-tab-slide-indicator {
+  background: radial-gradient(
+    ellipse 120% 200% at var(--tc-slide-glow-x, 50%) var(--tc-slide-glow-y, 50%),
+    rgba(var(--color-accent-rgb, 229, 179, 42), 0.22) 0%,
+    rgba(var(--color-accent-rgb, 229, 179, 42), 0.09) 38%,
+    rgba(var(--color-accent-rgb, 229, 179, 42), 0.03) 70%,
+    transparent 100%
+  );
+}
+
+/* Active-indicator variant — PILL.
+   Lab tc-mock--pill recipe: solid 16%-accent fill + 40%-accent 1px
+   inset ring, fully rounded. Tabs themselves round to a full pill
+   (100px) in this mode so the slider and button shapes line up
+   exactly. No backdrop-filter — the paint is opaque accent tint. */
+.tc-settings.tc-tabs-active-pill .tc-tab {
+  border-radius: 100px !important;
+  padding: 5px 16px;
+}
+.tc-settings.tc-tabs-active-pill .tc-tab-slide-indicator {
+  background: rgba(var(--color-accent-rgb, 229, 179, 42), 0.16);
+  box-shadow: inset 0 0 0 1px rgba(var(--color-accent-rgb, 229, 179, 42), 0.40);
+  border-radius: 100px;
+}
 
 /* Text style — minimal chrome at rest, no Frost on active. The
    universal ::before glow above carries the active visual. */

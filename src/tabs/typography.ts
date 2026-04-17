@@ -31,6 +31,36 @@ const SPACING_SLIDERS: SliderCfg[] = [
 // ── Font combobox replaces the old preset pills + raw input. See
 //    ../font-combobox.ts for the search/filter/keyboard behaviour.
 
+// Module-level accordion state — survives redisplay() so collapsing
+// an accordion inside a rail pane doesn't re-open on every click of
+// another rail item. Keyed by rail section id. Default: every
+// accordion starts open on first visit.
+const accordionOpen: Record<string, boolean> = {
+  fonts: true, rhythm: true, headings: true, weight: true, accents: true,
+};
+
+/** Foldable pretty-painted accordion living inside a rail pane. The
+ *  container paints with the accent-gradient cluster treatment via
+ *  `.tc-feat-group--pretty`; state persists across renders via
+ *  module-level `accordionOpen`. Returns the body for content. */
+function buildPrettyAccordion(
+  container: HTMLElement,
+  key: keyof typeof accordionOpen,
+  title: string,
+): HTMLElement {
+  const accordion = container.createDiv(
+    "tc-feat-group tc-feat-group--pretty" + (accordionOpen[key] ? " tc-feat-group--open" : "")
+  );
+  const header = accordion.createDiv("tc-feat-header");
+  header.createDiv("tc-feat-title").createSpan({ text: title });
+  header.createDiv("tc-feat-meta").createSpan({ text: "▶", cls: "tc-feat-chevron" });
+  header.addEventListener("click", () => {
+    accordionOpen[key] = !accordionOpen[key];
+    accordion.toggleClass("tc-feat-group--open", accordionOpen[key]);
+  });
+  return accordion.createDiv("tc-feat-body tc-setting-card");
+}
+
 /** Font role row — Name/Desc on the left, searchable combobox + system
  *  + reset buttons on the right. Matches Appearance tab's Setting-row
  *  language. `defaultValue` is the DEFAULT_SETTINGS value for this role
@@ -143,10 +173,10 @@ function buildSliderRow(
 }
 
 // ── Rail-section renderers ──────────────────────────────────────────
-// Each renderer paints its section's content into the given pane.
-// Content is wrapped in a `.tc-cluster` so the pane picks up the
-// accent-gradient pretty paint — replaces the prior per-section
-// accordion chrome. Layout/spacing of internal rows is unchanged.
+// Each renderer paints its section's content inside a foldable
+// accordion wearing the pretty-cluster accent paint. The rail
+// sidebar already labels the section; the accordion header labels
+// the content group (often a sub-topic of the rail item).
 
 function renderFonts(
   pane: HTMLElement,
@@ -154,11 +184,10 @@ function renderFonts(
   onChange: () => Promise<void>,
   refresh: () => Promise<void>,
 ): void {
-  pane.createEl("h3", { cls: "tc-leftrail-sechead", text: "Fonts" });
-  pane.createEl("p", { cls: "tc-leftrail-secdesc",
-    text: "Role-based mapping for Interface / Editor / Source. Load optional families from Google Fonts; fall back to system when disabled." });
+  const card = buildPrettyAccordion(pane, "fonts", "Fonts");
 
-  const card = pane.createDiv("tc-cluster");
+  card.createEl("p", { cls: "tc-leftrail-secdesc",
+    text: "Role-based mapping for Interface / Editor / Source. Load optional families from Google Fonts; fall back to system when disabled." });
 
   new Setting(card)
     .setName("Load Google Fonts")
@@ -193,11 +222,11 @@ function renderRhythm(
   s: TegenlichtSettings,
   onChange: () => Promise<void>,
 ): void {
-  pane.createEl("h3", { cls: "tc-leftrail-sechead", text: "Rhythm" });
-  pane.createEl("p", { cls: "tc-leftrail-secdesc",
-    text: "Vertical rhythm of the document — heading sizes in ems, plus list indent and item spacing." });
+  const card = buildPrettyAccordion(pane, "rhythm", "Rhythm");
+  card.addClass("tc-h-accordion-body");
 
-  const card = pane.createDiv("tc-cluster tc-h-accordion-body");
+  card.createEl("p", { cls: "tc-leftrail-secdesc",
+    text: "Vertical rhythm of the document — heading sizes in ems, plus list indent and item spacing." });
 
   const headingGroup = card.createDiv("tc-h-group");
   HEADING_SLIDERS.forEach(cfg => {
@@ -221,17 +250,15 @@ function renderRhythm(
 }
 
 /** Scaffolded section — placeholder until its AnuPpuccin port wave
- *  lands. Renders the section header + a muted hint so the rail
- *  structure is set and the content just fills in later. */
+ *  lands. Same foldable pretty accordion shell so the structure
+ *  matches wired sections; content is just a muted hint for now. */
 function renderPlaceholder(
   pane: HTMLElement,
+  key: keyof typeof accordionOpen,
   title: string,
-  description: string,
   hint: string,
 ): void {
-  pane.createEl("h3", { cls: "tc-leftrail-sechead", text: title });
-  pane.createEl("p", { cls: "tc-leftrail-secdesc", text: description });
-  const card = pane.createDiv("tc-cluster");
+  const card = buildPrettyAccordion(pane, key, title);
   card.createEl("p", { cls: "tc-empty-hint", text: hint });
 }
 
@@ -251,11 +278,10 @@ export function build(
     redisplay?.();
   };
 
-  // Accent-coloured divider bar at the very top, same as before.
-  containerEl.createDiv("tc-color-bar tc-color-bar--accent");
-
   // Left-rail shell wraps the controls; preview lives outside the
-  // shell so it stays visible across section switches.
+  // shell so it stays visible across section switches. The top
+  // accent divider bar was retired per user directive — the rail
+  // already frames the Typography tab; no extra chrome needed.
   const wrap = containerEl.createDiv("tc-typo-wrap");
 
   const sections: LeftRailSection[] = [
@@ -267,20 +293,14 @@ export function build(
     // waves. Rail structure fixed now so future fills don't reshape
     // the tab.
     { id: "headings", label: "Headings",        count: 0,
-      render: pane => renderPlaceholder(pane,
-        "Headings",
-        "Per-heading colour, divider rule, accent text.",
+      render: pane => renderPlaceholder(pane, "headings", "Headings",
         "Lands with AnuPpuccin port Wave 3 — per-H colour dropdowns, divider toggles, decoration accents.") },
     { id: "weight",   label: "Weight & leading", count: 0,
-      render: pane => renderPlaceholder(pane,
-        "Weight & leading",
-        "Per-heading font / weight / line-height, plus global font weights.",
-        "Lands with Wave 4 — ~20 var writes behind an Advanced disclosure inside the Headings rail pane (planned move).") },
+      render: pane => renderPlaceholder(pane, "weight", "Weight & leading",
+        "Lands with Wave 4 — per-H font / weight / line-height plus global weight vars.") },
     { id: "accents",  label: "Accents",         count: 0,
-      render: pane => renderPlaceholder(pane,
-        "Accents",
-        "Bold / italic / highlight / link text-colour overrides.",
-        "Lands with Wave 3 decoration colours — three dropdowns wiring AnuPpuccin's anp-{bold,italic,highlight}-color-* classes.") },
+      render: pane => renderPlaceholder(pane, "accents", "Accents",
+        "Lands with Wave 3 decoration colours — bold / italic / highlight / link overrides.") },
   ];
 
   const shellCleanup = buildLeftRailShell(wrap, sections);

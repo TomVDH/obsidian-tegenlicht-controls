@@ -60,6 +60,12 @@ const ALL_TAB_CLASSES = [
   'anp-alternate-tab-toggle', 'anp-safari-tab-toggle',
 ];
 
+// Plugin settings-tab active-indicator variants. Mutually exclusive
+// — the picker in Appearance → Workspace → Interface chooses one.
+const ALL_TAB_ACTIVE_CLASSES = [
+  'tc-tabs-active-glow', 'tc-tabs-active-pill',
+];
+
 const ALL_BG_EFFECT_CLASSES   = [
   'tc-bg-effect-solid', 'tc-bg-effect-frosted', 'tc-bg-effect-glass',
   // Legacy classes from pre-0.6 naming — cleaned up at apply() so old
@@ -359,6 +365,10 @@ ${s.caretColourEnabled ? `.cm-cursor { border-left-color: ${caretClr} !important
   ALL_TAB_CLASSES.forEach(c => document.body.classList.remove(c));
   document.body.classList.add((s.tabStyle?.trim() || 'anp-default-tab'));
 
+  // Plugin settings-tab active-indicator variant (glow | pill)
+  ALL_TAB_ACTIVE_CLASSES.forEach(c => document.body.classList.remove(c));
+  document.body.classList.add(`tc-tabs-active-${s.tabActiveStyle || 'glow'}`);
+
   // Rainbow folders — three modes mirroring AnuPuccin's Style Settings
   // dropdown (None / Full / Simple). Two layers of migration:
   //   1. Pre-0.7 boolean `rainbowFileBrowser` → 'full'.
@@ -559,6 +569,7 @@ export function remove(): void {
   ALL_FLAVOUR_CLASSES.forEach(c => document.body.classList.remove(c));
   document.body.classList.remove(EXT_DARK, EXT_LIGHT);
   ALL_TAB_CLASSES.forEach(c => document.body.classList.remove(c));
+  ALL_TAB_ACTIVE_CLASSES.forEach(c => document.body.classList.remove(c));
   ALL_DENSITY_CLASSES.forEach(c => document.body.classList.remove(c));
   ALL_SIDEBAR_CLASSES.forEach(c => document.body.classList.remove(c));
   ALL_BG_CLASSES.forEach(c => document.body.classList.remove(c));
