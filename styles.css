@@ -507,31 +507,32 @@
 }
 
 /* ═══════════════════════════════════════════════════════════
-   MESH BLOOM — top-right ambient wash, two accent glow centres
+   MESH BLOOM — bottom-right edge wash, two accent glow centres
    drifting slowly on different phases.
 
-   Kept INSIDE .tc-settings bounds (top: 0, right: 0) so it no
-   longer overlaps Obsidian's modal close-button chrome. Each
-   centre is a radial gradient layer; the centre positions are
-   animated via typed custom properties so the shape breathes
-   organically without the two layers locking into phase.
-
-   Light mode still disabled pending its own alpha tuning.
+   Moved from top-right to bottom-right (2026-04-17) so it no
+   longer competes with Obsidian's modal close-button in the
+   top-right corner of the settings pane. Hugged to the edge
+   (fixed-position at right:0 bottom:0, positioned so the
+   glow centres sit ON the border, not away from it) so it
+   reads as a soft corner glow rather than a centre wash.
+   Alphas trimmed further so it breathes in the background
+   rather than competing with UI chrome.
    ═══════════════════════════════════════════════════════════ */
-@property --mesh-a-x { syntax: "<percentage>"; inherits: true; initial-value: 78%; }
-@property --mesh-a-y { syntax: "<percentage>"; inherits: true; initial-value: 22%; }
-@property --mesh-b-x { syntax: "<percentage>"; inherits: true; initial-value: 55%; }
-@property --mesh-b-y { syntax: "<percentage>"; inherits: true; initial-value: 48%; }
+@property --mesh-a-x { syntax: "<percentage>"; inherits: true; initial-value: 88%; }
+@property --mesh-a-y { syntax: "<percentage>"; inherits: true; initial-value: 84%; }
+@property --mesh-b-x { syntax: "<percentage>"; inherits: true; initial-value: 72%; }
+@property --mesh-b-y { syntax: "<percentage>"; inherits: true; initial-value: 62%; }
 
 @keyframes tc-mesh-drift-a {
-  0%   { --mesh-a-x: 78%; --mesh-a-y: 22%; }
-  50%  { --mesh-a-x: 92%; --mesh-a-y: 34%; }
-  100% { --mesh-a-x: 78%; --mesh-a-y: 22%; }
+  0%   { --mesh-a-x: 88%; --mesh-a-y: 84%; }
+  50%  { --mesh-a-x: 96%; --mesh-a-y: 72%; }
+  100% { --mesh-a-x: 88%; --mesh-a-y: 84%; }
 }
 @keyframes tc-mesh-drift-b {
-  0%   { --mesh-b-x: 55%; --mesh-b-y: 48%; }
-  50%  { --mesh-b-x: 68%; --mesh-b-y: 30%; }
-  100% { --mesh-b-x: 55%; --mesh-b-y: 48%; }
+  0%   { --mesh-b-x: 72%; --mesh-b-y: 62%; }
+  50%  { --mesh-b-x: 82%; --mesh-b-y: 78%; }
+  100% { --mesh-b-x: 72%; --mesh-b-y: 62%; }
 }
 
 .tc-settings {
@@ -541,27 +542,27 @@
 .tc-settings::before {
   content: "";
   position: absolute;
-  top: 0;
   right: 0;
-  width: 620px;
-  height: 480px;
+  bottom: 0;
+  width: 560px;
+  height: 440px;
   background:
     radial-gradient(
-      ellipse 260px 220px at var(--mesh-a-x, 78%) var(--mesh-a-y, 22%),
-      rgba(var(--color-accent-rgb, 229, 179, 42), 0.18) 0%,
-      rgba(var(--color-accent-rgb, 229, 179, 42), 0.08) 40%,
+      ellipse 240px 200px at var(--mesh-a-x, 88%) var(--mesh-a-y, 84%),
+      rgba(var(--color-accent-rgb, 229, 179, 42), 0.10) 0%,
+      rgba(var(--color-accent-rgb, 229, 179, 42), 0.045) 42%,
       transparent 72%
     ),
     radial-gradient(
-      ellipse 320px 260px at var(--mesh-b-x, 55%) var(--mesh-b-y, 48%),
-      rgba(var(--color-accent-rgb, 229, 179, 42), 0.11) 0%,
-      rgba(var(--color-accent-rgb, 229, 179, 42), 0.05) 45%,
+      ellipse 300px 240px at var(--mesh-b-x, 72%) var(--mesh-b-y, 62%),
+      rgba(var(--color-accent-rgb, 229, 179, 42), 0.06) 0%,
+      rgba(var(--color-accent-rgb, 229, 179, 42), 0.028) 46%,
       transparent 78%
     );
   animation:
     tc-mesh-drift-a 13s ease-in-out infinite,
     tc-mesh-drift-b 17s ease-in-out infinite;
-  filter: blur(20px);
+  filter: blur(22px);
   pointer-events: none;
   z-index: -1;
 }
@@ -587,28 +588,89 @@
   z-index: 1;
 }
 
-/* Frosted text glow active tab — no radial bloom behind the tab.
-   Active indicator is a three-layer recipe:
-     1. Low-alpha mono pill background (samples the workspace below)
-     2. backdrop-filter blur + saturate — the "frosted glass" halo
-     3. Text-shadow on the label itself — the "glow" part. Accent-
-        coloured, low-radius, so it reads as "lit" not "halated".
-   Same visual vocabulary as .tc-seg-btn--active segment buttons. */
+/* Active top tab — "Glow text" recipe (Lab Tab Styles option 1):
+   per-tab ::before radial gradient behind the text with a lightly
+   random off-centre origin, plus a sliding pill indicator in the
+   tab bar that translates between positions (see below).
+
+   No frosted pill / inset ring / backdrop-filter on the tab itself
+   — the sliding indicator carries the "active surface", the ::before
+   radial carries the glow, and text-shadow on the label reads as
+   the tab being lit. */
+.tc-settings .tc-tab {
+  overflow: hidden;
+  /* `z-index: 1` lets the sliding indicator (z-index 0 inside the
+     bar's isolated stacking context) sit behind every tab's content
+     without needing per-tab isolation. */
+  z-index: 1;
+}
+.tc-settings .tc-tab::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(
+    ellipse 130% 220% at var(--tc-tab-glow-x, 50%) var(--tc-tab-glow-y, 50%),
+    rgba(var(--color-accent-rgb, 229, 179, 42), 0.22) 0%,
+    rgba(var(--color-accent-rgb, 229, 179, 42), 0.10) 35%,
+    transparent 75%
+  );
+  opacity: 0;
+  transition: opacity 0.55s ease;
+  pointer-events: none;
+  z-index: -1;
+  border-radius: inherit;
+}
+.tc-settings .tc-tab--active::before {
+  opacity: 1;
+}
 .tc-settings .tc-tab--active,
 .tc-settings .tc-tab--active:hover {
-  background: rgba(var(--mono-rgb-100, 200, 200, 200), 0.07) !important;
-  backdrop-filter: blur(10px) saturate(1.4) !important;
-  -webkit-backdrop-filter: blur(10px) saturate(1.4) !important;
-  box-shadow:
-    inset 0 0 0 1px rgba(var(--mono-rgb-100, 200, 200, 200), 0.14),
-    0 2px 8px rgba(0, 0, 0, 0.20) !important;
+  background: transparent !important;
+  border-color: transparent !important;
+  box-shadow: none !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
   color: var(--color-accent) !important;
   text-shadow:
-    0 0 6px  rgba(var(--color-accent-rgb, 229, 179, 42), 0.65),
-    0 0 14px rgba(var(--color-accent-rgb, 229, 179, 42), 0.35) !important;
-  transition: color 0.32s ease, text-shadow 0.32s ease,
-              background 0.24s ease, box-shadow 0.24s ease;
+    0 0 6px  rgba(var(--color-accent-rgb, 229, 179, 42), 0.55),
+    0 0 14px rgba(var(--color-accent-rgb, 229, 179, 42), 0.25) !important;
+  transition: color 0.28s ease, text-shadow 0.28s ease;
 }
+
+/* Sliding indicator — lives inside .tc-tab-inner-wrap, translates +
+   resizes to sit behind the active tab. Subtle mono pill (matches
+   the .tc-seg-btn--active frosted-glass vocabulary) so it reads as
+   the "selected surface". Driven by --tc-slide-x and --tc-slide-w
+   custom props written by settings-tab.ts on every tab switch. */
+.tc-settings .tc-tab-inner-wrap {
+  position: relative;
+  isolation: isolate;
+}
+.tc-settings .tc-tab-slide-indicator {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  width: var(--tc-slide-w, 0);
+  transform: translateX(var(--tc-slide-x, 0));
+  background: rgba(var(--mono-rgb-100, 200, 200, 200), 0.07);
+  backdrop-filter: blur(10px) saturate(1.4);
+  -webkit-backdrop-filter: blur(10px) saturate(1.4);
+  box-shadow:
+    inset 0 0 0 1px rgba(var(--mono-rgb-100, 200, 200, 200), 0.14),
+    0 2px 8px rgba(0, 0, 0, 0.18);
+  border-radius: var(--radius-m, 4px);
+  z-index: 0;
+  transition:
+    transform 0.36s cubic-bezier(0.32, 0.72, 0, 1),
+    width 0.36s cubic-bezier(0.32, 0.72, 0, 1);
+  pointer-events: none;
+  /* Pre-measurement state: hidden so we don't flash a 0-width pill
+     at left:0 on first render. JS adds .tc-tab-slide-indicator--ready
+     after the first RAF. */
+  opacity: 0;
+}
+.tc-settings .tc-tab-slide-indicator--ready { opacity: 1; }
 
 /* Text style — minimal chrome at rest, no Frost on active. The
    universal ::before glow above carries the active visual. */
@@ -2710,20 +2772,52 @@ body.tc-borders-ligne-claire .titlebar {
   min-height: 24px;
 }
 .tc-settings .tc-seg-btn:hover { color: var(--text-normal); }
-/* Active pill — frosted-glass treatment ported from the menu tab pill-frost
-   variant so segment pickers share the same visual vocabulary as the tab
-   bar. Container .tc-seg was loosened to a 4%-alpha mono tint so the
-   backdrop-filter has something to sample. */
+/* Active segment button — the frosted-glass paint has MOVED to the
+   sliding indicator below so the selected surface can translate
+   smoothly between options on click. The active button itself now
+   just shifts text colour; the sliding pill carries the surface. */
 .tc-settings .tc-seg-btn--active,
 .tc-settings .tc-seg-btn--active:hover {
-  background: rgba(var(--mono-rgb-100, 200, 200, 200), 0.07) !important;
+  color: var(--text-normal) !important;
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
+/* Segment sliding indicator — same frosted vocabulary as the top-tab
+   sliding pill, just scaled to segment height. Track needs relative
+   + isolation so the indicator sits behind buttons but inside the
+   .tc-seg's own stacking context. Buttons bump to z-index 1 so they
+   catch clicks above the indicator. */
+.tc-settings .tc-seg {
+  position: relative;
+  isolation: isolate;
+}
+.tc-settings .tc-seg-btn {
+  position: relative;
+  z-index: 1;
+}
+.tc-settings .tc-seg-slide-indicator {
+  position: absolute;
+  top: 2px;
+  bottom: 2px;
+  left: 0;
+  width: var(--tc-slide-w, 0);
+  transform: translateX(var(--tc-slide-x, 0));
+  background: rgba(var(--mono-rgb-100, 200, 200, 200), 0.07);
   backdrop-filter: blur(10px) saturate(1.4);
   -webkit-backdrop-filter: blur(10px) saturate(1.4);
-  color: var(--text-normal) !important;
   box-shadow:
     inset 0 0 0 1px rgba(var(--mono-rgb-100, 200, 200, 200), 0.14),
-    0 2px 8px rgba(0, 0, 0, 0.2) !important;
+    0 2px 8px rgba(0, 0, 0, 0.18);
+  border-radius: calc(var(--radius-m, 4px) - 1px);
+  z-index: 0;
+  transition:
+    transform 0.36s cubic-bezier(0.32, 0.72, 0, 1),
+    width 0.36s cubic-bezier(0.32, 0.72, 0, 1);
+  pointer-events: none;
+  opacity: 0;
 }
+.tc-settings .tc-seg-slide-indicator--ready { opacity: 1; }
 
 /* Placeholder accordion body — used by Sidebar Outliner + Graph shells
    until they get real settings. */

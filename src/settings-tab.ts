@@ -29,10 +29,37 @@ const TAB_STYLES: { id: string; label: string }[] = [
   { id: "ghost",         label: "Ghost"     },
 ];
 
-// Ambient tab-bar bloom was removed in the 2026-04-17 pivot — the bloom
-// now lives statically in the top-right of .tc-settings (see styles.css).
-// No JS is needed to drive it. Per-tab active treatment is the frosted
-// pill + text-shadow glow, also pure CSS.
+/** Roll a fresh off-centre origin for the active tab's ::before radial
+ *  glow (Lab "Glow text" recipe). Each tab switch picks a new random
+ *  point so the halo doesn't feel mechanical across renders. Origin
+ *  stays inside the tab bounds but pulled off-centre enough to read
+ *  as "somewhere behind the text", not a perfect centre flare. */
+function setActiveTabGlowOrigin(btn: HTMLElement): void {
+  const off = () => {
+    const sign = Math.random() < 0.5 ? -1 : 1;
+    return Math.round(50 + sign * (12 + Math.random() * 26));
+  };
+  btn.style.setProperty("--tc-tab-glow-x", off() + "%");
+  btn.style.setProperty("--tc-tab-glow-y", off() + "%");
+}
+
+/** Slide the tab-bar indicator pill to sit behind the active tab.
+ *  Writes --tc-slide-x (offset in px from inner-wrap left) and
+ *  --tc-slide-w (button width in px). The first call adds the
+ *  --ready modifier so the indicator fades in instead of flashing
+ *  from a 0-width state at left:0. */
+function updateTabSlideIndicator(indicator: HTMLElement, activeBtn: HTMLElement): void {
+  requestAnimationFrame(() => {
+    const wrap = indicator.parentElement;
+    if (!wrap) return;
+    const wRect = wrap.getBoundingClientRect();
+    const bRect = activeBtn.getBoundingClientRect();
+    if (!wRect.width || !bRect.width) return;
+    indicator.style.setProperty("--tc-slide-x", `${bRect.left - wRect.left}px`);
+    indicator.style.setProperty("--tc-slide-w", `${bRect.width}px`);
+    indicator.classList.add("tc-tab-slide-indicator--ready");
+  });
+}
 
 export class TegenlichtSettingsTab extends PluginSettingTab {
   private activeTab: Tab = "appearance";
@@ -152,14 +179,25 @@ export class TegenlichtSettingsTab extends PluginSettingTab {
     // via the flex:1 spacer installed by installResetAllButton.
     const btnParent = tabBar.createDiv("tc-tab-inner-wrap");
 
+    // Sliding indicator — a single frosted-glass pill that translates +
+    // resizes to sit behind whichever tab is active. Appended first so
+    // it sits behind the buttons in the stacking order.
+    const slideIndicator = btnParent.createDiv("tc-tab-slide-indicator");
+
     TABS.forEach(({ id, label }) => {
       const btn = btnParent.createEl("button", { text: label, cls: "tc-tab" });
-      if (id === this.activeTab) btn.addClass("tc-tab--active");
+      if (id === this.activeTab) {
+        btn.addClass("tc-tab--active");
+        setActiveTabGlowOrigin(btn);
+        updateTabSlideIndicator(slideIndicator, btn);
+      }
       this.tabBtns.set(id, btn);
       btn.addEventListener("click", () => {
         if (id === this.activeTab) return;
         this.tabBtns.forEach(b => b.removeClass("tc-tab--active"));
         btn.addClass("tc-tab--active");
+        setActiveTabGlowOrigin(btn);
+        updateTabSlideIndicator(slideIndicator, btn);
         this.activeTab = id;
         this.renderContent();
       });
