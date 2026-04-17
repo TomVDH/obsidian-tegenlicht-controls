@@ -46,3 +46,66 @@ export function buildSegmentSetting(
     buttons.set(o.value, btn);
   });
 }
+
+export interface LeftRailSection {
+  id: string;
+  label: string;
+  count: number;
+  render: (contentPane: HTMLElement) => void;
+}
+
+/**
+ * Left-rail navigation shell for dense-content tabs (used by Legacy).
+ *
+ * Renders a 180px vertical rail of section labels + count badges on the
+ * left, and a single content pane on the right. Clicking a rail item
+ * swaps the content pane by calling that section's render() callback.
+ * Only one section is visible at a time — no inner scrolling between
+ * sections.
+ *
+ * Active section state is transient (lives in closure, not saved to
+ * settings). The tab always opens on the first section for a clean start.
+ *
+ * Returns a cleanup function for any disposers registered by the content
+ * pane (e.g. Pickr instances). The caller is responsible for invoking it
+ * on tab teardown.
+ */
+export function buildLeftRailShell(
+  container: HTMLElement,
+  sections: LeftRailSection[],
+): () => void {
+  const shell = container.createDiv("tc-leftrail-shell");
+  const rail = shell.createDiv("tc-leftrail-rail");
+  const pane = shell.createDiv("tc-leftrail-pane");
+
+  const disposers: (() => void)[] = [];
+  const railItems = new Map<string, HTMLElement>();
+
+  let activeId = sections[0]?.id ?? "";
+
+  const renderActive = () => {
+    pane.empty();
+    const active = sections.find(s => s.id === activeId);
+    if (!active) return;
+    active.render(pane);
+  };
+
+  sections.forEach(section => {
+    const item = rail.createDiv("tc-leftrail-item");
+    if (section.id === activeId) item.addClass("tc-leftrail-item--active");
+    item.createSpan({ text: section.label, cls: "tc-leftrail-label" });
+    item.createSpan({ text: String(section.count), cls: "tc-leftrail-count" });
+    item.addEventListener("click", () => {
+      if (section.id === activeId) return;
+      railItems.forEach(el => el.removeClass("tc-leftrail-item--active"));
+      item.addClass("tc-leftrail-item--active");
+      activeId = section.id;
+      renderActive();
+    });
+    railItems.set(section.id, item);
+  });
+
+  renderActive();
+
+  return () => disposers.forEach(fn => { try { fn(); } catch { /* no-op */ } });
+}

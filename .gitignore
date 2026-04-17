@@ -9,3 +9,9 @@ main.js
 .DS_Store
 *.swp
 .vscode/
+
+# superpowers brainstorm mockup sessions
+.superpowers/
+
+# Cabinet runtime state (session anchor, chatter)
+crew-notes/

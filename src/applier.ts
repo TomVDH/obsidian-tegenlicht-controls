@@ -73,6 +73,37 @@ const ALL_ICON_STROKE_CLASSES = ['tc-icon-stroke-thin', 'tc-icon-stroke-regular'
 const ALL_RADIUS_CLASSES      = ['tc-radius-sharp', 'tc-radius-subtle', 'tc-radius-rounded', 'tc-radius-pill'];
 const ALL_BORDER_CLASSES      = ['tc-borders-none', 'tc-borders-whisper', 'tc-borders-subtle', 'tc-borders-ligne-claire'];
 const ALL_MOOD_CLASSES        = ['tc-mood-minimal', 'tc-mood-warm', 'tc-mood-cool'];
+const ALL_GRAPH_MODE_CLASSES  = [
+  'tc-graph-colour-mode-mono',
+  'tc-graph-colour-mode-accent',
+  'tc-graph-colour-mode-folders',
+];
+const ALL_GRAIN_CLASSES = [
+  'tc-grain-film', 'tc-grain-paper', 'tc-grain-halftone', 'tc-grain-static',
+];
+
+// Legacy — Callouts: the AnuPpuccin "Callouts" @settings dropdown picks ONE
+// shape class on body (sleek / block / vanilla / vanilla-plus) with "default"
+// meaning no class. Mutually exclusive, so we clear all before adding.
+const ALL_CALLOUT_STYLE_CLASSES = [
+  'anp-callout-sleek', 'anp-callout-block',
+  'anp-callout-vanilla-normal', 'anp-callout-vanilla-plus',
+];
+// Legacy — Tables: the "Row/column highlight" dropdown is mutually exclusive.
+// Theme gates each paint on a combined `.anp-table-toggle.anp-table-<mode>`
+// selector, so these classes only take effect when the master table-styling
+// toggle is also active — but we always clear them on mode switch.
+const ALL_TABLE_HIGHLIGHT_CLASSES = [
+  'anp-table-row-alt', 'anp-table-col-alt', 'anp-table-checkered', 'anp-table-full',
+];
+
+// Legacy — Codeblocks wrap: each mode (edit / preview / highlighted-preview)
+// has its own mutually-exclusive no-wrap class. "wrap" is the default (no
+// body class), "nowrap" adds the corresponding class. Tracked as arrays so
+// the cleanup list stays consistent with the other ALL_*_CLASSES groups.
+const ALL_CB_WRAP_EDIT_CLASSES     = ['anp-codeblock-edit-nowrap'];
+const ALL_CB_WRAP_PREVIEW_CLASSES  = ['anp-codeblock-preview-nowrap'];
+const ALL_CB_WRAP_HL_CLASSES       = ['anp-codeblock-preview-hl-nowrap'];
 
 // AnuPuccin rainbow folders — three mutually-exclusive style classes
 // (None / Full / Simple) plus an orthogonal "subfolder inherit" modifier.
@@ -227,6 +258,31 @@ export function apply(s: TegenlichtSettings): void {
   ${headingVar !== 'inherit' ? `--font-text: ${headingVar};` : ''}
   --tc-frost-depth: ${s.frostDepth ?? 40}px;
   --tc-noise-opacity: ${((s.noiseAmount ?? 0) * 0.007).toFixed(4)};
+  --tc-graph-node-scale: ${s.graphNodeScale ?? 1.0};
+  --tc-graph-link-thickness: ${s.graphLinkThickness ?? 1.0};
+  /* Legacy — Callouts */
+  --callout-radius: ${s.calloutRadius ?? 8}px;
+  --callout-title-padding: ${s.calloutTitlePaddingX ?? 12}px;
+  --callout-title-opacity: ${((s.calloutTitleOpacity ?? 60) / 100).toFixed(2)};
+  --callout-content-padding: ${s.calloutContentPadding ?? 16}px;
+  --callout-fold-position: ${s.calloutFoldPosition === 'right' ? '1' : '0'};
+  /* Legacy — Tables */
+  --anp-table-highlight-opacity: ${((s.tableHighlightOpacity ?? 10) / 100).toFixed(2)};
+  --anp-table-align-th: ${s.tableAlignTh || 'left'};
+  --anp-table-align-td: ${s.tableAlignTd || 'left'};
+  --anp-table-thickness: ${s.tableBorderWidth ?? 1}px;
+  /* Legacy — Codeblock colour overrides (empty = no override so theme wins) */
+  ${s.codeblockBgColor   ? `--anp-code-bg-color: ${s.codeblockBgColor};` : ''}
+  ${s.codeblockTextColor ? `--anp-code-text-color: ${s.codeblockTextColor};` : ''}
+  /* Legacy — Show/Hide */
+  --anp-cursor: ${s.uiPointerCursor === 'pointer' ? 'pointer' : 'initial'};
+  /* Legacy — Tabs (deep) */
+  --anp-alt-tab-custom-height: ${s.tabCustomHeight ?? 32}px;
+  --anp-depth-tab-opacity: ${((s.tabDepthOpacity ?? 100) / 100).toFixed(2)};
+  --anp-depth-tab-gap: ${s.tabDepthGap ?? 4}px;
+  --anp-safari-tab-radius: ${s.tabSafariRadius ?? 8}px;
+  --anp-safari-tab-gap: ${s.tabSafariGap ?? 4}px;
+  --anp-safari-border-width: ${s.tabSafariBorderWidth ?? 1}px;
 }
 ${headingVar !== 'inherit' ? `
 .markdown-rendered h1, .markdown-rendered h2, .markdown-rendered h3,
@@ -247,6 +303,12 @@ ${s.caretColourEnabled ? `.cm-cursor { border-left-color: ${caretClr} !important
   document.documentElement.style.setProperty('--ctp-accent', hexToRgbTriplet(accent));
   document.documentElement.style.setProperty('--color-accent', accent);
   document.documentElement.style.setProperty('--color-accent-hsl', hexToHsl(accent));
+  // --color-accent-rgb is the triplet form our own plugin CSS reads via
+  // rgba(var(--color-accent-rgb), alpha). Without this write, every
+  // rule falling back to the default `229, 179, 42` literal paints
+  // amber regardless of the user's chosen accent — which broke the
+  // tab pill outline for any non-amber flavour.
+  document.documentElement.style.setProperty('--color-accent-rgb', hexToRgbTriplet(accent));
   // Propagate into --interactive-accent too — this is the var Obsidian's
   // native SliderComponent (and native toggles/buttons) reads to colour
   // the knob + fill. Without this, our typography sliders would render
@@ -374,24 +436,26 @@ ${s.caretColourEnabled ? `.cm-cursor { border-left-color: ${caretClr} !important
   ALL_ICON_STROKE_CLASSES.forEach(c => document.body.classList.remove(c));
   document.body.classList.add(`tc-icon-stroke-${s.iconStroke || 'regular'}`);
 
-  // Icon + Border tint overrides — two primary states:
-  //   ''       → remove the CSS var → theme default paints (accent)
-  //   'mono'   → write `rgb(var(--mono-rgb-100))` for a monochrome tint
+  // Icon + Border tint overrides — two primary states (semantics swapped
+  // in 2026-04-16 session: auto is now an active subtle override, mono
+  // is now "no plugin override, theme paints its native neutral"):
+  //   ''       → 40% transparent accent (subtle plugin-owned tint)
+  //   'mono'   → remove the CSS var so theme's own neutral paints
   // Back-compat fall-throughs (accepted but no UI exposes them):
-  //   'accent' → explicit accent var reference (legacy)
+  //   'accent' → explicit accent var reference (legacy, pre-swap)
   //   '#rrggbb'→ literal hex (legacy from the Pickr-era custom slot)
-  // Any unknown value collapses to '' so old saves don't strand the UI.
+  // Any unknown value collapses to '' (= new auto = 40% accent).
   const applyTint = (value: string, cssVar: string) => {
     if (!value) {
-      document.body.style.removeProperty(cssVar);
+      document.body.style.setProperty(cssVar, 'color-mix(in srgb, var(--color-accent) 40%, transparent)');
     } else if (value === 'mono') {
-      document.body.style.setProperty(cssVar, 'rgb(var(--mono-rgb-100, 200 200 200))');
+      document.body.style.removeProperty(cssVar);
     } else if (value === 'accent') {
       document.body.style.setProperty(cssVar, 'var(--color-accent)');
     } else if (/^#[0-9a-fA-F]{6}$/.test(value)) {
       document.body.style.setProperty(cssVar, value);
     } else {
-      document.body.style.removeProperty(cssVar);
+      document.body.style.setProperty(cssVar, 'color-mix(in srgb, var(--color-accent) 40%, transparent)');
     }
   };
   applyTint(s.iconColour   || '', '--tc-icon-color');
@@ -410,6 +474,13 @@ ${s.caretColourEnabled ? `.cm-cursor { border-left-color: ${caretClr} !important
   ALL_MOOD_CLASSES.forEach(c => document.body.classList.remove(c));
   document.body.classList.add(`tc-mood-${s.editorMood || 'minimal'}`);
 
+  // Graph — colour mode is mutually exclusive, halo is an orthogonal overlay.
+  // Scale + thickness are applied as CSS vars that the graph-view container
+  // reads to multiply Obsidian's native node/link sizing. No theme paint.
+  ALL_GRAPH_MODE_CLASSES.forEach(c => document.body.classList.remove(c));
+  document.body.classList.add(`tc-graph-colour-mode-${s.graphColourMode || 'accent'}`);
+  cls('tc-graph-halo', !!s.graphHalo);
+
   // Background effect + native translucency toggle were DISABLED —
   // neither approach produced reliable results (see appearance.ts
   // removal note). We still clear any stale bg-effect class that might
@@ -417,13 +488,56 @@ ${s.caretColourEnabled ? `.cm-cursor { border-left-color: ${caretClr} !important
   // up in the clean default state regardless of stored settings.
   ALL_BG_EFFECT_CLASSES.forEach(c => document.body.classList.remove(c));
 
-  // Film-grain noise — toggle a single body class. The grain itself is a
-  // CSS pseudo-element on .workspace so it never bleeds into modals, the
-  // settings dialog, or any floating overlay. Opacity is driven by the
-  // --tc-noise-opacity custom prop written in the main CSS block above.
-  document.body.classList.toggle('tc-has-noise', (s.noiseAmount ?? 0) > 0);
-  // Clean up any stray overlay from earlier builds that appended to body
+  // Film-grain noise — tc-has-noise gates the overlay presence; tc-grain-{style}
+  // picks which texture pattern renders. Only applied when noise is active,
+  // so a disabled grain leaves body with no tc-grain-* class at all.
+  // The --tc-noise-opacity var still drives intensity for all four variants.
+  const noiseOn = (s.noiseAmount ?? 0) > 0;
+  document.body.classList.toggle('tc-has-noise', noiseOn);
+  ALL_GRAIN_CLASSES.forEach(c => document.body.classList.remove(c));
+  if (noiseOn) document.body.classList.add(`tc-grain-${s.grainStyle || 'film'}`);
   document.getElementById('tc-noise-overlay')?.remove();
+
+  // Legacy — theme-owned controls (Callouts + Tables). Plugin flips body
+  // classes and writes CSS vars (the :root, body block above); all paint
+  // is done by AnuPpuccin's existing theme.css rules. No plugin CSS.
+
+  // Legacy — Callouts
+  ALL_CALLOUT_STYLE_CLASSES.forEach(c => document.body.classList.remove(c));
+  if (s.calloutStyle && s.calloutStyle !== 'default') {
+    document.body.classList.add(`anp-callout-${s.calloutStyle}`);
+  }
+  cls('anp-callout-color-toggle', !!s.calloutCustomColors);
+
+  // Legacy — Tables
+  cls('anp-table-toggle',        s.tableStyling);
+  cls('anp-table-width',         s.tableCustomWidth);
+  cls('anp-table-auto',          s.tableCentered);
+  cls('anp-table-th-highlight',  s.tableThHighlight);
+  ALL_TABLE_HIGHLIGHT_CLASSES.forEach(c => document.body.classList.remove(c));
+  if (s.tableRowHighlight && s.tableRowHighlight !== 'none') {
+    document.body.classList.add(`anp-table-${s.tableRowHighlight}`);
+  }
+
+  // Legacy — Codeblocks / Show-Hide / Tabs-deep
+
+  // Legacy — Codeblocks (wrap modes + colour overrides)
+  ALL_CB_WRAP_EDIT_CLASSES.forEach(c => document.body.classList.remove(c));
+  if (s.codeblockWrapEdit === 'nowrap') document.body.classList.add('anp-codeblock-edit-nowrap');
+  ALL_CB_WRAP_PREVIEW_CLASSES.forEach(c => document.body.classList.remove(c));
+  if (s.codeblockWrapPreview === 'nowrap') document.body.classList.add('anp-codeblock-preview-nowrap');
+  ALL_CB_WRAP_HL_CLASSES.forEach(c => document.body.classList.remove(c));
+  if (s.codeblockWrapHlPreview === 'nowrap') document.body.classList.add('anp-codeblock-preview-hl-nowrap');
+
+  // Legacy — Show / Hide
+  cls('anp-autohide-titlebar', !!s.hideTitlebarAuto);
+  cls('anp-toggle-metadata',   !!s.hideMetadata);
+  cls('anp-tooltip-toggle',    !!s.hideTooltips);
+
+  // Legacy — Tabs (deep)
+  cls('anp-disable-newtab-align', !!s.tabDisableNewTabAlign);
+  cls('anp-depth-tab-text-invert', !!s.tabDepthTextInvert);
+  cls('anp-safari-tab-animated',  !!s.tabSafariAnimated);
 
   // No-ops: metadataMods, itsCallouts, kanban, calendar, cardsMinimal
   // These settings have no body class equivalent in the theme.
@@ -435,6 +549,7 @@ export function remove(): void {
   document.getElementById(STYLE_ID)?.remove();
   document.documentElement.style.removeProperty('--color-accent');
   document.documentElement.style.removeProperty('--color-accent-hsl');
+  document.documentElement.style.removeProperty('--color-accent-rgb');
   document.documentElement.style.removeProperty('--ctp-accent');
   document.documentElement.style.removeProperty('--interactive-accent');
   document.body.classList.remove('tegenlicht-accent-toggle');
@@ -452,7 +567,10 @@ export function remove(): void {
   ALL_RADIUS_CLASSES.forEach(c => document.body.classList.remove(c));
   ALL_BORDER_CLASSES.forEach(c => document.body.classList.remove(c));
   ALL_MOOD_CLASSES.forEach(c => document.body.classList.remove(c));
+  ALL_GRAPH_MODE_CLASSES.forEach(c => document.body.classList.remove(c));
+  document.body.classList.remove('tc-graph-halo');
   document.body.classList.remove('tc-has-noise');
+  ALL_GRAIN_CLASSES.forEach(c => document.body.classList.remove(c));
   document.getElementById('tc-noise-overlay')?.remove();
   ALL_RAINBOW_CLASSES.forEach(c => document.body.classList.remove(c));
   document.body.classList.remove(
@@ -465,4 +583,15 @@ export function remove(): void {
    'anp-toggle-scrollbars', 'anp-hide-status-bar', 'tc-fm-boxed',
    'tc-tags-classic', 'tc-tags-ghost', 'tc-tags-solid',
   ].forEach(c => document.body.classList.remove(c));
+  // Legacy — Callouts + Tables cleanup
+  ALL_CALLOUT_STYLE_CLASSES.forEach(c => document.body.classList.remove(c));
+  document.body.classList.remove('anp-callout-color-toggle');
+  ALL_TABLE_HIGHLIGHT_CLASSES.forEach(c => document.body.classList.remove(c));
+  ['anp-table-toggle', 'anp-table-width', 'anp-table-auto', 'anp-table-th-highlight']
+    .forEach(c => document.body.classList.remove(c));
+  // Legacy — Codeblocks + Show/Hide + Tabs-deep cleanup
+  [...ALL_CB_WRAP_EDIT_CLASSES, ...ALL_CB_WRAP_PREVIEW_CLASSES, ...ALL_CB_WRAP_HL_CLASSES,
+   'anp-autohide-titlebar', 'anp-toggle-metadata', 'anp-tooltip-toggle',
+   'anp-disable-newtab-align', 'anp-depth-tab-text-invert', 'anp-safari-tab-animated']
+    .forEach(c => document.body.classList.remove(c));
 }

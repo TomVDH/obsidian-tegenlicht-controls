@@ -115,12 +115,12 @@ function buildSegmentWithColor(
   // Auto / Mono pair.
   const autoItem = wrap.createDiv("tc-accent-item tc-accent-item--auto");
   const autoDot = autoItem.createDiv("tc-accent-dot tc-accent-dot--auto");
-  autoDot.setAttribute("title", "Auto — follows the active accent");
+  autoDot.setAttribute("title", "Auto — subtle accent (40% alpha)");
   autoItem.createSpan({ text: "auto", cls: "tc-accent-caption" });
 
   const monoItem = wrap.createDiv("tc-accent-item tc-accent-item--mono");
   const monoDot = monoItem.createDiv("tc-accent-dot tc-accent-dot--mono");
-  monoDot.setAttribute("title", "Mono — monochrome");
+  monoDot.setAttribute("title", "Mono — theme's native tint");
   monoItem.createSpan({ text: "mono", cls: "tc-accent-caption" });
 
   const setActiveDot = (which: 'auto' | 'mono') => {
@@ -228,8 +228,9 @@ export function build(
     redisplay?.();
   };
 
-  // ── Colour bar ─────────────────────────────────────────
-  containerEl.createDiv("tc-color-bar");
+  // Colour bar previously rendered here has been promoted to the
+  // settings panel header (lives once globally in settings-tab.ts,
+  // between the tagline and the footer copy row).
 
   // ── Theme & Colour section ─────────────────────────────
   containerEl.createEl("div", { cls: "tc-section-header", text: "Theme & Colour" });
@@ -363,24 +364,9 @@ export function build(
     await refresh();
   };
 
-  const darkSetting = new Setting(paletteCluster)
-    .setName("Dark flavour")
-    .setDesc("Applied when Obsidian is in dark mode");
-  const darkInlineWrap = darkSetting.controlEl.createDiv("tc-swatch-grid-inline");
-  buildSwatchGrid(darkInlineWrap, DARK_BASE, s.darkFlavour, cls => pickFlavour('dark', cls));
-  appendPlusSwatch(darkInlineWrap, s.showExtendedDark, async () => {
-    s.showExtendedDark = !s.showExtendedDark;
-    await refresh();
-  });
-  if (s.showExtendedDark) {
-    const darkExtWrap = paletteCluster.createDiv("tc-swatch-grid-wrap tc-swatch-grouped");
-    darkExtWrap.createSpan({ text: "Tegenlicht", cls: "tc-swatch-group-label" });
-    buildSwatchGrid(darkExtWrap, DARK_EXTENDED_TC, s.darkFlavour, cls => pickFlavour('dark', cls));
-    darkExtWrap.createSpan({ text: "AnuPuccin", cls: "tc-swatch-group-label" });
-    buildSwatchGrid(darkExtWrap, DARK_EXTENDED_ANP, s.darkFlavour, cls => pickFlavour('dark', cls));
-  }
-
-  // ── Light Flavours ─────────────────────────────────────
+  // ── Light Flavours (light first now, per user preference) ────
+  paletteCluster.createDiv("tc-flavour-caption")
+    .createSpan({ text: "licht", cls: "tc-flavour-caption-label" });
   const lightSetting = new Setting(paletteCluster)
     .setName("Light flavour")
     .setDesc("Applied when Obsidian is in light mode");
@@ -396,6 +382,26 @@ export function build(
     buildSwatchGrid(lightExtWrap, LIGHT_EXTENDED_TC, s.lightFlavour, cls => pickFlavour('light', cls));
     lightExtWrap.createSpan({ text: "AnuPuccin", cls: "tc-swatch-group-label" });
     buildSwatchGrid(lightExtWrap, LIGHT_EXTENDED_ANP, s.lightFlavour, cls => pickFlavour('light', cls));
+  }
+
+  // ── Dark Flavours ─────────────────────────────────────────────
+  paletteCluster.createDiv("tc-flavour-caption")
+    .createSpan({ text: "tegenlicht", cls: "tc-flavour-caption-label" });
+  const darkSetting = new Setting(paletteCluster)
+    .setName("Dark flavour")
+    .setDesc("Applied when Obsidian is in dark mode");
+  const darkInlineWrap = darkSetting.controlEl.createDiv("tc-swatch-grid-inline");
+  buildSwatchGrid(darkInlineWrap, DARK_BASE, s.darkFlavour, cls => pickFlavour('dark', cls));
+  appendPlusSwatch(darkInlineWrap, s.showExtendedDark, async () => {
+    s.showExtendedDark = !s.showExtendedDark;
+    await refresh();
+  });
+  if (s.showExtendedDark) {
+    const darkExtWrap = paletteCluster.createDiv("tc-swatch-grid-wrap tc-swatch-grouped");
+    darkExtWrap.createSpan({ text: "Tegenlicht", cls: "tc-swatch-group-label" });
+    buildSwatchGrid(darkExtWrap, DARK_EXTENDED_TC, s.darkFlavour, cls => pickFlavour('dark', cls));
+    darkExtWrap.createSpan({ text: "AnuPuccin", cls: "tc-swatch-group-label" });
+    buildSwatchGrid(darkExtWrap, DARK_EXTENDED_ANP, s.darkFlavour, cls => pickFlavour('dark', cls));
   }
 
   // Background-effect pill and Native-translucency toggle were REMOVED.
@@ -651,11 +657,54 @@ export function build(
   };
   populateAdvanced(computedMode);
 
-  // ── Graph section (placeholder shell) ──────────────────
+  // ── Graph section ─────────────────────────────────────
   containerEl.createEl("div", { cls: "tc-section-header", text: "Graph" });
   const graphBody = containerEl.createDiv("tc-section-body tc-feat-body tc-setting-card");
-  graphBody.createEl("p", { cls: "tc-empty-hint",
-    text: "Graph-view controls arrive here — node size, link thickness, hover halo, cluster tinting." });
+
+  // ── Colour cluster ────────────────────────────────────
+  const graphColourCluster = buildCluster(graphBody, "Colour");
+  buildSegmentSetting(graphColourCluster,
+    "Colour mode",
+    "How nodes and links take their hue",
+    [
+      { label: "Mono",    value: "mono"    },
+      { label: "Accent",  value: "accent"  },
+      { label: "Folders", value: "folders" },
+    ],
+    s.graphColourMode,
+    async v => { s.graphColourMode = v; await refresh(); },
+  );
+
+  // ── Style cluster ─────────────────────────────────────
+  const graphStyleCluster = buildCluster(graphBody, "Style");
+
+  new Setting(graphStyleCluster)
+    .setName("Hover halo")
+    .setDesc("Soft accent glow under the node you're hovering")
+    .addToggle(t => t
+      .setValue(s.graphHalo)
+      .onChange(async v => { s.graphHalo = v; await onChange(); })
+    );
+
+  new Setting(graphStyleCluster)
+    .setName("Node scale")
+    .setDesc("Multiplies Obsidian's native node size (0.5× – 2×)")
+    .addSlider(sl => sl
+      .setLimits(0.5, 2.0, 0.1)
+      .setValue(s.graphNodeScale ?? 1.0)
+      .setDynamicTooltip()
+      .onChange(async v => { s.graphNodeScale = v; await onChange(); })
+    );
+
+  new Setting(graphStyleCluster)
+    .setName("Link thickness")
+    .setDesc("Stroke weight of connection lines (0.5× – 3×)")
+    .addSlider(sl => sl
+      .setLimits(0.5, 3.0, 0.1)
+      .setValue(s.graphLinkThickness ?? 1.0)
+      .setDynamicTooltip()
+      .onChange(async v => { s.graphLinkThickness = v; await onChange(); })
+    );
 
   // ── Workspace section ─────────────────────────────────
   containerEl.createEl("div", { cls: "tc-section-header", text: "Workspace" });
@@ -720,20 +769,18 @@ export function build(
       })
     );
 
-  // TRIAL — mock grain-style sub-dropdown. Inert; remove once we decide
-  // whether to keep it and wire a real `grainStyle` setting. Conditional
-  // visibility (only shown when grain > 0) matches the Frost depth pattern.
+  // Grain style sub-dropdown — visible only when noiseAmount > 0.
   grainStyleSetting = new Setting(surfaceCluster)
     .setName("Grain style")
     .setDesc("Texture of the film-grain overlay");
   grainStyleSetting.settingEl.style.display = (s.noiseAmount ?? 0) > 0 ? "" : "none";
   grainStyleSetting.addDropdown(dd => {
-    dd.addOption("film",     "Film");
-    dd.addOption("paper",    "Paper");
-    dd.addOption("halftone", "Halftone");
-    dd.addOption("static",   "Static");
-    dd.setValue("film");
-    dd.onChange(async _v => { /* mock — no persistence */ });
+    dd.addOption("film",     "Film — fine gaussian");
+    dd.addOption("paper",    "Paper — coarse, warm");
+    dd.addOption("halftone", "Halftone — dot matrix");
+    dd.addOption("static",   "Static — high-contrast");
+    dd.setValue(s.grainStyle ?? 'film');
+    dd.onChange(async v => { s.grainStyle = v; await onChange(); });
   });
 
   // ── Accent application cluster — where the accent paints beyond
@@ -747,11 +794,13 @@ export function build(
       .onChange(async v => { s.colorfulFrame = v; await onChange(); })
     );
 
-  // ── Highlights & Tints section ────────────────────────
-  containerEl.createEl("div", { cls: "tc-section-header", text: "Highlights & Tints" });
-  const highlightsCard = containerEl.createDiv("tc-section-body tc-feat-body tc-setting-card");
+  // ── Editor accents cluster — consolidates the old Highlights & Tints
+  //    section (Active line / Selection tint / Caret colour) into the
+  //    Workspace section. Same three colour-picker-plus-toggle rows, new
+  //    home. Pickr instances still registered for cleanup via `pickrs`.
+  const editorAccentsCluster = buildCluster(workspaceCard, "Editor accents");
 
-  pickrs.push(buildColorToggleRow(highlightsCard,
+  pickrs.push(buildColorToggleRow(editorAccentsCluster,
     "Active line", "Highlight the current cursor line in the editor",
     () => s.activeLineColour,
     v => { s.activeLineColour = v; },
@@ -760,7 +809,7 @@ export function build(
     refresh,
   ));
 
-  pickrs.push(buildColorToggleRow(highlightsCard,
+  pickrs.push(buildColorToggleRow(editorAccentsCluster,
     "Selection tint", "Colour overlay applied to selected text",
     () => s.selectionTintColour,
     v => { s.selectionTintColour = v; },
@@ -769,7 +818,7 @@ export function build(
     refresh,
   ));
 
-  pickrs.push(buildColorToggleRow(highlightsCard,
+  pickrs.push(buildColorToggleRow(editorAccentsCluster,
     "Caret colour", "Colour of the text insertion cursor",
     () => s.caretColour,
     v => { s.caretColour = v; },
@@ -777,6 +826,38 @@ export function build(
     v => { s.caretColourEnabled = v; },
     refresh,
   ));
+
+  // ── Interface cluster — surface tab nav style + spacing controls.
+  //    tabBarStyle accepts: 'switch' (default, monochrome knob),
+  //    'switch-amber' (accent knob), 'underline' (no track), 'ghost'
+  //    (1px outline). Retired legacy values migrate to 'switch' in
+  //    loadSettings. Until Task 5 ships the matching CSS, the picker
+  //    renders but the visual effect on the tab bar only lands with
+  //    that later commit.
+  const interfaceCluster = buildCluster(workspaceCard, "Interface");
+
+  buildSegmentSetting(interfaceCluster,
+    "Tab style",
+    "How the settings tab navigation renders",
+    [
+      { label: "Switch",    value: "switch"       },
+      { label: "Amber",     value: "switch-amber" },
+      { label: "Underline", value: "underline"    },
+      { label: "Ghost",     value: "ghost"        },
+    ],
+    s.tabBarStyle,
+    async v => { s.tabBarStyle = v; await refresh(); },
+  );
+
+  new Setting(interfaceCluster)
+    .setName("Tab spacing")
+    .setDesc("Gap between tab buttons (0–16px)")
+    .addSlider(sl => sl
+      .setLimits(0, 16, 1)
+      .setValue(s.tabBarSpacing ?? 6)
+      .setDynamicTooltip()
+      .onChange(async v => { s.tabBarSpacing = v; await refresh(); })
+    );
 
   return () => pickrs.forEach(p => { try { p.destroyAndRemove(); } catch(_) {} });
 }

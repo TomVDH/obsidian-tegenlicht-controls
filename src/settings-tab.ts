@@ -1,13 +1,15 @@
 import { App, PluginSettingTab, Notice, setIcon } from "obsidian";
 import TegenlichtControlsPlugin from "./main";
 import { DEFAULT_SETTINGS } from "./settings";
+import { ALL_FLAVOURS } from "./flavours";
 import { build as buildAppearance } from "./tabs/appearance";
 import { build as buildTypography } from "./tabs/typography";
 import { build as buildEditing }    from "./tabs/editing";
 import { build as buildLayout }     from "./tabs/layout";
 import { build as buildFeatures }   from "./tabs/features";
+import { build as buildLegacy }     from "./tabs/legacy";
 
-type Tab = "appearance" | "typography" | "editing" | "layout" | "features";
+type Tab = "appearance" | "typography" | "editing" | "layout" | "features" | "legacy";
 
 const TABS: { id: Tab; label: string }[] = [
   { id: "appearance", label: "Appearance" },
@@ -15,25 +17,14 @@ const TABS: { id: Tab; label: string }[] = [
   { id: "editing",    label: "Editing"    },
   { id: "layout",     label: "Layout"     },
   { id: "features",   label: "Features"   },
+  { id: "legacy",     label: "Legacy"     },
 ];
 
 const TAB_STYLES: { id: string; label: string }[] = [
-  // ── Pills ──────────────────────────────
-  { id: "pill",           label: "Pill"         },
-  { id: "pill-soft",      label: "Soft"         },
-  { id: "pill-ghost",     label: "Ghost"        },
-  { id: "pill-frost",     label: "Frost"        },
-  { id: "pill-tint",      label: "Tint"         },
-  { id: "pill-frosttint", label: "Frost+Tint"   },
-  { id: "pill-mono",      label: "Mono"         },
-  // ── Segments ───────────────────────────
-  { id: "seg",            label: "Seg"          },
-  { id: "seg-soft",       label: "Soft"         },
-  { id: "seg-ghost",      label: "Ghost"        },
-  { id: "seg-frost",      label: "Frost"        },
-  { id: "seg-tint",       label: "Tint"         },
-  { id: "seg-frosttint",  label: "Frost+Tint"   },
-  { id: "seg-mono",       label: "Mono"         },
+  { id: "switch",        label: "Switch"    },
+  { id: "switch-amber",  label: "Amber"     },
+  { id: "underline",     label: "Underline" },
+  { id: "ghost",         label: "Ghost"     },
 ];
 
 export class TegenlichtSettingsTab extends PluginSettingTab {
@@ -64,6 +55,26 @@ export class TegenlichtSettingsTab extends PluginSettingTab {
     this.applyTabStyle(containerEl);
     this.applyTabSpacing(containerEl);
 
+    // ── Flavour indicator — two tiny swatches above the Tegenlicht
+    //    wordmark showing which light + dark flavours are currently
+    //    active. Light on top, dark below. Very subtle, small — reads
+    //    as a brand flourish, not a control. Labels: "licht" for the
+    //    light-mode flavour, "tegenlicht" for the dark-mode flavour
+    //    (literal wink at the plugin's name: tegen-licht = against-the-
+    //    light, i.e. dark).
+    const flavourIndicator = containerEl.createDiv("tc-flavour-indicator");
+    const buildFlavourRow = (flavCls: string, label: string) => {
+      const row = flavourIndicator.createDiv("tc-flavour-row");
+      const entry = ALL_FLAVOURS.find(f => f.cls === flavCls);
+      const sw = row.createDiv("tc-flavour-sw");
+      if (entry) {
+        sw.style.background = `linear-gradient(135deg, ${entry.base} 60%, ${entry.surface} 60%)`;
+      }
+      row.createSpan({ text: label, cls: "tc-flavour-label" });
+    };
+    buildFlavourRow(this.plugin.settings.lightFlavour, "licht");
+    buildFlavourRow(this.plugin.settings.darkFlavour,  "tegenlicht");
+
     // ── Header ────────────────────────────────────────────
     const header = containerEl.createDiv("tc-header");
     const top = header.createDiv("tc-header-top");
@@ -86,7 +97,7 @@ export class TegenlichtSettingsTab extends PluginSettingTab {
 
     // Spacer pushes the version badge to the far right of the top row
     top.createSpan({ cls: "tc-header-top-spacer" });
-    top.createSpan({ cls: "tc-header-badge", text: "v0.7.4" });
+    top.createSpan({ cls: "tc-header-badge", text: `v${this.plugin.manifest.version}` });
 
     const tagline = header.createDiv("tc-header-tagline");
     tagline.createSpan({ text: "A bespoke collection of Obsidian quality of life and appearance settings. Inspired by and forked from " });
@@ -97,8 +108,12 @@ export class TegenlichtSettingsTab extends PluginSettingTab {
     tagline.createSpan({ cls: "tc-header-copy-sep tc-header-tagline-sep", text: "·" });
     tagline.createSpan({ cls: "tc-header-tagline-sig", text: "Spun up by Onnozelaer" });
 
-    // Footer row — GitHub · License · Acknowledgements
-    const copy = header.createDiv("tc-header-copy");
+    // Inline row — rainbow bar + GitHub · License · Acknowledgements on
+    // a single line below the tagline. Bar on the left, links on the
+    // right; flex container lets the two sit side-by-side with a gap.
+    const inlineRow = header.createDiv("tc-header-inline-row");
+    inlineRow.createDiv("tc-color-bar tc-color-bar--header");
+    const copy = inlineRow.createDiv("tc-header-copy");
 
     // GitHub icon-link
     const ghLink = copy.createEl("a", {
@@ -137,10 +152,11 @@ export class TegenlichtSettingsTab extends PluginSettingTab {
     this.tabBtns.clear();
     const tabBar = containerEl.createDiv("tc-tab-bar");
 
-    // Segmented style wraps buttons in an inner div
-    const btnParent = containerEl.hasClass("tc-tabs-segment")
-      ? tabBar.createDiv("tc-tab-inner-wrap")
-      : tabBar;
+    // Always wrap tabs in an inner container. Lets switch/amber variants
+    // style the pill track on the wrap while keeping the outer .tc-tab-bar
+    // as a full-width flex container — so the reset button sits rightmost
+    // via the flex:1 spacer installed by installResetAllButton.
+    const btnParent = tabBar.createDiv("tc-tab-inner-wrap");
 
     TABS.forEach(({ id, label }) => {
       const btn = btnParent.createEl("button", { text: label, cls: "tc-tab" });
@@ -189,6 +205,7 @@ export class TegenlichtSettingsTab extends PluginSettingTab {
       case "editing":    buildEditing(this.contentEl, this.plugin, onChange);    break;
       case "layout":     buildLayout(this.contentEl, this.plugin, onChange);     break;
       case "features":   buildFeatures(this.contentEl, this.plugin, onChange);   break;
+      case "legacy":     this.cleanup = buildLegacy(this.contentEl, this.plugin, onChange, redisplay); break;
     }
 
     // Restore scroll after the new DOM has laid out
@@ -287,14 +304,17 @@ export class TegenlichtSettingsTab extends PluginSettingTab {
 
   /** Apply the correct CSS class for the chosen tab style. */
   private applyTabStyle(el: HTMLElement): void {
-    // Remap any legacy or retired style to pill-frost
+    // Remap any legacy or retired style to switch
     const active = TAB_STYLES.map(s => s.id);
     if (!active.includes(this.plugin.settings.tabBarStyle ?? '')) {
-      this.plugin.settings.tabBarStyle = 'pill-frost';
+      this.plugin.settings.tabBarStyle = 'switch';
       this.plugin.saveSettings();
     }
     el.removeClass(
-      // pills (active + legacy)
+      // New set
+      "tc-tabs-switch", "tc-tabs-switch-amber",
+      "tc-tabs-underline", "tc-tabs-ghost",
+      // Retired pill variants
       "tc-tabs-pill", "tc-tabs-pill-soft", "tc-tabs-pill-ghost",
       "tc-tabs-pill-frost", "tc-tabs-pill-tint", "tc-tabs-pill-frosttint",
       "tc-tabs-pill-mono",
@@ -303,7 +323,7 @@ export class TegenlichtSettingsTab extends PluginSettingTab {
       "tc-tabs-pill-neon", "tc-tabs-pill-duo", "tc-tabs-pill-flat",
       "tc-tabs-pill-pop", "tc-tabs-pill-shimmer", "tc-tabs-pill-badge",
       "tc-tabs-pill-dark", "tc-tabs-pill-pulse", "tc-tabs-pill-lineunder",
-      // legacy line classes
+      // Retired line variants
       "tc-tabs-line", "tc-tabs-line-thick", "tc-tabs-line-fat",
       "tc-tabs-line-glow", "tc-tabs-line-grad", "tc-tabs-line-top",
       "tc-tabs-line-fill", "tc-tabs-line-cap", "tc-tabs-line-grow",
@@ -311,8 +331,8 @@ export class TegenlichtSettingsTab extends PluginSettingTab {
       "tc-tabs-line-side", "tc-tabs-line-over", "tc-tabs-line-pill",
       "tc-tabs-line-neon", "tc-tabs-line-double", "tc-tabs-line-bracket",
       "tc-tabs-line-bold", "tc-tabs-line-float", "tc-tabs-line-frosttint",
-      "tc-tabs-underline", "tc-tabs-underline-thick",
-      // segments (active + legacy)
+      "tc-tabs-underline-thick",
+      // Retired segment variants
       "tc-tabs-seg", "tc-tabs-seg-soft", "tc-tabs-seg-ghost",
       "tc-tabs-seg-frost", "tc-tabs-seg-tint", "tc-tabs-seg-frosttint",
       "tc-tabs-seg-mono",
@@ -321,9 +341,9 @@ export class TegenlichtSettingsTab extends PluginSettingTab {
       "tc-tabs-seg-inset", "tc-tabs-seg-flat", "tc-tabs-seg-dot",
       "tc-tabs-seg-neon", "tc-tabs-seg-minimal", "tc-tabs-seg-sharp",
       "tc-tabs-seg-outline", "tc-tabs-seg-gradwrap", "tc-tabs-seg-split",
-      "tc-tabs-seg-thick", "tc-tabs-seg-badge"
+      "tc-tabs-seg-thick", "tc-tabs-seg-badge",
     );
-    el.addClass(`tc-tabs-${this.plugin.settings.tabBarStyle ?? 'pill'}`);
+    el.addClass(`tc-tabs-${this.plugin.settings.tabBarStyle ?? 'switch'}`);
   }
 
   hide(): void {

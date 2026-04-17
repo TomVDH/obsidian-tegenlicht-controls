@@ -29,6 +29,16 @@ export interface TegenlichtSettings {
   cornerRadius: string;  // 'sharp' | 'subtle' | 'rounded'
   editorMood: string;    // experimental: 'minimal' | 'warm' | 'cool'
 
+  // Appearance — Graph section
+  // Visual tweaks that extend Obsidian's native graph view without
+  // duplicating its native controls. Colour mode drives body classes
+  // the theme reads; scale/thickness are plugin-owned CSS vars applied
+  // via pseudo-selectors on the graph canvas container.
+  graphColourMode: string;     // 'mono' | 'accent' | 'folders'
+  graphHalo: boolean;          // subtle accent glow under hovered node
+  graphNodeScale: number;      // 0.5–2.0, multiplier on Obsidian's native size
+  graphLinkThickness: number;  // 0.5–3.0, multiplier on link stroke weight
+
   // Typography — Google Fonts
   fontPairing: string;       // one of the PAIRINGS keys, or 'custom'
   fontCustomInterface: string; // Google font name, used when pairing === 'custom'
@@ -49,6 +59,7 @@ export interface TegenlichtSettings {
   // Appearance — Background effects
   backgroundEffect: string; // 'solid' | 'frosted' | 'glass'
   noiseAmount: number;      // 0–100 (film-grain intensity)
+  grainStyle: string;       // 'film' | 'paper' | 'halftone' | 'static'
 
   // Appearance — Highlights & Tints
   activeLineColour: string;
@@ -135,10 +146,54 @@ export interface TegenlichtSettings {
   // body tags). Decoupled from propertiesBoxed so Tom can keep the box
   // treatment off while still restyling tags, or vice versa.
   tagStyle: string; // 'classic' | 'ghost' | 'solid'
+
+  // Legacy — Callouts (AnuPpuccin @settings section: Callouts)
+  calloutStyle: string;              // 'default' | 'sleek' | 'block' | 'vanilla-normal' | 'vanilla-plus'
+  calloutCustomColors: boolean;
+  calloutRadius: number;             // 0–24 px
+  calloutTitlePaddingX: number;      // 0–32 px
+  calloutTitleOpacity: number;       // 0–100 (written as 0–1 to CSS var)
+  calloutContentPadding: number;     // 0–40 px
+  calloutFoldPosition: string;       // 'left' | 'right'
+
+  // Legacy — Tables (AnuPpuccin @settings section: Tables)
+  tableStyling: boolean;
+  tableCustomWidth: boolean;
+  tableCentered: boolean;
+  tableThHighlight: boolean;
+  tableRowHighlight: string;          // 'none' | 'row-alt' | 'col-alt' | 'checkered' | 'full'
+  tableHighlightOpacity: number;      // 0–100 → 0–1 CSS var
+  tableAlignTh: string;               // 'left' | 'center' | 'right'
+  tableAlignTd: string;               // 'left' | 'center' | 'right'
+  tableBorderWidth: number;           // 0–4 px
+
+  // Legacy — Codeblocks
+  codeblockWrapEdit: string;       // 'wrap' | 'nowrap'
+  codeblockWrapPreview: string;    // 'wrap' | 'nowrap'
+  codeblockWrapHlPreview: string;  // 'wrap' | 'nowrap'
+  codeblockBgColor: string;        // '' = reset, '#rrggbb' = override
+  codeblockTextColor: string;
+
+  // Legacy — Show / Hide (4 new; scrollbars + status bar already in Features)
+  hideTitlebarAuto: boolean;
+  uiPointerCursor: string;         // 'initial' | 'pointer'
+  hideMetadata: boolean;
+  hideTooltips: boolean;
+
+  // Legacy — Tabs (deep) — per-style tuning for Depth + Safari variants
+  tabCustomHeight: number;         // 20–48 px
+  tabDisableNewTabAlign: boolean;
+  tabDepthTextInvert: boolean;
+  tabDepthOpacity: number;         // 0–100 → 0–1
+  tabDepthGap: number;             // 0–16 px
+  tabSafariRadius: number;         // 0–16 px
+  tabSafariGap: number;            // 0–16 px
+  tabSafariBorderWidth: number;    // 0–4 px
+  tabSafariAnimated: boolean;
 }
 
 export const DEFAULT_SETTINGS: TegenlichtSettings = {
-  tabBarStyle: 'pill-frost',
+  tabBarStyle: 'switch',
   tabBarSpacing: 6,
 
   darkFlavour: 'tc-maneblusser',
@@ -155,6 +210,11 @@ export const DEFAULT_SETTINGS: TegenlichtSettings = {
   iconColour: '',
   cornerRadius: 'subtle',
   editorMood: 'minimal',
+
+  graphColourMode: 'accent',
+  graphHalo: true,
+  graphNodeScale: 1.0,
+  graphLinkThickness: 1.0,
 
   fontPairing: 'system',
   fontCustomInterface: '',
@@ -177,6 +237,7 @@ export const DEFAULT_SETTINGS: TegenlichtSettings = {
 
   backgroundEffect: 'solid',
   noiseAmount: 0,
+  grainStyle: 'film',
 
   activeLineColour: '#e5b32a',
   selectionTint: false,
@@ -242,4 +303,43 @@ export const DEFAULT_SETTINGS: TegenlichtSettings = {
   propertiesBoxed: false,
 
   tagStyle: 'classic',
+
+  calloutStyle: 'default',
+  calloutCustomColors: false,
+  calloutRadius: 8,
+  calloutTitlePaddingX: 12,
+  calloutTitleOpacity: 60,
+  calloutContentPadding: 16,
+  calloutFoldPosition: 'left',
+
+  tableStyling: false,
+  tableCustomWidth: false,
+  tableCentered: false,
+  tableThHighlight: false,
+  tableRowHighlight: 'none',
+  tableHighlightOpacity: 10,
+  tableAlignTh: 'left',
+  tableAlignTd: 'left',
+  tableBorderWidth: 1,
+
+  codeblockWrapEdit: 'wrap',
+  codeblockWrapPreview: 'wrap',
+  codeblockWrapHlPreview: 'wrap',
+  codeblockBgColor: '',
+  codeblockTextColor: '',
+
+  hideTitlebarAuto: false,
+  uiPointerCursor: 'initial',
+  hideMetadata: false,
+  hideTooltips: false,
+
+  tabCustomHeight: 32,
+  tabDisableNewTabAlign: false,
+  tabDepthTextInvert: false,
+  tabDepthOpacity: 100,
+  tabDepthGap: 4,
+  tabSafariRadius: 8,
+  tabSafariGap: 4,
+  tabSafariBorderWidth: 1,
+  tabSafariAnimated: false,
 };

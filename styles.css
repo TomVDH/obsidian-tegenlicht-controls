@@ -32,7 +32,7 @@
   letter-spacing: 0.01em;
 }
 .tc-settings .tc-header-icon {
-  font-size: 18px;
+  font-size: 26px;
   /* Tracks the active accent — defaults to the signature harvest gold. */
   color: var(--color-accent, #e5b32a);
   line-height: 1;
@@ -43,7 +43,7 @@
 
 /* ── Easter egg: accent shimmer — the "Tegenlicht" wordmark glows ── */
 .tc-settings .tc-header-name-brand {
-  font-size: 20px;
+  font-size: 28px;
   font-weight: 700;
   color: var(--text-normal);
   letter-spacing: -0.02em;
@@ -164,6 +164,16 @@
 }
 .tc-color-bar.tc-color-bar--accent:hover { opacity: 1; }
 
+/* Header variant — lives in the settings panel header between the
+   tagline and the footer copy row. Constrained to 25% width so it reads
+   as a small accent flourish, not a full-width divider. Tighter margin
+   top/bottom because the surrounding header rows already breathe. */
+.tc-color-bar.tc-color-bar--header {
+  width: 55px;
+  margin: 0;
+  flex-shrink: 0;
+}
+
 /* ── Swatch cards ── */
 .tc-settings .tc-swatch-card {
   background: var(--background-secondary);
@@ -270,655 +280,86 @@
 .tc-settings .tc-tab:last-child { margin-right: 0 !important; }
 .tc-settings .tc-tab:hover { background: var(--background-modifier-hover); color: var(--text-normal); }
 
-/* ════════════════════════════════════════
-   PILL VARIANTS (20)
-   ════════════════════════════════════════ */
+/* ═══════════════════════════════════════════════════════════
+   Tab nav — switch-first (v0.7.7)
+   Four variants: switch (default, mono), switch-amber, underline, ghost.
+   ═══════════════════════════════════════════════════════════ */
 
-/* P01 — Accent fill */
-.tc-settings.tc-tabs-pill .tc-tab--active {
-  background: var(--interactive-accent);
-  color: var(--text-on-accent);
+/* Base inner-wrap — default passthrough for variants that don't use a
+   pill track. Switch/Amber override to inline-flex pill track below so
+   the outer .tc-tab-bar stays full-width and the reset button sits
+   rightmost via its flex:1 spacer. */
+.tc-settings .tc-tab-inner-wrap {
+  display: flex;
+  align-items: center;
 }
 
-/* P02 — Soft surface */
-.tc-settings.tc-tabs-pill-soft .tc-tab--active {
-  background: var(--background-secondary);
-  color: var(--text-normal);
-  box-shadow: inset 0 0 0 1px var(--background-modifier-border);
-}
-
-/* P03 — Ghost outline */
-.tc-settings.tc-tabs-pill-ghost .tc-tab--active {
-  background: transparent;
-  color: var(--color-accent, #e5b32a);
-  box-shadow: inset 0 0 0 1.5px var(--color-accent, #e5b32a);
-}
-.tc-settings.tc-tabs-pill-ghost .tc-tab:hover { background: transparent; color: var(--color-accent, #e5b32a); opacity: 0.7; }
-
-/* P04 — Glow halo */
-.tc-settings.tc-tabs-pill-glow .tc-tab--active {
-  background: var(--interactive-accent);
-  color: var(--text-on-accent);
-  box-shadow: 0 0 0 3px var(--background-primary),
-              0 0 16px 5px var(--color-accent, #e5b32a);
-}
-
-/* P05 — Frosted glass */
-.tc-settings.tc-tabs-pill-frost .tc-tab--active {
-  background: rgba(var(--mono-rgb-100, 200, 200, 200), 0.07);
-  backdrop-filter: blur(10px) saturate(1.4);
-  -webkit-backdrop-filter: blur(10px) saturate(1.4);
-  color: var(--text-normal);
-  box-shadow: inset 0 0 0 1px rgba(var(--mono-rgb-100, 200, 200, 200), 0.14), 0 2px 8px rgba(0,0,0,0.2);
-}
-.tc-settings.tc-tabs-pill-frost .tc-tab:hover { background: rgba(var(--mono-rgb-100, 200, 200, 200), 0.04); }
-
-/* P06 — Gradient gold→lavender */
-.tc-settings.tc-tabs-pill-gradient .tc-tab--active {
-  background: linear-gradient(120deg, var(--color-accent, #e5b32a) 0%, #cba6f7 100%);
-  color: #1e1e2e;
-  font-weight: 600;
-}
-
-/* P07 — Lifted card */
-.tc-settings.tc-tabs-pill-lifted .tc-tab--active {
-  background: var(--background-primary);
-  color: var(--text-normal);
-  box-shadow: 0 4px 14px rgba(0,0,0,0.35), 0 1px 3px rgba(0,0,0,0.2);
-  transform: translateY(-2px);
-}
-.tc-settings.tc-tabs-pill-lifted .tc-tab:hover { transform: translateY(-1px); box-shadow: 0 2px 6px rgba(0,0,0,0.2); }
-
-/* P08 — Dot indicator */
-.tc-settings.tc-tabs-pill-dot .tc-tab { padding-bottom: 12px; }
-.tc-settings.tc-tabs-pill-dot .tc-tab::after {
-  content: '';
-  position: absolute;
-  bottom: 3px;
-  left: 50%;
-  transform: translateX(-50%) scale(0);
-  width: 4px; height: 4px;
-  border-radius: 50%;
-  background: var(--color-accent, #e5b32a);
-  transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
-}
-.tc-settings.tc-tabs-pill-dot .tc-tab--active { background: transparent; color: var(--text-normal); font-weight: 600; }
-.tc-settings.tc-tabs-pill-dot .tc-tab--active::after { transform: translateX(-50%) scale(1); }
-
-/* P09 — Tint: accent wash bg + accent text */
-.tc-settings.tc-tabs-pill-tint .tc-tab--active {
-  background: color-mix(in srgb, var(--color-accent, #e5b32a) 14%, transparent);
-  color: var(--color-accent, #e5b32a);
-  font-weight: 600;
-}
-
-/* P10 — Inset / pressed */
-.tc-settings.tc-tabs-pill-inset .tc-tab--active {
-  background: var(--background-primary);
-  color: var(--text-normal);
-  box-shadow: inset 0 2px 5px rgba(0,0,0,0.4), inset 0 1px 2px rgba(0,0,0,0.3);
-}
-
-/* P11 — Neon: dark pill + accent glow text */
-.tc-settings.tc-tabs-pill-neon .tc-tab--active {
-  background: rgba(0,0,0,0.5);
-  color: var(--color-accent, #e5b32a);
-  box-shadow: inset 0 0 0 1px var(--color-accent, #e5b32a),
-              0 0 10px 2px var(--color-accent, #e5b32a);
-  text-shadow: 0 0 8px var(--color-accent, #e5b32a);
-}
-.tc-settings.tc-tabs-pill-neon .tc-tab:hover { background: rgba(0,0,0,0.25); }
-
-/* P12 — Duo gradient (pink→blue) */
-.tc-settings.tc-tabs-pill-duo .tc-tab--active {
-  background: linear-gradient(120deg, #f38ba8 0%, #89b4fa 100%);
-  color: #1e1e2e;
-  font-weight: 600;
-}
-
-/* P13 — Flat text only */
-.tc-settings.tc-tabs-pill-flat .tc-tab--active {
-  background: transparent;
-  color: var(--color-accent, #e5b32a);
-  font-weight: 700;
-}
-.tc-settings.tc-tabs-pill-flat .tc-tab:hover { background: transparent; color: var(--text-normal); }
-
-/* P14 — Pop: scale up on active */
-.tc-settings.tc-tabs-pill-pop .tc-tab--active {
-  background: var(--interactive-accent);
-  color: var(--text-on-accent);
-  transform: scale(1.1);
-  box-shadow: 0 2px 10px rgba(0,0,0,0.25);
-}
-
-/* P15 — Shimmer sweep animation */
-.tc-settings.tc-tabs-pill-shimmer .tc-tab--active {
-  background: linear-gradient(
-    90deg,
-    var(--color-accent, #e5b32a) 0%,
-    #cba6f7 30%,
-    #89b4fa 60%,
-    var(--color-accent, #e5b32a) 100%
-  );
-  background-size: 300% 100%;
-  animation: tc-shimmer 2.5s linear infinite;
-  color: #1e1e2e;
-  font-weight: 600;
-}
-
-/* P16 — Mono: white text, dark pill */
-.tc-settings.tc-tabs-pill-mono .tc-tab--active {
-  background: var(--text-normal);
-  color: var(--background-primary);
-  font-weight: 600;
-}
-
-/* P17 — Badge: accent with offset ring */
-.tc-settings.tc-tabs-pill-badge .tc-tab--active {
-  background: var(--interactive-accent);
-  color: var(--text-on-accent);
-  box-shadow: 0 0 0 2px var(--background-primary), 0 0 0 3.5px var(--color-accent, #e5b32a);
-}
-
-/* P18 — Line-under hybrid: pill shape + accent underline */
-.tc-settings.tc-tabs-pill-lineunder .tc-tab::after {
-  content: '';
-  position: absolute;
-  bottom: -2px;
-  left: 20%;
-  right: 20%;
-  height: 2px;
-  border-radius: 1px;
-  background: var(--color-accent, #e5b32a);
-  transform: scaleX(0);
-  transition: transform 0.2s ease;
-}
-.tc-settings.tc-tabs-pill-lineunder .tc-tab--active {
-  background: var(--background-secondary);
-  color: var(--text-normal);
-}
-.tc-settings.tc-tabs-pill-lineunder .tc-tab--active::after { transform: scaleX(1); }
-
-/* P19 — Dark matte */
-.tc-settings.tc-tabs-pill-dark .tc-tab--active {
-  background: rgba(0,0,0,0.55);
-  color: var(--text-normal);
-  box-shadow: inset 0 1px 0 rgba(var(--mono-rgb-100, 200, 200, 200), 0.06), 0 2px 8px rgba(0,0,0,0.4);
-}
-
-/* P20 — Pulse glow animation */
-.tc-settings.tc-tabs-pill-pulse .tc-tab--active {
-  background: var(--interactive-accent);
-  color: var(--text-on-accent);
-  animation: tc-pulse-glow 2s ease-in-out infinite;
-}
-
-/* P21 — Sweep: diagonal light sweep across the active tab */
-.tc-settings.tc-tabs-pill-sweep .tc-tab--active {
-  background: linear-gradient(
-    110deg,
-    transparent 0%,
-    color-mix(in srgb, var(--color-accent, #e5b32a) 20%, transparent) 40%,
-    color-mix(in srgb, var(--color-accent, #e5b32a) 10%, transparent) 70%,
-    transparent 100%
-  );
-  color: var(--color-accent, #e5b32a);
-  font-weight: 600;
-}
-.tc-settings.tc-tabs-pill-sweep .tc-tab:hover {
-  background: color-mix(in srgb, var(--color-accent, #e5b32a) 6%, transparent);
-}
-
-/* P22 — Frost + Tint: accent wash + frosted glass */
-.tc-settings.tc-tabs-pill-frosttint .tc-tab--active {
-  background: color-mix(in srgb, var(--color-accent, #e5b32a) 12%, rgba(var(--mono-rgb-100, 200, 200, 200), 0.06));
-  backdrop-filter: blur(10px) saturate(1.6);
-  -webkit-backdrop-filter: blur(10px) saturate(1.6);
-  color: var(--color-accent, #e5b32a);
-  font-weight: 600;
-  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--color-accent, #e5b32a) 30%, rgba(var(--mono-rgb-100, 200, 200, 200), 0.15)),
-              0 2px 8px rgba(0,0,0,0.2);
-}
-.tc-settings.tc-tabs-pill-frosttint .tc-tab:hover {
-  background: color-mix(in srgb, var(--color-accent, #e5b32a) 6%, rgba(var(--mono-rgb-100, 200, 200, 200), 0.03));
-}
-
-/* ════════════════════════════════════════
-   UNDERLINE VARIANTS (20)
-   All use a shared base for the bar + tab reset,
-   then ::after pseudo-elements for creative indicators
-   ════════════════════════════════════════ */
-
-/* Shared underline tab bar + tab reset */
-[class*="tc-tabs-line"] .tc-tab-bar {
-  padding: 12px 0 0;
-  border-bottom: 1px solid var(--background-modifier-border) !important;
-  margin-bottom: 36px;
-}
-[class*="tc-tabs-line"] .tc-tab {
-  border-radius: 0;
-  padding: 8px 16px;
-  border-bottom: 2px solid transparent !important;
-  margin-bottom: -1px !important;
-  margin-right: 0 !important;
-  overflow: visible;
-}
-[class*="tc-tabs-line"] .tc-tab:first-child { border-radius: 5px 0 0 0; }
-[class*="tc-tabs-line"] .tc-tab:last-child  { border-radius: 0 5px 0 0; margin-right: 0 !important; }
-[class*="tc-tabs-line"] .tc-tab:hover { background: transparent; }
-
-/* ::after indicator base for pseudo-element variants */
-[class*="tc-tabs-line"] .tc-tab::after {
-  content: '';
-  position: absolute;
-  bottom: -1px;
-  left: 0; right: 0;
-  height: 2px;
-  background: transparent;
-  transition: background 0.15s, transform 0.2s, opacity 0.15s, height 0.15s;
-}
-
-/* L01 — Thin accent line */
-.tc-settings.tc-tabs-line .tc-tab--active {
-  color: var(--text-normal);
-  border-bottom-color: var(--color-accent, #e5b32a) !important;
-}
-
-/* L02 — Thick line + tint bg */
-.tc-settings.tc-tabs-line-thick .tc-tab { border-bottom-width: 3px !important; }
-.tc-settings.tc-tabs-line-thick .tc-tab--active {
-  background: color-mix(in srgb, var(--color-accent, #e5b32a) 8%, transparent);
-  color: var(--color-accent, #e5b32a);
-  border-bottom-color: var(--color-accent, #e5b32a) !important;
-  font-weight: 600;
-}
-
-/* L03 — Fat 5px slab */
-.tc-settings.tc-tabs-line-fat .tc-tab { border-bottom-width: 5px !important; }
-.tc-settings.tc-tabs-line-fat .tc-tab--active {
-  color: var(--text-normal);
-  border-bottom-color: var(--color-accent, #e5b32a) !important;
-}
-
-/* L04 — Glow line */
-.tc-settings.tc-tabs-line-glow .tc-tab--active {
-  color: var(--text-normal);
-  border-bottom-color: var(--color-accent, #e5b32a) !important;
-  filter: drop-shadow(0 2px 6px var(--color-accent, #e5b32a));
-}
-
-/* L05 — Gradient line via ::after */
-.tc-settings.tc-tabs-line-grad .tc-tab--active { color: var(--text-normal); border-bottom-color: transparent !important; }
-.tc-settings.tc-tabs-line-grad .tc-tab--active::after {
-  background: linear-gradient(90deg, #f38ba8, var(--color-accent, #e5b32a), #cba6f7);
-  height: 2px;
-}
-
-/* L06 — Top indicator */
-.tc-settings.tc-tabs-line-top .tc-tab { border-bottom: none !important; border-top: 2px solid transparent !important; margin-bottom: 0 !important; margin-top: -1px !important; }
-.tc-settings.tc-tabs-line-top .tc-tab-bar { border-bottom: none !important; border-top: 1px solid var(--background-modifier-border) !important; padding: 0 0 12px; }
-.tc-settings.tc-tabs-line-top .tc-tab--active { color: var(--text-normal); border-top-color: var(--color-accent, #e5b32a) !important; }
-
-/* L07 — Full-height fill */
-.tc-settings.tc-tabs-line-fill .tc-tab--active {
-  background: color-mix(in srgb, var(--color-accent, #e5b32a) 12%, transparent);
-  color: var(--color-accent, #e5b32a);
-  border-bottom-color: var(--color-accent, #e5b32a) !important;
-  border-radius: 4px 4px 0 0;
-  font-weight: 600;
-}
-
-/* L08 — Rounded cap line via ::after */
-.tc-settings.tc-tabs-line-cap .tc-tab--active { color: var(--text-normal); border-bottom-color: transparent !important; }
-.tc-settings.tc-tabs-line-cap .tc-tab--active::after {
-  background: var(--color-accent, #e5b32a);
-  height: 3px;
-  border-radius: 3px;
-  left: 16px; right: 16px;
-}
-
-/* L09 — Grow from center */
-.tc-settings.tc-tabs-line-grow .tc-tab::after { transform: scaleX(0); transform-origin: center; }
-.tc-settings.tc-tabs-line-grow .tc-tab--active { color: var(--text-normal); border-bottom-color: transparent !important; }
-.tc-settings.tc-tabs-line-grow .tc-tab--active::after {
-  background: var(--color-accent, #e5b32a);
-  height: 2px;
-  transform: scaleX(1);
-}
-
-/* L10 — Three-dot indicator */
-.tc-settings.tc-tabs-line-dots .tc-tab { border-bottom: none !important; }
-.tc-settings.tc-tabs-line-dots .tc-tab::after {
-  content: '· · ·';
-  background: none;
-  color: transparent;
-  bottom: -2px;
-  left: 0; right: 0;
-  text-align: center;
-  font-size: 10px;
-  line-height: 1;
-  letter-spacing: 2px;
-  transition: color 0.15s;
-  height: auto;
-}
-.tc-settings.tc-tabs-line-dots .tc-tab--active { color: var(--text-normal); }
-.tc-settings.tc-tabs-line-dots .tc-tab--active::after { color: var(--color-accent, #e5b32a); }
-
-/* L11 — Sweep bg on active */
-.tc-settings.tc-tabs-line-sweep .tc-tab--active {
-  background: linear-gradient(180deg, transparent 40%, color-mix(in srgb, var(--color-accent, #e5b32a) 10%, transparent) 100%);
-  color: var(--text-normal);
-  border-bottom-color: var(--color-accent, #e5b32a) !important;
-}
-
-/* L12 — Highlight marker */
-.tc-settings.tc-tabs-line-highlight .tc-tab--active {
-  background: color-mix(in srgb, var(--color-accent, #e5b32a) 20%, transparent);
-  color: var(--text-normal);
-  border-bottom-color: transparent !important;
-  border-radius: 2px 2px 0 0;
-}
-
-/* L13 — Left side bar */
-.tc-settings.tc-tabs-line-side .tc-tab { border-bottom: none !important; border-left: 3px solid transparent !important; padding-left: 13px; }
-.tc-settings.tc-tabs-line-side .tc-tab-bar { border-bottom: none !important; }
-.tc-settings.tc-tabs-line-side .tc-tab--active { color: var(--text-normal); border-left-color: var(--color-accent, #e5b32a) !important; font-weight: 600; }
-
-/* L14 — Overline (top) */
-.tc-settings.tc-tabs-line-over .tc-tab { border-bottom: none !important; }
-.tc-settings.tc-tabs-line-over .tc-tab::after { top: 0; bottom: auto; height: 2px; }
-.tc-settings.tc-tabs-line-over .tc-tab--active { color: var(--text-normal); }
-.tc-settings.tc-tabs-line-over .tc-tab--active::after { background: var(--color-accent, #e5b32a); }
-
-/* L15 — Pill+line hybrid */
-.tc-settings.tc-tabs-line-pill .tc-tab--active {
-  background: color-mix(in srgb, var(--color-accent, #e5b32a) 10%, transparent);
-  color: var(--text-normal);
-  border-bottom-color: var(--color-accent, #e5b32a) !important;
-  border-radius: 6px 6px 0 0;
-}
-
-/* L16 — Neon line */
-.tc-settings.tc-tabs-line-neon .tc-tab--active {
-  color: var(--color-accent, #e5b32a);
-  border-bottom-color: var(--color-accent, #e5b32a) !important;
-  text-shadow: 0 0 8px var(--color-accent, #e5b32a);
-  filter: drop-shadow(0 2px 8px var(--color-accent, #e5b32a));
-}
-
-/* L17 — Double line via border + ::after */
-.tc-settings.tc-tabs-line-double .tc-tab--active { color: var(--text-normal); border-bottom-color: var(--color-accent, #e5b32a) !important; }
-.tc-settings.tc-tabs-line-double .tc-tab--active::after {
-  background: var(--color-accent, #e5b32a);
-  bottom: -4px;
-  height: 1px;
-  opacity: 0.4;
-}
-
-/* L18 — Bracket [ ] corners */
-.tc-settings.tc-tabs-line-bracket .tc-tab--active {
-  color: var(--text-normal);
-  border-bottom-color: transparent !important;
-  box-shadow: -2px 0 0 0 var(--color-accent, #e5b32a), 2px 0 0 0 var(--color-accent, #e5b32a);
-}
-.tc-settings.tc-tabs-line-bracket .tc-tab--active::after {
-  background: var(--color-accent, #e5b32a);
-  height: 2px;
-}
-
-/* L19 — Bold text only, no line */
-.tc-settings.tc-tabs-line-bold .tc-tab { border-bottom: none !important; }
-.tc-settings.tc-tabs-line-bold .tc-tab-bar { border-bottom: none !important; }
-.tc-settings.tc-tabs-line-bold .tc-tab--active { color: var(--text-normal); font-weight: 700; font-size: 13px; border-bottom-color: transparent !important; }
-
-/* L20 — Detached floating line (gap below) */
-.tc-settings.tc-tabs-line-float .tc-tab--active { color: var(--text-normal); border-bottom-color: transparent !important; }
-.tc-settings.tc-tabs-line-float .tc-tab--active::after {
-  background: var(--color-accent, #e5b32a);
-  height: 2px;
-  bottom: -4px;
-  border-radius: 1px;
-}
-
-/* L21 — Frost + Tint: accent wash underline + frosted full-height bg */
-.tc-settings.tc-tabs-line-frosttint .tc-tab--active {
-  background: color-mix(in srgb, var(--color-accent, #e5b32a) 10%, rgba(var(--mono-rgb-100, 200, 200, 200), 0.05));
-  backdrop-filter: blur(8px) saturate(1.5);
-  -webkit-backdrop-filter: blur(8px) saturate(1.5);
-  color: var(--color-accent, #e5b32a);
-  font-weight: 600;
-  border-bottom-color: var(--color-accent, #e5b32a) !important;
-  border-radius: 4px 4px 0 0;
-}
-
-/* ════════════════════════════════════════
-   SEGMENT VARIANTS (20)
-   ════════════════════════════════════════ */
-
-/* Shared segment base */
-[class*="tc-tabs-seg"] .tc-tab-bar { padding: 12px 0; }
-[class*="tc-tabs-seg"] .tc-tab-inner-wrap {
+/* Switch + Amber: pill track lives on the inner wrap. Subtle — no
+   border, 3% mono bg only (down from 4% + 1px border). */
+.tc-settings.tc-tabs-switch .tc-tab-inner-wrap,
+.tc-settings.tc-tabs-switch-amber .tc-tab-inner-wrap {
   display: inline-flex;
-  border-radius: 8px;
   padding: 3px;
-}
-[class*="tc-tabs-seg"] .tc-tab {
-  border-radius: 6px;
-  padding: 5px 14px;
-  margin-right: var(--tc-tab-gap, 6px) !important;
-}
-[class*="tc-tabs-seg"] .tc-tab:last-child { margin-right: 0 !important; }
-
-/* S01 — Raised card */
-.tc-settings.tc-tabs-seg .tc-tab-inner-wrap { background: var(--background-secondary); }
-.tc-settings.tc-tabs-seg .tc-tab:hover { background: var(--background-primary-alt); }
-.tc-settings.tc-tabs-seg .tc-tab--active { background: var(--background-primary); color: var(--text-normal); box-shadow: 0 1px 3px rgba(0,0,0,0.2); }
-
-/* S02 — Accent fill */
-.tc-settings.tc-tabs-seg-accent .tc-tab-inner-wrap { background: var(--background-secondary); }
-.tc-settings.tc-tabs-seg-accent .tc-tab:hover { background: var(--background-primary-alt); }
-.tc-settings.tc-tabs-seg-accent .tc-tab--active { background: var(--interactive-accent); color: var(--text-on-accent); box-shadow: 0 1px 4px rgba(0,0,0,0.25); }
-
-/* S03 — Border outline wrap */
-.tc-settings.tc-tabs-seg-border .tc-tab-inner-wrap { background: transparent; box-shadow: inset 0 0 0 1px var(--background-modifier-border); }
-.tc-settings.tc-tabs-seg-border .tc-tab:hover { background: var(--background-modifier-hover); }
-.tc-settings.tc-tabs-seg-border .tc-tab--active { background: transparent; color: var(--color-accent, #e5b32a); box-shadow: inset 0 0 0 1.5px var(--color-accent, #e5b32a); }
-
-/* S04 — Full pill inside wrap */
-.tc-settings.tc-tabs-seg-pill .tc-tab-inner-wrap { background: var(--background-secondary); }
-.tc-settings.tc-tabs-seg-pill .tc-tab { border-radius: 100px; }
-.tc-settings.tc-tabs-seg-pill .tc-tab:hover { background: var(--background-primary-alt); }
-.tc-settings.tc-tabs-seg-pill .tc-tab--active { background: var(--interactive-accent); color: var(--text-on-accent); }
-
-/* S05 — Raised + glow */
-.tc-settings.tc-tabs-seg-glow .tc-tab-inner-wrap { background: var(--background-secondary); }
-.tc-settings.tc-tabs-seg-glow .tc-tab:hover { background: var(--background-primary-alt); }
-.tc-settings.tc-tabs-seg-glow .tc-tab--active {
-  background: var(--background-primary);
-  color: var(--text-normal);
-  box-shadow: 0 2px 8px rgba(0,0,0,0.3), 0 0 12px 2px var(--color-accent, #e5b32a);
+  background: rgba(var(--mono-rgb-100, 200, 200, 200), 0.03);
+  border-radius: 100px;
+  position: relative;
 }
 
-/* S06 — Gradient active */
-.tc-settings.tc-tabs-seg-grad .tc-tab-inner-wrap { background: var(--background-secondary); }
-.tc-settings.tc-tabs-seg-grad .tc-tab:hover { background: var(--background-primary-alt); }
-.tc-settings.tc-tabs-seg-grad .tc-tab--active {
-  background: linear-gradient(120deg, var(--color-accent, #e5b32a) 0%, #cba6f7 100%);
-  color: #1e1e2e;
-  font-weight: 600;
+.tc-settings.tc-tabs-switch .tc-tab,
+.tc-settings.tc-tabs-switch-amber .tc-tab {
+  padding: 7px 14px;
+  border-radius: 100px;
+  margin-right: var(--tc-tab-gap, 2px) !important;
+  transition: color 180ms cubic-bezier(0.32, 0.72, 0, 1),
+              background 180ms cubic-bezier(0.32, 0.72, 0, 1),
+              box-shadow 180ms cubic-bezier(0.32, 0.72, 0, 1);
+  position: relative;
+  z-index: 2;
 }
 
-/* S07 — Frosted active */
-.tc-settings.tc-tabs-seg-frost .tc-tab-inner-wrap { background: rgba(var(--mono-rgb-100, 200, 200, 200), 0.04); box-shadow: inset 0 0 0 1px rgba(var(--mono-rgb-100, 200, 200, 200), 0.08); }
-.tc-settings.tc-tabs-seg-frost .tc-tab:hover { background: rgba(var(--mono-rgb-100, 200, 200, 200), 0.04); }
-.tc-settings.tc-tabs-seg-frost .tc-tab--active {
-  background: rgba(var(--mono-rgb-100, 200, 200, 200), 0.1);
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
-  color: var(--text-normal);
-  box-shadow: inset 0 0 0 1px rgba(var(--mono-rgb-100, 200, 200, 200), 0.2), 0 2px 6px rgba(0,0,0,0.2);
-}
+/* No font-weight change on active in any variant — the weight bump
+   shifted text width and "disrupted the shape" (user feedback).
+   Active communicated by colour + background + inset ring only. */
 
-/* S08 — Inset wrap, raised active */
-.tc-settings.tc-tabs-seg-inset .tc-tab-inner-wrap {
-  background: var(--background-primary);
-  box-shadow: inset 0 2px 6px rgba(0,0,0,0.35);
-}
-.tc-settings.tc-tabs-seg-inset .tc-tab:hover { background: var(--background-primary-alt); }
-.tc-settings.tc-tabs-seg-inset .tc-tab--active { background: var(--background-secondary); color: var(--text-normal); box-shadow: 0 1px 4px rgba(0,0,0,0.2); }
-
-/* S09 — Flat, no wrap bg */
-.tc-settings.tc-tabs-seg-flat .tc-tab-inner-wrap { background: transparent; }
-.tc-settings.tc-tabs-seg-flat .tc-tab:hover { background: var(--background-modifier-hover); }
-.tc-settings.tc-tabs-seg-flat .tc-tab--active { background: var(--background-secondary); color: var(--text-normal); }
-
-/* S10 — Underline indicator inside wrap */
-.tc-settings.tc-tabs-seg-underline .tc-tab-inner-wrap { background: var(--background-secondary); border-radius: 8px 8px 0 0; }
-.tc-settings.tc-tabs-seg-underline .tc-tab { border-radius: 0; border-bottom: 2px solid transparent; }
-.tc-settings.tc-tabs-seg-underline .tc-tab:hover { background: transparent; }
-.tc-settings.tc-tabs-seg-underline .tc-tab--active { background: transparent; color: var(--text-normal); border-bottom-color: var(--color-accent, #e5b32a); }
-
-/* S11 — Dot below active */
-.tc-settings.tc-tabs-seg-dot .tc-tab-inner-wrap { background: var(--background-secondary); }
-.tc-settings.tc-tabs-seg-dot .tc-tab { padding-bottom: 12px; }
-.tc-settings.tc-tabs-seg-dot .tc-tab::after {
-  content: '';
-  position: absolute;
-  bottom: 3px; left: 50%;
-  transform: translateX(-50%) scale(0);
-  width: 4px; height: 4px;
-  border-radius: 50%;
-  background: var(--color-accent, #e5b32a);
-  transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
-}
-.tc-settings.tc-tabs-seg-dot .tc-tab--active { background: var(--background-primary); color: var(--text-normal); }
-.tc-settings.tc-tabs-seg-dot .tc-tab--active::after { transform: translateX(-50%) scale(1); }
-
-/* S12 — Neon dark wrap */
-.tc-settings.tc-tabs-seg-neon .tc-tab-inner-wrap { background: rgba(0,0,0,0.5); box-shadow: inset 0 0 0 1px var(--color-accent, #e5b32a); }
-.tc-settings.tc-tabs-seg-neon .tc-tab:hover { background: rgba(var(--mono-rgb-100, 200, 200, 200), 0.05); }
-.tc-settings.tc-tabs-seg-neon .tc-tab--active {
-  background: rgba(0,0,0,0.3);
+/* Switch — default, subtle accent (integrated per user directive) */
+.tc-settings.tc-tabs-switch .tc-tab--active {
   color: var(--color-accent, #e5b32a);
-  box-shadow: inset 0 0 0 1px var(--color-accent, #e5b32a), 0 0 10px 1px var(--color-accent, #e5b32a);
-  text-shadow: 0 0 6px var(--color-accent, #e5b32a);
+  background: rgba(var(--color-accent-rgb, 229, 179, 42), 0.08);
+  box-shadow: inset 0 0 0 1px rgba(var(--color-accent-rgb, 229, 179, 42), 0.28);
 }
 
-/* S13 — Minimal ultra-subtle */
-.tc-settings.tc-tabs-seg-minimal .tc-tab-inner-wrap { background: color-mix(in srgb, var(--background-modifier-border) 30%, transparent); }
-.tc-settings.tc-tabs-seg-minimal .tc-tab:hover { background: var(--background-modifier-hover); }
-.tc-settings.tc-tabs-seg-minimal .tc-tab--active { background: var(--background-secondary); color: var(--text-normal); }
-
-/* S14 — Sharp corners */
-.tc-settings.tc-tabs-seg-sharp .tc-tab-inner-wrap { background: var(--background-secondary); border-radius: 2px; }
-.tc-settings.tc-tabs-seg-sharp .tc-tab { border-radius: 1px; }
-.tc-settings.tc-tabs-seg-sharp .tc-tab:hover { background: var(--background-primary-alt); }
-.tc-settings.tc-tabs-seg-sharp .tc-tab--active { background: var(--interactive-accent); color: var(--text-on-accent); }
-
-/* S15 — Outline active only */
-.tc-settings.tc-tabs-seg-outline .tc-tab-inner-wrap { background: var(--background-secondary); }
-.tc-settings.tc-tabs-seg-outline .tc-tab:hover { background: var(--background-primary-alt); }
-.tc-settings.tc-tabs-seg-outline .tc-tab--active { background: transparent; color: var(--text-normal); box-shadow: inset 0 0 0 1.5px var(--background-modifier-border); }
-
-/* S16 — Gradient wrap */
-.tc-settings.tc-tabs-seg-gradwrap .tc-tab-inner-wrap {
-  background: linear-gradient(120deg, color-mix(in srgb, var(--color-accent, #e5b32a) 15%, var(--background-secondary)), color-mix(in srgb, #cba6f7 15%, var(--background-secondary)));
-}
-.tc-settings.tc-tabs-seg-gradwrap .tc-tab:hover { background: rgba(var(--mono-rgb-100, 200, 200, 200), 0.05); }
-.tc-settings.tc-tabs-seg-gradwrap .tc-tab--active { background: var(--background-primary); color: var(--text-normal); box-shadow: 0 1px 4px rgba(0,0,0,0.2); }
-
-/* S17 — Dividers between tabs */
-.tc-settings.tc-tabs-seg-split .tc-tab-inner-wrap { background: var(--background-secondary); gap: 0; }
-.tc-settings.tc-tabs-seg-split .tc-tab { margin-right: 0 !important; border-right: 1px solid var(--background-modifier-border); border-radius: 0; }
-.tc-settings.tc-tabs-seg-split .tc-tab:first-child { border-radius: 6px 0 0 6px; }
-.tc-settings.tc-tabs-seg-split .tc-tab:last-child  { border-radius: 0 6px 6px 0; border-right: none; }
-.tc-settings.tc-tabs-seg-split .tc-tab:hover { background: var(--background-primary-alt); }
-.tc-settings.tc-tabs-seg-split .tc-tab--active { background: var(--interactive-accent); color: var(--text-on-accent); }
-
-/* S18 — Thick padding, substantial feel */
-.tc-settings.tc-tabs-seg-thick .tc-tab-inner-wrap { background: var(--background-secondary); border-radius: 10px; padding: 5px; }
-.tc-settings.tc-tabs-seg-thick .tc-tab { border-radius: 7px; padding: 8px 20px; }
-.tc-settings.tc-tabs-seg-thick .tc-tab:hover { background: var(--background-primary-alt); }
-.tc-settings.tc-tabs-seg-thick .tc-tab--active { background: var(--background-primary); color: var(--text-normal); box-shadow: 0 2px 6px rgba(0,0,0,0.25); }
-
-/* S19 — Badge active */
-.tc-settings.tc-tabs-seg-badge .tc-tab-inner-wrap { background: transparent; }
-.tc-settings.tc-tabs-seg-badge .tc-tab:hover { background: var(--background-modifier-hover); }
-.tc-settings.tc-tabs-seg-badge .tc-tab--active {
-  background: var(--interactive-accent);
-  color: var(--text-on-accent);
-  box-shadow: 0 0 0 2px var(--background-primary), 0 0 0 3.5px var(--color-accent, #e5b32a);
-}
-
-/* S20 — Mono inverted */
-.tc-settings.tc-tabs-seg-mono .tc-tab-inner-wrap { background: var(--background-secondary); }
-.tc-settings.tc-tabs-seg-mono .tc-tab:hover { background: var(--background-primary-alt); }
-.tc-settings.tc-tabs-seg-mono .tc-tab--active { background: var(--text-normal); color: var(--background-primary); font-weight: 600; }
-
-/* S-Soft — surface + inset border (mirrors pill-soft) */
-.tc-settings.tc-tabs-seg-soft .tc-tab-inner-wrap { background: var(--background-secondary); }
-.tc-settings.tc-tabs-seg-soft .tc-tab:hover { background: var(--background-primary-alt); }
-.tc-settings.tc-tabs-seg-soft .tc-tab--active {
-  background: var(--background-primary);
-  color: var(--text-normal);
-  box-shadow: inset 0 0 0 1px var(--background-modifier-border), 0 1px 3px rgba(0,0,0,0.15);
-}
-
-/* S-Ghost — transparent wrap, accent outline on active (mirrors pill-ghost) */
-.tc-settings.tc-tabs-seg-ghost .tc-tab-inner-wrap {
-  background: transparent;
-  box-shadow: inset 0 0 0 1.5px var(--background-modifier-border);
-}
-.tc-settings.tc-tabs-seg-ghost .tc-tab:hover { background: var(--background-modifier-hover); }
-.tc-settings.tc-tabs-seg-ghost .tc-tab--active {
-  background: transparent;
+/* Switch-amber — stronger accent (same language, more weight) */
+.tc-settings.tc-tabs-switch-amber .tc-tab--active {
   color: var(--color-accent, #e5b32a);
-  box-shadow: inset 0 0 0 1.5px var(--color-accent, #e5b32a);
+  background: rgba(var(--color-accent-rgb, 229, 179, 42), 0.16);
+  box-shadow: inset 0 0 0 1px rgba(var(--color-accent-rgb, 229, 179, 42), 0.48);
 }
 
-/* S21 — Tint: accent wash bg + accent text */
-.tc-settings.tc-tabs-seg-tint .tc-tab-inner-wrap { background: var(--background-secondary); }
-.tc-settings.tc-tabs-seg-tint .tc-tab:hover { background: color-mix(in srgb, var(--color-accent, #e5b32a) 8%, transparent); }
-.tc-settings.tc-tabs-seg-tint .tc-tab--active {
-  background: color-mix(in srgb, var(--color-accent, #e5b32a) 15%, transparent);
+/* Underline — zero-chrome, border on the inner wrap only (so the
+   line spans the tab strip, not the full bar) */
+.tc-settings.tc-tabs-underline .tc-tab-inner-wrap {
+  border-bottom: 1px solid var(--background-modifier-border);
+  padding: 0 0 2px;
+}
+.tc-settings.tc-tabs-underline .tc-tab {
+  padding: 8px 14px 9px;
+  border-radius: 0;
+  margin-right: var(--tc-tab-gap, 4px) !important;
+}
+.tc-settings.tc-tabs-underline .tc-tab--active {
   color: var(--color-accent, #e5b32a);
-  font-weight: 600;
+  box-shadow: inset 0 -2px 0 var(--color-accent, #e5b32a);
 }
 
-/* S22 — Sweep: diagonal accent sweep across active tab */
-.tc-settings.tc-tabs-seg-sweep .tc-tab-inner-wrap { background: var(--background-secondary); }
-.tc-settings.tc-tabs-seg-sweep .tc-tab:hover { background: color-mix(in srgb, var(--color-accent, #e5b32a) 6%, transparent); }
-.tc-settings.tc-tabs-seg-sweep .tc-tab--active {
-  background: linear-gradient(
-    110deg,
-    transparent 0%,
-    color-mix(in srgb, var(--color-accent, #e5b32a) 22%, transparent) 40%,
-    color-mix(in srgb, var(--color-accent, #e5b32a) 10%, transparent) 70%,
-    transparent 100%
-  );
+/* Ghost — outlined pill, no fill */
+.tc-settings.tc-tabs-ghost .tc-tab {
+  padding: 6px 13px;
+  border-radius: 100px;
+  margin-right: var(--tc-tab-gap, 4px) !important;
+}
+.tc-settings.tc-tabs-ghost .tc-tab--active {
   color: var(--color-accent, #e5b32a);
-  font-weight: 600;
-}
-
-/* S23 — Frost + Tint: accent-washed frosted glass wrap + active tab */
-.tc-settings.tc-tabs-seg-frosttint .tc-tab-inner-wrap {
-  background: color-mix(in srgb, var(--color-accent, #e5b32a) 6%, rgba(var(--mono-rgb-100, 200, 200, 200), 0.04));
-  backdrop-filter: blur(8px) saturate(1.4);
-  -webkit-backdrop-filter: blur(8px) saturate(1.4);
-  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--color-accent, #e5b32a) 25%, rgba(var(--mono-rgb-100, 200, 200, 200), 0.1));
-}
-.tc-settings.tc-tabs-seg-frosttint .tc-tab:hover {
-  background: color-mix(in srgb, var(--color-accent, #e5b32a) 8%, rgba(var(--mono-rgb-100, 200, 200, 200), 0.04));
-}
-.tc-settings.tc-tabs-seg-frosttint .tc-tab--active {
-  background: color-mix(in srgb, var(--color-accent, #e5b32a) 18%, rgba(var(--mono-rgb-100, 200, 200, 200), 0.08));
-  backdrop-filter: blur(12px) saturate(1.8);
-  -webkit-backdrop-filter: blur(12px) saturate(1.8);
-  color: var(--color-accent, #e5b32a);
-  font-weight: 600;
-  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--color-accent, #e5b32a) 40%, rgba(var(--mono-rgb-100, 200, 200, 200), 0.2)),
-              0 2px 8px rgba(0,0,0,0.2);
+  box-shadow: inset 0 0 0 1px var(--color-accent, #e5b32a);
 }
 
 /* ── Tab style switcher ── */
@@ -1159,7 +600,7 @@
   flex-direction: column;
   align-items: center;
   justify-content: flex-start;
-  gap: 3px;
+  gap: 6px;
   flex-shrink: 0;
   /* Reserve the full dot + caption height on every pip so the dot row
      stays aligned whether the caption is present or not. */
@@ -1172,6 +613,14 @@
   text-transform: uppercase;
   letter-spacing: 0.05em;
   opacity: 0.7;
+  transition: opacity 0.12s ease, color 0.12s ease;
+}
+/* When the pip above the caption is selected, the caption brightens —
+   adjacent-sibling selector picks the caption that immediately follows
+   the active dot inside the same .tc-accent-item column. */
+.tc-settings .tc-accent-dot--active + .tc-accent-caption {
+  opacity: 1;
+  color: var(--text-muted);
 }
 
 /* Auto: transparent, dashed border in a muted neutral tone so it reads as
@@ -2244,15 +1693,25 @@ body.tc-radius-rounded .tc-settings .tc-feat-group { border-radius: 14px !import
 }
 
 /* Inset-card clusters — semantic sub-grouping inside an accordion body.
-   Each cluster has a small-caps label and a subtly-tinted rounded box so
-   related settings read as a coherent unit rather than a flat list.
-   Dense accordions (Theme & Colour, Interface, Outliner, Workspace) use
-   clusters to break 4+ heterogeneous settings into 2-3 clear semantics. */
+   Each cluster has a small-caps label and a subtly accent-tinted rounded
+   box so related settings read as a coherent unit rather than a flat list.
+   Visual language ported from the "Boxed Properties panel" feature
+   (tc-fm-boxed .metadata-container, ~line 1488): diagonal accent gradient,
+   accent-tinted hairline, soft drop shadow. Same treatment unifies the
+   plugin's own UI with the feature it ships. Dense accordions (Theme &
+   Colour, Interface, Outliner, Workspace) use clusters to break 4+
+   heterogeneous settings into 2-3 clear semantics. */
 .tc-settings .tc-cluster {
-  background: var(--background-secondary-alt);
-  border: 1px solid var(--background-modifier-border);
-  border-radius: 8px;
-  padding: 10px 14px 12px;
+  background: linear-gradient(135deg,
+    color-mix(in srgb, var(--color-accent) 8%, transparent),
+    color-mix(in srgb, var(--color-accent) 3%, transparent));
+  border: 1px solid color-mix(in srgb, var(--color-accent) 22%, transparent);
+  /* Corner radius tracks the global cornerRadius setting via --radius-l
+     (0 / 6 / 18 for sharp / subtle / rounded). Fallback 10px covers
+     the case where .tc-radius-* isn't on body (plugin disabled mid-render). */
+  border-radius: var(--radius-l, 10px);
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.08);
+  padding: 14px 14px 12px;
   margin: 14px 0 0 0;
 }
 .tc-settings .tc-feat-body.tc-setting-card > .tc-cluster:first-child {
@@ -2893,7 +2352,7 @@ body.tc-borders-ligne-claire .titlebar {
    ════════════════════════════════════════════════════════════════════════ */
 .tc-settings .tc-seg {
   display: inline-flex;
-  background: var(--background-secondary);
+  background: rgba(var(--mono-rgb-100, 200, 200, 200), 0.04);
   border-radius: 999px;
   padding: 3px;
   gap: 2px;
@@ -2920,11 +2379,19 @@ body.tc-borders-ligne-claire .titlebar {
   min-height: 24px;
 }
 .tc-settings .tc-seg-btn:hover { color: var(--text-normal); }
+/* Active pill — frosted-glass treatment ported from the menu tab pill-frost
+   variant so segment pickers share the same visual vocabulary as the tab
+   bar. Container .tc-seg was loosened to a 4%-alpha mono tint so the
+   backdrop-filter has something to sample. */
 .tc-settings .tc-seg-btn--active,
 .tc-settings .tc-seg-btn--active:hover {
-  background: var(--background-primary) !important;
+  background: rgba(var(--mono-rgb-100, 200, 200, 200), 0.07) !important;
+  backdrop-filter: blur(10px) saturate(1.4);
+  -webkit-backdrop-filter: blur(10px) saturate(1.4);
   color: var(--text-normal) !important;
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.18) !important;
+  box-shadow:
+    inset 0 0 0 1px rgba(var(--mono-rgb-100, 200, 200, 200), 0.14),
+    0 2px 8px rgba(0, 0, 0, 0.2) !important;
 }
 
 /* Placeholder accordion body — used by Sidebar Outliner + Graph shells
@@ -3529,30 +2996,55 @@ body.is-translucent.tc-bg-effect-glass .nav-files-container > * {
    parent to have content to blur). The plugin shows a description note
    pointing to the setting; there's nothing more to do from CSS. */
 
-/* ════════════════════════════════════════════════════════════════════════
-   Film-grain noise — a CSS pseudo-element scoped to .workspace so it
-   never smears over modals, the settings dialog, or any floating overlay.
-   Opacity is driven by --tc-noise-opacity (0 = invisible).
-
-   The SVG uses high-frequency fractal noise (baseFrequency 1.2) and an
-   explicit <feComponentTransfer> contrast stretch so the grain is PUNCHY
-   — visible black and white specks rather than the grey mush that plain
-   turbulence + blend-mode:overlay produced before. mix-blend-mode:soft-light
-   reads warmer and more paper-like than overlay, which was being crushed
-   into invisibility on the darker workspace surfaces.
-   ════════════════════════════════════════════════════════════════════════ */
+/* ═══════════════════════════════════════════════════════════
+   Grain textures — four variants, same --tc-noise-opacity drives alpha
+   ═══════════════════════════════════════════════════════════ */
 body.tc-has-noise .workspace {
-  position: relative; /* anchors the ::before pseudo-element */
+  position: relative; /* anchors the ::after pseudo-element */
 }
-body.tc-has-noise .workspace::before {
+
+body.tc-has-noise .workspace::after {
   content: '';
   position: absolute;
   inset: 0;
   pointer-events: none;
-  z-index: 100;
   opacity: var(--tc-noise-opacity, 0);
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='1.2' numOctaves='3' stitchTiles='stitch'/%3E%3CfeComponentTransfer%3E%3CfeFuncR type='linear' slope='2.2' intercept='-0.6'/%3E%3CfeFuncG type='linear' slope='2.2' intercept='-0.6'/%3E%3CfeFuncB type='linear' slope='2.2' intercept='-0.6'/%3E%3C/feComponentTransfer%3E%3C/filter%3E%3Crect width='300' height='300' filter='url(%23n)'/%3E%3C/svg%3E");
+  z-index: 1;
+  mix-blend-mode: overlay;
+}
+
+/* Film — fine monochrome gaussian, mid-frequency */
+body.tc-has-noise.tc-grain-film .workspace::after {
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='200' height='200'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='1.2' numOctaves='3' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 1  0 0 0 0 1  0 0 0 0 1  0 0 0 0.55 0'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>");
+  background-size: 200px 200px;
+}
+
+/* Paper — coarser grain, warm bias, soft-light blend for cream feel */
+body.tc-has-noise.tc-grain-paper .workspace::after {
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='220' height='220'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.55' numOctaves='2' stitchTiles='stitch' seed='9'/><feColorMatrix values='0 0 0 0 0.92  0 0 0 0 0.82  0 0 0 0 0.68  0 0 0 0.48 0'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>");
+  background-size: 220px 220px;
   mix-blend-mode: soft-light;
+}
+
+/* Halftone — regular dot tile, 6px period */
+body.tc-has-noise.tc-grain-halftone .workspace::after {
+  /* Two radial-gradient tiles at 6px periods, both at tile-local 25%,25%,
+     offset by (3, 3) so absolute dots land at (1.5, 1.5) and (4.5, 4.5) —
+     a proper staggered checkerboard. Reviewer caught this during Task 2
+     QA: prior version had 75%,75% + (3,3) offset which collapsed both
+     layers onto the same absolute positions (1.5, 1.5) mod 6. */
+  background-image:
+    radial-gradient(circle at 25% 25%, rgba(255,255,255,0.8) 0.9px, transparent 1.2px),
+    radial-gradient(circle at 25% 25%, rgba(255,255,255,0.8) 0.9px, transparent 1.2px);
+  background-size: 6px 6px, 6px 6px;
+  background-position: 0 0, 3px 3px;
+}
+
+/* Static — high-contrast turbulence, hard-light blend for CRT feel */
+body.tc-has-noise.tc-grain-static .workspace::after {
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='160' height='160'><filter id='n'><feTurbulence type='turbulence' baseFrequency='2.8' numOctaves='2' stitchTiles='stitch' seed='3'/><feColorMatrix values='0 0 0 0 1  0 0 0 0 1  0 0 0 0 1  0 0 0 1.6 -0.4'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>");
+  background-size: 160px 160px;
+  mix-blend-mode: hard-light;
 }
 
 /* ════════════════════════════════════════════════════════════════════════
@@ -3809,4 +3301,210 @@ body.tc-has-noise .workspace::before {
   font-style: italic;
   margin-top: -2px;
   margin-bottom: 0.9em;
+}
+
+/* ═══════════════════════════════════════════════════════════
+   Graph view — plugin-owned overlays
+   ═══════════════════════════════════════════════════════════ */
+
+/* Node and link scale via CSS vars — applied only inside the graph
+   view container so we don't affect any other circle/line elements. */
+body .workspace-leaf-content[data-type="graph"] .graph-view.color-circle {
+  transform: scale(var(--tc-graph-node-scale, 1));
+}
+body .workspace-leaf-content[data-type="graph"] .graph-view.color-line {
+  stroke-width: calc(1px * var(--tc-graph-link-thickness, 1));
+}
+
+/* Hover halo — plugin-owned SVG filter / box-shadow overlay.
+   Only active when body has tc-graph-halo. */
+body.tc-graph-halo .workspace-leaf-content[data-type="graph"] .graph-view.color-circle:hover {
+  filter: drop-shadow(0 0 6px var(--color-accent));
+}
+
+/* ═══════════════════════════════════════════════════════════
+   Markdown body — follow cornerRadius setting
+
+   User-requested (2026-04-16): every element inside the markdown body
+   inherits the plugin's corner radius (sharp / subtle / rounded). This
+   is a deliberate plugin/theme boundary exception — painting over
+   theme-owned paint — because Tom wants uniform radius across the
+   entire content surface, not just chrome.
+
+   Driven by --radius-m (0 / 4 / 12 for sharp / subtle / rounded),
+   which is already written at body scope by the body.tc-radius-* class.
+   Images and embeds take the full --radius-l for stronger presence.
+   ═══════════════════════════════════════════════════════════ */
+
+.markdown-rendered .callout,
+.markdown-source-view .callout,
+.markdown-preview-view .callout,
+.markdown-rendered pre,
+.markdown-source-view pre,
+.markdown-preview-view pre,
+.markdown-rendered blockquote,
+.markdown-preview-view blockquote,
+.markdown-rendered table,
+.markdown-preview-view table,
+.HyperMD-codeblock-begin-bg,
+.HyperMD-codeblock-end-bg {
+  border-radius: var(--radius-m, 4px) !important;
+}
+
+/* Inline code — smaller radius so the chip reads as a word-level affordance */
+.markdown-rendered :not(pre) > code,
+.markdown-preview-view :not(pre) > code {
+  border-radius: var(--radius-s, 2px) !important;
+}
+
+/* Images + embeds — use the larger radius for stronger physical presence */
+.markdown-rendered img,
+.markdown-preview-view img,
+.markdown-rendered .internal-embed,
+.markdown-rendered .markdown-embed,
+.markdown-preview-view .internal-embed,
+.markdown-preview-view .markdown-embed {
+  border-radius: var(--radius-l, 8px) !important;
+}
+
+/* ═══════════════════════════════════════════════════════════
+   Legacy tab — left-rail navigation shell
+   ═══════════════════════════════════════════════════════════ */
+
+.tc-settings .tc-leftrail-shell {
+  display: grid;
+  grid-template-columns: 180px 1fr;
+  gap: 0;
+  background: var(--background-primary);
+  border: 1px solid var(--background-modifier-border);
+  border-radius: var(--radius-l, 8px);
+  overflow: hidden;
+  min-height: 420px;
+}
+
+.tc-settings .tc-leftrail-rail {
+  background: var(--background-secondary);
+  border-right: 1px solid var(--background-modifier-border);
+  padding: 8px 0;
+}
+
+.tc-settings .tc-leftrail-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 7px 16px;
+  font-size: 12px;
+  color: var(--text-muted);
+  cursor: pointer;
+  border-left: 2px solid transparent;
+  transition: background 120ms ease, color 120ms ease, border-left-color 120ms ease;
+}
+
+.tc-settings .tc-leftrail-item:hover {
+  background: var(--background-modifier-hover);
+  color: var(--text-normal);
+}
+
+.tc-settings .tc-leftrail-item--active {
+  color: var(--text-normal);
+  background: rgba(var(--color-accent-rgb, 229, 179, 42), 0.04);
+  border-left-color: var(--color-accent);
+  font-weight: 600;
+}
+
+.tc-settings .tc-leftrail-count {
+  font-size: 10px;
+  color: var(--text-faint);
+  font-weight: 400;
+  font-variant-numeric: tabular-nums;
+}
+
+.tc-settings .tc-leftrail-item--active .tc-leftrail-count {
+  color: var(--text-muted);
+}
+
+.tc-settings .tc-leftrail-pane {
+  padding: 18px 20px;
+  overflow-y: auto;
+}
+
+.tc-settings .tc-leftrail-sechead {
+  margin: 0 0 4px 0;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-normal);
+  letter-spacing: -0.005em;
+}
+
+.tc-settings .tc-leftrail-secdesc {
+  margin: 0 0 16px 0;
+  font-size: 11px;
+  color: var(--text-muted);
+  line-height: 1.5;
+  max-width: 62ch;
+}
+
+/* Row dividers inside the content pane — dashboard hardening */
+.tc-settings .tc-leftrail-pane .setting-item {
+  border-top: 1px solid var(--background-modifier-border-hover);
+  padding: 9px 0;
+}
+.tc-settings .tc-leftrail-pane .setting-item:first-of-type {
+  border-top: none;
+}
+
+/* ═══════════════════════════════════════════════════════════
+   Flavour indicator — tiny swatches above the settings header
+   showing the active light + dark flavours. Very subtle, small.
+   ═══════════════════════════════════════════════════════════ */
+
+.tc-settings .tc-flavour-indicator {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  margin-bottom: 10px;
+  opacity: 0.6;
+}
+.tc-settings .tc-flavour-row {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+}
+.tc-settings .tc-flavour-sw {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  border: 1px solid rgba(var(--mono-rgb-100, 200, 200, 200), 0.18);
+  flex-shrink: 0;
+}
+.tc-settings .tc-flavour-label {
+  font-size: 9px;
+  text-transform: lowercase;
+  letter-spacing: 0.08em;
+  color: var(--text-muted);
+  font-variant: small-caps;
+}
+
+/* ═══════════════════════════════════════════════════════════
+   Flavour captions — small "licht" / "tegenlicht" labels that
+   sit above the Light flavour / Dark flavour setting rows inside
+   the Palette cluster. Very subtle; reads as a section marker,
+   not a control.
+   ═══════════════════════════════════════════════════════════ */
+
+.tc-settings .tc-flavour-caption {
+  margin-top: 8px;
+  margin-bottom: -2px;
+  padding-left: 2px;
+}
+.tc-settings .tc-flavour-caption:first-child {
+  margin-top: 4px;
+}
+.tc-settings .tc-flavour-caption-label {
+  font-size: 9px;
+  letter-spacing: 0.12em;
+  text-transform: lowercase;
+  font-variant: small-caps;
+  color: var(--text-faint);
+  opacity: 0.8;
 }
