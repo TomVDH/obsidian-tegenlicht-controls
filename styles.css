@@ -287,29 +287,10 @@
 }
 .tc-color-bar.tc-color-bar--accent:hover { opacity: 1; }
 
-/* Header variant — lives in the settings panel header between the
-   tagline and the footer copy row — RETIRED, rainbow now lives at
-   the top of the Legacy left rail (.tc-leftrail-rainbow rule below). */
-
-/* Rainbow flourish at the top of the Legacy left rail. Inherits the
-   gradient + height + radius from .tc-color-bar; this rule just slots
-   it into the rail layout (full-width of the rail, top-aligned, not
-   interactive — no hover, no active). */
-.tc-settings .tc-leftrail-rainbow {
-  /* Top margin tuned so the rainbow's vertical midline lines up with
-     the right pane's section header (h3) midline — pane padding-top
-     18 + h3 line-box ~9 = 27px from pane top; rail padding-top 8 + 17
-     + 2 = 27px from rail top. Keeps the two columns optically aligned
-     across the divider.
-
-     Horizontal margin matches the rail-item text inset (10px) so the
-     rainbow's edges line up with the labels below, cutting off a hair
-     earlier than the rail's inner edge. */
-  margin: 17px 10px 10px;
-  width: auto;
-  pointer-events: none;
-  flex-shrink: 0;
-}
+/* Rainbow variants at the top of the left rail and in the settings
+   header — both retired (2026-04-17). The accent divider right below
+   the top tab bar already carries the "accent territory" cue; a
+   second colour element at the top of every rail was redundant. */
 
 /* ── Swatch cards ── */
 .tc-settings .tc-swatch-card {

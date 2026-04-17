@@ -164,11 +164,11 @@ export function buildLeftRailShell(
     active.render(pane);
   };
 
-  // Rainbow flourish at the top of the rail — non-interactive visual
-  // marker. Sits squarely top-aligned, doesn't accept hover/active
-  // styling. Replaces the rainbow bar that used to live in the
-  // settings-panel header.
-  rail.createDiv("tc-leftrail-rainbow tc-color-bar");
+  // Rainbow flourish retired (2026-04-17) — the accent divider below
+  // the main tab bar already carries the "you're in the accent
+  // universe" cue, so a second colour element at the top of every
+  // rail was redundant. Leaving a little top padding via the rail
+  // container so the first nav item doesn't hug the divider.
 
   sections.forEach(section => {
     const item = rail.createDiv("tc-leftrail-item");
@@ -267,26 +267,45 @@ export function buildHorizontalTabs(parent: HTMLElement, tabs: HorizontalTab[]):
 
 const prettyAccordionOpen: Record<string, boolean> = {};
 
-/** Foldable accent-painted accordion. `open` defaults to true on
- *  first visit; subsequent visits honour the user's toggle state
- *  via the module-level map. Returns the body for content. */
+/** Foldable accent-painted accordion. Accepts a `variant` name that
+ *  maps directly to the Lab → Accordion styles picks (pretty, gutter,
+ *  ghost, twotone, halo, filed, bloc, subdued). Production DOM carries
+ *  BOTH `.tc-feat-group--{variant}` (legacy) AND `.tc-mock-acc--{variant}`
+ *  (Lab's class prefix) on the container + inner header elements, so
+ *  every Lab variant's CSS rule applies automatically — no CSS
+ *  duplication needed. `defaultOpen` seeds the module-level map;
+ *  subsequent visits respect the user's toggle state.
+ *
+ *  Body keeps its production classes only (`.tc-feat-body
+ *  .tc-setting-card`) — Lab's `.tc-mock-acc-body` uses a max-height
+ *  transition capped at 280px that would clip large setting-item
+ *  lists. Production's display:none/block stays. Body-specific
+ *  variant rules in Lab (only Folio has any) are cosmetic-padding
+ *  only, so skipping the class on body is harmless. */
 export function buildPrettyAccordion(
   container: HTMLElement,
   key: string,
   title: string,
   defaultOpen = true,
+  variant: string = "pretty",
 ): HTMLElement {
   if (!(key in prettyAccordionOpen)) prettyAccordionOpen[key] = defaultOpen;
   const isOpen = prettyAccordionOpen[key];
   const accordion = container.createDiv(
-    "tc-feat-group tc-feat-group--pretty" + (isOpen ? " tc-feat-group--open" : "")
+    `tc-feat-group tc-feat-group--${variant} tc-mock-acc tc-mock-acc--${variant}` +
+    (isOpen ? " tc-feat-group--open tc-mock-acc--open" : "")
   );
-  const header = accordion.createDiv("tc-feat-header");
-  header.createDiv("tc-feat-title").createSpan({ text: title });
-  header.createDiv("tc-feat-meta").createSpan({ text: "▶", cls: "tc-feat-chevron" });
+  const header = accordion.createDiv("tc-feat-header tc-mock-acc-header");
+  header.createDiv("tc-feat-title tc-mock-acc-title").createSpan({ text: title });
+  // Chevron glyph is painted entirely via variant CSS (::before content)
+  // — no inline text, so each variant can pick its own symbol without
+  // a "▶▶" double-glyph collision against an inline character.
+  header.createDiv("tc-feat-meta").createSpan({ cls: "tc-feat-chevron tc-mock-acc-chev" });
   header.addEventListener("click", () => {
-    prettyAccordionOpen[key] = !prettyAccordionOpen[key];
-    accordion.toggleClass("tc-feat-group--open", prettyAccordionOpen[key]);
+    const next = !prettyAccordionOpen[key];
+    prettyAccordionOpen[key] = next;
+    accordion.toggleClass("tc-feat-group--open", next);
+    accordion.toggleClass("tc-mock-acc--open", next);
   });
   return accordion.createDiv("tc-feat-body tc-setting-card");
 }
