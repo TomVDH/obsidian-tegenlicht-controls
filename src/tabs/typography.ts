@@ -39,6 +39,42 @@ const accordionOpen: Record<string, boolean> = {
   fonts: true, rhythm: true, headings: true, weight: true, accents: true,
 };
 
+/** Collapsible "PREVIEW" affordance — matches the Callouts section
+ *  in the Legacy tab exactly:
+ *    [PREVIEW label] · [dashed connector] · [chevron circle button]
+ *  Clicking the chevron fades the preview wrap open/closed via a
+ *  maxHeight transition. Content is built EAGERLY into the wrap
+ *  (not lazy) so the first expand lands with zero flicker — same
+ *  behaviour as Callouts. */
+function buildSectionPreview(
+  pane: HTMLElement,
+  buildContent: (wrap: HTMLElement) => void,
+): void {
+  const bar = pane.createDiv("tc-section-preview-bar");
+  bar.createSpan({ cls: "tc-section-preview-label", text: "PREVIEW" });
+  bar.createDiv("tc-section-preview-dash");
+  const btn = bar.createEl("button", {
+    cls: "tc-circle-btn tc-section-preview-btn",
+    attr: { "aria-label": "Toggle preview", title: "Toggle preview" },
+  });
+  setIcon(btn, "chevron-down");
+
+  const wrap = pane.createDiv("tc-section-preview-wrap");
+  buildContent(wrap);
+
+  let open = false;
+  btn.addEventListener("click", () => {
+    open = !open;
+    if (open) {
+      wrap.style.maxHeight = wrap.scrollHeight + "px";
+      btn.addClass("tc-section-preview-btn--open");
+    } else {
+      wrap.style.maxHeight = "0px";
+      btn.removeClass("tc-section-preview-btn--open");
+    }
+  });
+}
+
 /** Foldable pretty-painted accordion living inside a rail pane. The
  *  container paints with the accent-gradient cluster treatment via
  *  `.tc-feat-group--pretty`; state persists across renders via
@@ -193,6 +229,9 @@ function renderFonts(
   pane.createEl("p", { cls: "tc-leftrail-secdesc",
     text: "Role-based mapping for Interface / Editor / Source. Load optional families from Google Fonts; fall back to system when disabled." });
 
+  // In-section collapsible preview, same pattern as Callouts.
+  buildSectionPreview(pane, buildTypographyPreview);
+
   const card = buildPrettyAccordion(pane, "fonts", "Role mapping");
 
   new Setting(card)
@@ -231,6 +270,9 @@ function renderRhythm(
   pane.createEl("h3", { cls: "tc-leftrail-sechead", text: "Rhythm" });
   pane.createEl("p", { cls: "tc-leftrail-secdesc",
     text: "Vertical rhythm of the document — heading sizes in ems, plus list indent and item spacing." });
+
+  // In-section collapsible preview, same pattern as Callouts.
+  buildSectionPreview(pane, buildTypographyPreview);
 
   const card = buildPrettyAccordion(pane, "rhythm", "Sliders");
   card.addClass("tc-h-accordion-body");
@@ -318,14 +360,11 @@ export function build(
 
   const shellCleanup = buildLeftRailShell(wrap, sections);
 
-  // Dynamic preview — stays outside the rail so it's visible
-  // regardless of which section is active. Reads live slider drags
-  // via --hN-size vars on body.
-  const previewHeader = wrap.createDiv("tc-typo-preview-header");
-  previewHeader.createSpan({ text: "Dynamic Preview", cls: "tc-typo-preview-title" });
-  previewHeader.createSpan({ text: "Live Obsidian mock — reads your sliders as you drag", cls: "tc-typo-preview-desc" });
-
-  buildTypographyPreview(wrap);
+  // Dynamic preview now lives INSIDE each rail section (Fonts,
+  // Rhythm) via buildSectionPreview — same Callouts-style PREVIEW
+  // strip with a chevron toggle. The always-visible preview that
+  // used to sit below the rail has been retired since every
+  // relevant section now has its own contextual preview.
 
   return shellCleanup;
 }
