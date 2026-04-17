@@ -5599,21 +5599,62 @@ body.tc-graph-halo .workspace-leaf-content[data-type="graph"] .graph-view.color-
 }
 
 /* ═══════════════════════════════════════════════════════════════════
-   LAB → ACCORDION STYLES — five variants of the pretty-accordion shell.
-   Shared DOM shape across variants:
+   LAB → ACCORDION STYLES — a library of variants on the pretty-
+   accordion shell. Each variant sits inside a `.tc-mock-acc-block`
+   that carries a section title (h5) + subquip (p) ABOVE the
+   accordion — simulates real production usage where a rail pane
+   renders title + quip + accordion stacked. Block margin owns the
+   vertical rhythm; variants share a flush-left edge with title/quip
+   (no per-variant horizontal inset) so the outer left edge reads
+   as ONE continuous vertical line through the block.
+
+   Shared accordion DOM shape across variants:
      .tc-mock-acc.{variant}.tc-mock-acc--open?
        .tc-mock-acc-header
-         .tc-mock-acc-kicker?  (opt-in, variant E only)
+         .tc-mock-acc-kicker?   (opt-in, E bloc only)
          .tc-mock-acc-title
-         .tc-mock-acc-chev     (empty — glyph via ::before per variant)
+         .tc-mock-acc-chev      (empty — glyph via ::before)
        .tc-mock-acc-body
-         .tc-mock-acc-blurb
          .tc-mock-acc-row × 3
-   Variant CSS owns bg/border/header flow/chevron glyph. Body expand-
-   collapse is a max-height transition driven by .tc-mock-acc--open.
    ═══════════════════════════════════════════════════════════════════ */
+
+/* Block wrapper — simulates a pane-level section. Uniform margin
+   between blocks so the Lab pane reads as a rhythmic list. */
+.tc-settings .tc-mock-acc-block {
+  margin: 0 0 26px 0;
+  padding: 0;
+}
+.tc-settings .tc-mock-acc-block:last-child { margin-bottom: 0; }
+
+/* Section title — same visual weight as a rail-pane h3 sechead,
+   shrunk a notch so a dozen stack legibly. Flush-left with the
+   accordion below. */
+.tc-settings .tc-mock-acc-section-title {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--color-accent);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  margin: 0 0 4px 0;
+  padding: 0;
+}
+
+/* Section subquip — same muted reading tone as a rail-pane p secdesc. */
+.tc-settings .tc-mock-acc-section-quip {
+  margin: 0 0 10px 0;
+  padding: 0;
+  font-size: 12px;
+  color: var(--text-muted);
+  line-height: 1.55;
+  max-width: 62ch;
+}
+
 .tc-settings .tc-mock-acc {
-  margin: 14px 0;
+  /* Per-variant margins reset to 0 — the block's margin-bottom
+     owns the gap between variants so the list rhythm stays
+     consistent regardless of variant chrome (some used to add
+     their own 14–18px margins, which stacked unevenly). */
+  margin: 0;
   border-radius: 6px;
   overflow: hidden;
   transition: border-color 0.22s ease, box-shadow 0.22s ease;
@@ -5653,13 +5694,8 @@ body.tc-graph-halo .workspace-leaf-content[data-type="graph"] .graph-view.color-
   max-height: 280px;
   padding: 4px 14px 14px;
 }
-.tc-settings .tc-mock-acc-blurb {
-  font-size: 11px;
-  color: var(--text-muted);
-  margin: 0 0 10px;
-  line-height: 1.5;
-  font-style: italic;
-}
+/* Blurb paragraph inside the body removed — the section subquip
+   above the accordion now carries the description role. */
 .tc-settings .tc-mock-acc-row {
   display: flex;
   align-items: center;
@@ -5736,7 +5772,10 @@ body.tc-graph-halo .workspace-leaf-content[data-type="graph"] .graph-view.color-
   background: var(--background-secondary);
   border: 1px solid var(--background-modifier-border);
   border-radius: 8px;
-  margin-top: 28px;
+  /* Top margin tuned so the filed-chip overhang has room to protrude
+     above the card without colliding with the section subquip line
+     above. Block margin handles the rest of the rhythm. */
+  margin-top: 14px;
   position: relative;
   overflow: visible;
 }
@@ -5787,7 +5826,7 @@ body.tc-graph-halo .workspace-leaf-content[data-type="graph"] .graph-view.color-
   border-top: 1px solid rgba(var(--mono-rgb-100, 200, 200, 200), 0.14);
   border-bottom: 1px solid rgba(var(--mono-rgb-100, 200, 200, 200), 0.14);
   border-radius: 0;
-  margin: 10px 0;
+  margin: 0;
 }
 .tc-settings .tc-mock-acc--hairline .tc-mock-acc-header {
   padding: 9px 4px;
@@ -5880,7 +5919,7 @@ body.tc-graph-halo .workspace-leaf-content[data-type="graph"] .graph-view.color-
   border-top: 1px solid rgba(var(--color-accent-rgb, 229, 179, 42), 0.32);
   border-bottom: 1px solid rgba(var(--color-accent-rgb, 229, 179, 42), 0.32);
   border-radius: 0;
-  margin: 18px 0;
+  margin: 0;
 }
 .tc-settings .tc-mock-acc--slab .tc-mock-acc-header {
   padding: 15px 8px 14px;
@@ -5924,7 +5963,7 @@ body.tc-graph-halo .workspace-leaf-content[data-type="graph"] .graph-view.color-
   border-radius: 6px;
   position: relative;
   overflow: visible;
-  margin: 18px 0;
+  margin: 0;
 }
 .tc-settings .tc-mock-acc--ghost .tc-mock-acc-header {
   position: relative;
@@ -5986,7 +6025,7 @@ body.tc-graph-halo .workspace-leaf-content[data-type="graph"] .graph-view.color-
   background: transparent;
   border: 1px solid rgba(var(--mono-rgb-100, 200, 200, 200), 0.14);
   border-radius: 4px;
-  margin: 14px 0;
+  margin: 0;
 }
 .tc-settings .tc-mock-acc--ledger .tc-mock-acc-header {
   padding: 10px 14px;
@@ -6176,3 +6215,179 @@ body.tc-graph-halo .workspace-leaf-content[data-type="graph"] .graph-view.color-
 .tc-settings .tc-mock-acc--halo.tc-mock-acc--open .tc-mock-acc-chev {
   transform: rotate(90deg);
 }
+
+/* ── M · Floating shadow ─────────────────────────────────────
+   Pretty default at rest, but lifted: accent-tinted drop shadow
+   + slight y-offset makes the card hover above the page surface.
+   Hover deepens the lift for a subtle grab affordance. */
+.tc-settings .tc-mock-acc--floating {
+  background: linear-gradient(135deg,
+    color-mix(in srgb, var(--color-accent) 7%, transparent),
+    color-mix(in srgb, var(--color-accent) 2%, transparent));
+  border: 1px solid rgba(var(--color-accent-rgb, 229, 179, 42), 0.30);
+  border-radius: 7px;
+  box-shadow:
+    0 6px 18px -4px rgba(var(--color-accent-rgb, 229, 179, 42), 0.22),
+    0 2px 6px -2px rgba(0, 0, 0, 0.18);
+  transition: box-shadow 0.28s ease, transform 0.28s ease;
+}
+.tc-settings .tc-mock-acc--floating:hover {
+  box-shadow:
+    0 10px 24px -6px rgba(var(--color-accent-rgb, 229, 179, 42), 0.30),
+    0 4px 10px -2px rgba(0, 0, 0, 0.22);
+  transform: translateY(-1px);
+}
+.tc-settings .tc-mock-acc--floating .tc-mock-acc-title {
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  color: var(--text-normal);
+}
+.tc-settings .tc-mock-acc--floating .tc-mock-acc-chev::before { content: "▾"; }
+.tc-settings .tc-mock-acc--floating.tc-mock-acc--open .tc-mock-acc-chev {
+  transform: rotate(180deg);
+}
+
+/* ── N · Editorial ───────────────────────────────────────────
+   Regular-weight serif-ish title (inherits the Typography tab's
+   --tc-font-heading when set, otherwise inherit), a thin accent
+   pipe separator before the chevron, chevron sits inline. Flat
+   neutral card, thin accent top border only. Masthead feel. */
+.tc-settings .tc-mock-acc--editorial {
+  background: transparent;
+  border: none;
+  border-top: 2px solid rgba(var(--color-accent-rgb, 229, 179, 42), 0.55);
+  border-radius: 0;
+  margin: 0;
+}
+.tc-settings .tc-mock-acc--editorial .tc-mock-acc-header {
+  padding: 13px 6px 12px;
+}
+.tc-settings .tc-mock-acc--editorial .tc-mock-acc-title {
+  font-family: var(--tc-font-heading, inherit);
+  font-size: 15px;
+  font-weight: 500;
+  letter-spacing: -0.005em;
+  color: var(--text-normal);
+}
+.tc-settings .tc-mock-acc--editorial .tc-mock-acc-chev {
+  color: var(--text-muted);
+  font-size: 13px;
+  padding-left: 10px;
+  margin-left: 6px;
+  border-left: 1px solid rgba(var(--color-accent-rgb, 229, 179, 42), 0.40);
+  line-height: 1;
+}
+.tc-settings .tc-mock-acc--editorial .tc-mock-acc-chev::before { content: "›"; }
+.tc-settings .tc-mock-acc--editorial.tc-mock-acc--open .tc-mock-acc-chev::before { content: "⌄"; }
+.tc-settings .tc-mock-acc--editorial .tc-mock-acc-body {
+  padding: 0 6px;
+}
+.tc-settings .tc-mock-acc--editorial.tc-mock-acc--open .tc-mock-acc-body {
+  padding: 4px 6px 14px;
+}
+
+/* ── O · Tab stop ────────────────────────────────────────────
+   Small accent chip fused with the LEFT of the header — sits
+   INSIDE the card, not overhanging (contrast Filing tab which
+   overhangs the top edge). Reads like a coloured tab marker
+   identifying the section. Rest of the card neutral. */
+.tc-settings .tc-mock-acc--tabstop {
+  background: var(--background-secondary);
+  border: 1px solid var(--background-modifier-border);
+  border-radius: 6px;
+  margin: 0;
+}
+.tc-settings .tc-mock-acc--tabstop .tc-mock-acc-header {
+  padding: 0;
+  gap: 0;
+}
+.tc-settings .tc-mock-acc--tabstop .tc-mock-acc-title {
+  flex: 0 0 auto;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.16em;
+  padding: 11px 14px;
+  background: rgba(var(--color-accent-rgb, 229, 179, 42), 0.18);
+  color: var(--color-accent);
+  border-right: 1px solid rgba(var(--color-accent-rgb, 229, 179, 42), 0.30);
+  border-radius: 5px 0 0 5px;
+}
+.tc-settings .tc-mock-acc--tabstop .tc-mock-acc-chev {
+  color: var(--text-muted);
+  margin-left: auto;
+  padding-right: 14px;
+  font-size: 12px;
+}
+.tc-settings .tc-mock-acc--tabstop .tc-mock-acc-chev::before { content: "▾"; }
+.tc-settings .tc-mock-acc--tabstop.tc-mock-acc--open .tc-mock-acc-chev {
+  transform: rotate(180deg);
+}
+
+/* ── P · Compact rail ────────────────────────────────────────
+   Very tight header padding (for dense panes). Small 10px title,
+   tiny chevron. Neutral card with a 1px mono border across all
+   four sides for contained feel. Designed for lists of many
+   collapsed accordions where vertical real estate matters. */
+.tc-settings .tc-mock-acc--compact {
+  background: rgba(var(--mono-rgb-100, 200, 200, 200), 0.02);
+  border: 1px solid rgba(var(--mono-rgb-100, 200, 200, 200), 0.12);
+  border-radius: 3px;
+  margin: 0;
+}
+.tc-settings .tc-mock-acc--compact .tc-mock-acc-header {
+  padding: 6px 10px;
+  gap: 8px;
+}
+.tc-settings .tc-mock-acc--compact .tc-mock-acc-title {
+  font-size: 10px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: var(--text-muted);
+}
+.tc-settings .tc-mock-acc--compact .tc-mock-acc-chev {
+  font-size: 9px;
+  color: var(--text-faint);
+}
+.tc-settings .tc-mock-acc--compact .tc-mock-acc-chev::before { content: "›"; }
+.tc-settings .tc-mock-acc--compact.tc-mock-acc--open .tc-mock-acc-chev {
+  transform: rotate(90deg);
+}
+.tc-settings .tc-mock-acc--compact .tc-mock-acc-body {
+  padding: 0 10px;
+}
+.tc-settings .tc-mock-acc--compact.tc-mock-acc--open .tc-mock-acc-body {
+  padding: 2px 10px 10px;
+  max-height: 220px;
+}
+
+/* ── Q · Subdued dashed ──────────────────────────────────────
+   Faint neutral bg with a dashed mono border. Italic small
+   title, chevron is a text caret with no chrome around it —
+   minimal affordance, deliberate quietude. For auxiliary /
+   "also" sections that don't deserve attention on first read. */
+.tc-settings .tc-mock-acc--subdued {
+  background: rgba(var(--mono-rgb-100, 200, 200, 200), 0.02);
+  border: 1px dashed rgba(var(--mono-rgb-100, 200, 200, 200), 0.25);
+  border-radius: 4px;
+  margin: 0;
+}
+.tc-settings .tc-mock-acc--subdued .tc-mock-acc-header {
+  padding: 10px 14px;
+}
+.tc-settings .tc-mock-acc--subdued .tc-mock-acc-title {
+  font-size: 12px;
+  font-style: italic;
+  font-weight: 400;
+  color: var(--text-faint);
+  letter-spacing: 0.01em;
+}
+.tc-settings .tc-mock-acc--subdued .tc-mock-acc-chev {
+  color: var(--text-faint);
+  font-size: 12px;
+  font-family: var(--font-monospace, "SF Mono", monospace);
+}
+.tc-settings .tc-mock-acc--subdued .tc-mock-acc-chev::before { content: "+"; }
+.tc-settings .tc-mock-acc--subdued.tc-mock-acc--open .tc-mock-acc-chev::before { content: "−"; }
