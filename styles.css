@@ -5835,7 +5835,6 @@ body.tc-graph-halo .workspace-leaf-content[data-type="graph"] .graph-view.color-
   border-top: 1px solid rgba(var(--mono-rgb-100, 200, 200, 200), 0.14);
   border-bottom: 1px solid rgba(var(--mono-rgb-100, 200, 200, 200), 0.14);
   border-radius: 0;
-  margin: 0;
 }
 .tc-settings .tc-mock-acc--hairline .tc-mock-acc-header {
   padding: 9px 4px;
@@ -5932,7 +5931,6 @@ body.tc-graph-halo .workspace-leaf-content[data-type="graph"] .graph-view.color-
   border-top: 1px solid rgba(var(--color-accent-rgb, 229, 179, 42), 0.32);
   border-bottom: 1px solid rgba(var(--color-accent-rgb, 229, 179, 42), 0.32);
   border-radius: 0;
-  margin: 0;
 }
 .tc-settings .tc-mock-acc--slab .tc-mock-acc-header {
   padding: 15px 8px 14px;
@@ -5976,7 +5974,6 @@ body.tc-graph-halo .workspace-leaf-content[data-type="graph"] .graph-view.color-
   border-radius: 6px;
   position: relative;
   overflow: visible;
-  margin: 0;
 }
 .tc-settings .tc-mock-acc--ghost .tc-mock-acc-header {
   position: relative;
@@ -6048,7 +6045,6 @@ body.tc-graph-halo .workspace-leaf-content[data-type="graph"] .graph-view.color-
   background: transparent;
   border: 1px solid rgba(var(--mono-rgb-100, 200, 200, 200), 0.14);
   border-radius: 4px;
-  margin: 0;
 }
 .tc-settings .tc-mock-acc--ledger .tc-mock-acc-header {
   padding: 10px 14px;
@@ -6281,7 +6277,6 @@ body.tc-graph-halo .workspace-leaf-content[data-type="graph"] .graph-view.color-
   border: none;
   border-top: 2px solid rgba(var(--color-accent-rgb, 229, 179, 42), 0.55);
   border-radius: 0;
-  margin: 0;
 }
 .tc-settings .tc-mock-acc--editorial .tc-mock-acc-header {
   padding: 13px 6px 12px;
@@ -6319,7 +6314,6 @@ body.tc-graph-halo .workspace-leaf-content[data-type="graph"] .graph-view.color-
   background: var(--background-secondary);
   border: 1px solid var(--background-modifier-border);
   border-radius: 6px;
-  margin: 0;
 }
 .tc-settings .tc-mock-acc--tabstop .tc-mock-acc-header {
   padding: 0;
@@ -6371,7 +6365,6 @@ body.tc-graph-halo .workspace-leaf-content[data-type="graph"] .graph-view.color-
   background: rgba(var(--mono-rgb-100, 200, 200, 200), 0.02);
   border: 1px solid rgba(var(--mono-rgb-100, 200, 200, 200), 0.12);
   border-radius: 3px;
-  margin: 0;
 }
 .tc-settings .tc-mock-acc--compact .tc-mock-acc-header {
   padding: 6px 10px;
@@ -6409,7 +6402,6 @@ body.tc-graph-halo .workspace-leaf-content[data-type="graph"] .graph-view.color-
   background: rgba(var(--mono-rgb-100, 200, 200, 200), 0.02);
   border: 1px dashed rgba(var(--mono-rgb-100, 200, 200, 200), 0.25);
   border-radius: 4px;
-  margin: 0;
 }
 .tc-settings .tc-mock-acc--subdued .tc-mock-acc-header {
   padding: 10px 14px;
