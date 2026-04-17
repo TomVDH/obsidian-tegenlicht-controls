@@ -247,10 +247,11 @@ function renderPlaceholder(
   title: string,
   quip: string,
   hint: string,
+  accordionStyle: string,
 ): void {
   pane.createEl("h3", { cls: "tc-leftrail-sechead", text: title });
   pane.createEl("p", { cls: "tc-leftrail-secdesc", text: quip });
-  const card = buildPrettyAccordion(pane, key, "Not yet wired", true, s.accordionStyle);
+  const card = buildPrettyAccordion(pane, key, "Not yet wired", true, accordionStyle);
   card.createEl("p", { cls: "tc-empty-hint", text: hint });
 }
 
@@ -287,15 +288,18 @@ export function build(
     { id: "headings", label: "Headings",        count: 0,
       render: pane => renderPlaceholder(pane, "typo-headings", "Headings",
         "Per-heading colour, divider rule, decoration accents.",
-        "Lands with AnuPpuccin port Wave 3 — per-H colour dropdowns, divider toggles, decoration accents.") },
+        "Lands with AnuPpuccin port Wave 3 — per-H colour dropdowns, divider toggles, decoration accents.",
+        s.accordionStyle) },
     { id: "weight",   label: "Weight & leading", count: 0,
       render: pane => renderPlaceholder(pane, "typo-weight", "Weight & leading",
         "Per-heading font / weight / line-height plus global font weights.",
-        "Lands with Wave 4 — per-H font / weight / line-height plus global weight vars.") },
+        "Lands with Wave 4 — per-H font / weight / line-height plus global weight vars.",
+        s.accordionStyle) },
     { id: "accents",  label: "Accents",         count: 0,
       render: pane => renderPlaceholder(pane, "typo-accents", "Accents",
         "Bold / italic / highlight / link text-colour overrides.",
-        "Lands with Wave 3 decoration colours — bold / italic / highlight / link overrides.") },
+        "Lands with Wave 3 decoration colours — bold / italic / highlight / link overrides.",
+        s.accordionStyle) },
   ];
 
   const shellCleanup = buildLeftRailShell(wrap, sections);
