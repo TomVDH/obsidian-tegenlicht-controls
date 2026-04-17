@@ -169,8 +169,9 @@
    as a small accent flourish, not a full-width divider. Tighter margin
    top/bottom because the surrounding header rows already breathe. */
 .tc-color-bar.tc-color-bar--header {
-  width: 75px;
-  margin: 8px 0 10px;
+  width: 55px;
+  margin: 0;
+  flex-shrink: 0;
 }
 
 /* ── Swatch cards ── */
