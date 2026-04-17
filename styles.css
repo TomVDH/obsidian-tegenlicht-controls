@@ -147,9 +147,14 @@
 }
 /* Version badge — flattened to plain text (2026-04-17). No pill, no
    bg, no border, no hover/shimmer. Sits as a muted kicker label in
-   the header row alongside the wordmark + GitHub icon. Same small-
-   caps typography as the Settings Companion subtitle so the two
-   read as paired metadata. */
+   the header row alongside the GitHub icon + help (?) button.
+   Same small-caps typography as the Settings Companion subtitle.
+
+   Explicitly `align-self: center` so the badge lines up on the same
+   vertical midline as the two icon buttons it pairs with (both
+   inline-flex + align-items: center). The prior flex-end +
+   padding-bottom baseline trick left the badge sitting below the
+   icons' centre line. */
 .tc-settings .tc-header-badge {
   font-size: 10px;
   color: var(--text-muted);
@@ -162,9 +167,7 @@
   text-transform: uppercase;
   letter-spacing: 0.18em;
   cursor: default;
-  /* Align with the subtitle's baseline so the row reads level. */
-  align-self: flex-end;
-  padding-bottom: 6px;
+  align-self: center;
 }
 /* Combined shimmer: outer halo + inner edge glow + text glow all peak
    together, then taper sequentially within the same 1.6s window —
