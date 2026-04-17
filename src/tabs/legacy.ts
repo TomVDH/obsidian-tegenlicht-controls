@@ -101,6 +101,20 @@ export function build(
       count: 9,
       render: (pane) => renderTabsDeep(pane, s, onChange, refresh),
     },
+    // Temporary mock — verifies the rail label marquee on hover.
+    // Label is intentionally longer than the 116px rail can fit, so
+    // the .tc-leftrail-label-text translateX animation has something
+    // to reveal. Remove once the marquee is approved.
+    {
+      id: "mock-marquee-test",
+      label: "A Deliberately Overlong Label For Marquee Verification",
+      count: 0,
+      render: (pane) => {
+        pane.createEl("h3", { cls: "tc-leftrail-sechead", text: "Marquee test" });
+        pane.createEl("p", { cls: "tc-leftrail-secdesc",
+          text: "Temporary — hover the label of this rail item in the sidebar to verify the text rolls left to reveal the full string, then back. Container-query driven (100cqw − 100% in min(0px, …)), so it only animates when the text actually overflows the rail width." });
+      },
+    },
   ];
 
   const shellCleanup = buildLeftRailShell(containerEl, sections);
