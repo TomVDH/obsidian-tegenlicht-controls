@@ -749,8 +749,13 @@ body > div.modal-container .modal-close-button {
    GLOW B additionally frames every tab with a currentColor border
    ring (see rules below) and gives the active tab an accent ring
    overlay. */
-.tc-settings.tc-tabs-active-glow .tc-tab-slide-indicator,
-.tc-settings.tc-tabs-active-glow-b .tc-tab-slide-indicator {
+/* NOTE: `tc-tabs-active-*` is set on BODY by applier.ts (the settings
+   pane doesn't exist yet when apply() first runs from onload, so body
+   is the reliable anchor). Each tab-active variant rule therefore
+   matches body → .tc-settings rather than requiring both classes on
+   the same element. */
+body.tc-tabs-active-glow .tc-settings .tc-tab-slide-indicator,
+body.tc-tabs-active-glow-b .tc-settings .tc-tab-slide-indicator {
   background: radial-gradient(
     ellipse 120% 200% at var(--tc-slide-glow-x, 50%) var(--tc-slide-glow-y, 50%),
     rgba(var(--color-accent-rgb, 229, 179, 42), 0.22) 0%,
@@ -768,15 +773,15 @@ body > div.modal-container .modal-close-button {
    its frame lines up with the pretty-cluster + rail-active border
    language. Box-shadow excluded from the transition list to avoid
    the currentColor↔accent flicker. */
-.tc-settings.tc-tabs-active-glow-b .tc-tab {
+body.tc-tabs-active-glow-b .tc-settings .tc-tab {
   box-shadow: inset 0 0 0 1px color-mix(in srgb, currentColor 22%, transparent);
   transition: color 0.18s ease, background 0.22s ease;
 }
-.tc-settings.tc-tabs-active-glow-b .tc-tab:hover {
+body.tc-tabs-active-glow-b .tc-settings .tc-tab:hover {
   box-shadow: inset 0 0 0 1px color-mix(in srgb, currentColor 36%, transparent);
 }
-.tc-settings.tc-tabs-active-glow-b .tc-tab--active,
-.tc-settings.tc-tabs-active-glow-b .tc-tab--active:hover {
+body.tc-tabs-active-glow-b .tc-settings .tc-tab--active,
+body.tc-tabs-active-glow-b .tc-settings .tc-tab--active:hover {
   box-shadow: inset 0 0 0 1px rgba(var(--color-accent-rgb, 229, 179, 42), 0.40) !important;
 }
 
@@ -789,7 +794,7 @@ body > div.modal-container .modal-close-button {
    !important }` further up); the sliding indicator carries the
    accent pill instead. Tabs round to 100px so slider + button
    shapes line up. */
-.tc-settings.tc-tabs-active-pill .tc-tab {
+body.tc-tabs-active-pill .tc-settings .tc-tab {
   border-radius: 100px !important;
   padding: 5px 16px;
   box-shadow: inset 0 0 0 1px color-mix(in srgb, currentColor 22%, transparent);
@@ -799,10 +804,10 @@ body > div.modal-container .modal-close-button {
      the border change crisp. */
   transition: color 0.18s ease, background 0.22s ease;
 }
-.tc-settings.tc-tabs-active-pill .tc-tab:hover {
+body.tc-tabs-active-pill .tc-settings .tc-tab:hover {
   box-shadow: inset 0 0 0 1px color-mix(in srgb, currentColor 36%, transparent);
 }
-.tc-settings.tc-tabs-active-pill .tc-tab-slide-indicator {
+body.tc-tabs-active-pill .tc-settings .tc-tab-slide-indicator {
   background: rgba(var(--color-accent-rgb, 229, 179, 42), 0.16);
   box-shadow: inset 0 0 0 1px rgba(var(--color-accent-rgb, 229, 179, 42), 0.40);
   border-radius: 100px;
@@ -6017,3 +6022,157 @@ body.tc-graph-halo .workspace-leaf-content[data-type="graph"] .graph-view.color-
 }
 .tc-settings .tc-mock-acc--ledger .tc-mock-acc-chev::before { content: ">"; }
 .tc-settings .tc-mock-acc--ledger.tc-mock-acc--open .tc-mock-acc-chev::before { content: "v"; }
+
+/* Lab subheading — small-caps divider between the Pretty and
+   Simple accordion groups in the Lab pane. */
+.tc-settings .tc-lab-subhead {
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.18em;
+  color: var(--text-faint);
+  margin: 22px 0 6px;
+}
+.tc-settings .tc-lab-subhead:first-of-type { margin-top: 10px; }
+
+/* ── I · Two-tone ────────────────────────────────────────────
+   Accent-tinted header strip above a neutral body. The two
+   surfaces stack visually — the header wears the accent gradient,
+   the body is neutral secondary bg with its own inset tint. */
+.tc-settings .tc-mock-acc--twotone {
+  background: var(--background-secondary);
+  border: 1px solid rgba(var(--color-accent-rgb, 229, 179, 42), 0.24);
+  border-radius: 7px;
+}
+.tc-settings .tc-mock-acc--twotone .tc-mock-acc-header {
+  background: linear-gradient(135deg,
+    color-mix(in srgb, var(--color-accent) 14%, transparent),
+    color-mix(in srgb, var(--color-accent) 6%, transparent));
+  border-bottom: 1px solid rgba(var(--color-accent-rgb, 229, 179, 42), 0.24);
+  padding: 11px 14px;
+}
+.tc-settings .tc-mock-acc--twotone .tc-mock-acc-title {
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  color: var(--text-normal);
+}
+.tc-settings .tc-mock-acc--twotone .tc-mock-acc-chev {
+  color: var(--color-accent);
+}
+.tc-settings .tc-mock-acc--twotone .tc-mock-acc-chev::before { content: "▾"; }
+.tc-settings .tc-mock-acc--twotone.tc-mock-acc--open .tc-mock-acc-chev {
+  transform: rotate(180deg);
+}
+
+/* ── J · Bookmark rail ───────────────────────────────────────
+   Solid accent bar runs top-to-bottom down the LEFT EDGE, passing
+   through both header and body. Like a spine / bookmark. Bg is
+   neutral; the rail is the only accent trace. Rail is a pseudo-
+   element so it spans the whole card height regardless of which
+   children sit inside. */
+.tc-settings .tc-mock-acc--bookmark {
+  position: relative;
+  background: rgba(var(--mono-rgb-100, 200, 200, 200), 0.03);
+  border: 1px solid rgba(var(--mono-rgb-100, 200, 200, 200), 0.10);
+  border-radius: 4px 6px 6px 4px;
+  padding-left: 6px;
+  overflow: visible;
+}
+.tc-settings .tc-mock-acc--bookmark::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: -1px;
+  bottom: -1px;
+  width: 4px;
+  background: rgba(var(--color-accent-rgb, 229, 179, 42), 0.70);
+  border-radius: 4px 0 0 4px;
+}
+.tc-settings .tc-mock-acc--bookmark .tc-mock-acc-header {
+  padding: 12px 14px 11px 10px;
+}
+.tc-settings .tc-mock-acc--bookmark .tc-mock-acc-title {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-normal);
+  letter-spacing: 0.02em;
+}
+.tc-settings .tc-mock-acc--bookmark .tc-mock-acc-chev::before { content: "›"; }
+.tc-settings .tc-mock-acc--bookmark.tc-mock-acc--open .tc-mock-acc-chev::before { content: "⌄"; }
+
+/* ── K · Accent ring ─────────────────────────────────────────
+   Thick 2px accent ring surrounds the whole card. Bg stays
+   neutral so the ring reads as the only accent element. Title
+   and chevron both stay restrained — the ring IS the identity. */
+.tc-settings .tc-mock-acc--ring {
+  background: var(--background-secondary);
+  border: 2px solid rgba(var(--color-accent-rgb, 229, 179, 42), 0.45);
+  border-radius: 8px;
+}
+.tc-settings .tc-mock-acc--ring .tc-mock-acc-header {
+  padding: 12px 15px;
+}
+.tc-settings .tc-mock-acc--ring .tc-mock-acc-title {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text-normal);
+  letter-spacing: 0.01em;
+}
+.tc-settings .tc-mock-acc--ring .tc-mock-acc-chev {
+  color: var(--text-muted);
+}
+.tc-settings .tc-mock-acc--ring .tc-mock-acc-chev::before { content: "▾"; }
+.tc-settings .tc-mock-acc--ring.tc-mock-acc--open .tc-mock-acc-chev {
+  transform: rotate(180deg);
+  color: var(--color-accent);
+}
+
+/* ── L · Halo glow ───────────────────────────────────────────
+   Pretty default paint at rest (accent gradient + border). On
+   hover / open, a large soft accent halo blooms OUTSIDE the
+   card's perimeter via a ::after pseudo so the whole card
+   glows without changing its own paint. Halo is heavily blurred
+   and negative-inset beyond the card bounds. */
+.tc-settings .tc-mock-acc--halo {
+  position: relative;
+  background: linear-gradient(135deg,
+    color-mix(in srgb, var(--color-accent) 8%, transparent),
+    color-mix(in srgb, var(--color-accent) 3%, transparent));
+  border: 1px solid rgba(var(--color-accent-rgb, 229, 179, 42), 0.40);
+  border-radius: 6px;
+  overflow: visible;
+  isolation: isolate;
+}
+.tc-settings .tc-mock-acc--halo::after {
+  content: "";
+  position: absolute;
+  inset: -18px;
+  background: radial-gradient(
+    ellipse 60% 80% at 50% 50%,
+    rgba(var(--color-accent-rgb, 229, 179, 42), 0.22) 0%,
+    rgba(var(--color-accent-rgb, 229, 179, 42), 0.10) 40%,
+    transparent 80%
+  );
+  opacity: 0;
+  transition: opacity 0.55s ease;
+  pointer-events: none;
+  z-index: -1;
+  filter: blur(22px);
+  border-radius: inherit;
+}
+.tc-settings .tc-mock-acc--halo:hover::after,
+.tc-settings .tc-mock-acc--halo.tc-mock-acc--open::after {
+  opacity: 1;
+}
+.tc-settings .tc-mock-acc--halo .tc-mock-acc-title {
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-normal);
+}
+.tc-settings .tc-mock-acc--halo .tc-mock-acc-chev::before { content: "▶"; }
+.tc-settings .tc-mock-acc--halo.tc-mock-acc--open .tc-mock-acc-chev {
+  transform: rotate(90deg);
+}

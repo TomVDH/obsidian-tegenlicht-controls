@@ -48,7 +48,7 @@ export function build(
       render: pane => renderTabStyles(pane),
     },
     {
-      id: "accordion-styles", label: "Accordion styles", count: 8,
+      id: "accordion-styles", label: "Accordion styles", count: 12,
       render: pane => renderAccordionStyles(pane),
     },
     {
@@ -296,7 +296,10 @@ function renderTabStyles(pane: HTMLElement): void {
 function renderAccordionStyles(pane: HTMLElement): void {
   pane.createEl("h3", { cls: "tc-leftrail-sechead", text: "Accordion styles" });
   pane.createEl("p", { cls: "tc-leftrail-secdesc",
-    text: "Variants on the pretty-accordion pattern — header arrangement, font rhythm, chevron affordance, and accent-free vs accent-painted options. Click headers to fold." });
+    text: "Variants on the accordion pattern — split into pretty (accent-forward) and simple (neutral / mono). Each explores a distinct header arrangement, font rhythm, and chevron affordance. Click headers to fold." });
+
+  // ── Pretty clusters — accent-forward ───────────────────────
+  pane.createEl("h4", { cls: "tc-lab-subhead", text: "Pretty clusters" });
 
   buildMockAccordion(pane, "tc-mock-acc--pretty",
     "Pretty default",
@@ -304,7 +307,34 @@ function renderAccordionStyles(pane: HTMLElement): void {
 
   buildMockAccordion(pane, "tc-mock-acc--gutter",
     "Gutter line",
-    "Just a 3px accent gutter on the left. Small-caps title, + / − glyph chevron.");
+    "Neutral card with a 3px accent gutter on the left. Small-caps title, + / − glyph chevron.");
+
+  buildMockAccordion(pane, "tc-mock-acc--slab",
+    "Slab underline",
+    "Heavy masthead title between two accent hairlines. Tinted square chevron rotates 90° and fills accent on open.");
+
+  buildMockAccordion(pane, "tc-mock-acc--ghost",
+    "Ghost bloom",
+    "Near-invisible at rest. On hover, a soft accent radial blooms behind the header, text lifts to full opacity, and the chevron fades in.");
+
+  buildMockAccordion(pane, "tc-mock-acc--twotone",
+    "Two-tone",
+    "Accent-tinted header strip sits above a neutral body — the two-tone contrast reads as two stacked surfaces rather than one painted card.");
+
+  buildMockAccordion(pane, "tc-mock-acc--bookmark",
+    "Bookmark rail",
+    "Solid accent rail runs top-to-bottom down the left edge, extending through both header and body. Like a coloured bookmark strip.");
+
+  buildMockAccordion(pane, "tc-mock-acc--ring",
+    "Accent ring",
+    "Thick 2px accent ring surrounds the whole card. Neutral fill. The ring IS the whole accent vocabulary; title and chevron stay restrained.");
+
+  buildMockAccordion(pane, "tc-mock-acc--halo",
+    "Halo glow",
+    "Pretty default at rest. On hover / open, a large soft accent halo blooms OUTSIDE the card's perimeter — the whole card haloes without changing its own paint.");
+
+  // ── Simple clusters — neutral / mono ───────────────────────
+  pane.createEl("h4", { cls: "tc-lab-subhead", text: "Simple clusters" });
 
   buildMockAccordion(pane, "tc-mock-acc--filed",
     "Filing tab",
@@ -318,14 +348,6 @@ function renderAccordionStyles(pane: HTMLElement): void {
     "Neutral bloc",
     "Neutral card with a stacked kicker above the title. Circular + / − disc chevron. Pure mono.",
     "SECTION");
-
-  buildMockAccordion(pane, "tc-mock-acc--slab",
-    "Slab underline",
-    "Heavy masthead title between two accent hairlines. Tinted square chevron rotates 90° and fills accent on open.");
-
-  buildMockAccordion(pane, "tc-mock-acc--ghost",
-    "Ghost bloom",
-    "Near-invisible at rest. On hover, a soft accent radial blooms behind the header, text lifts to full opacity, and the chevron fades in.");
 
   buildMockAccordion(pane, "tc-mock-acc--ledger",
     "Monospace ledger",
