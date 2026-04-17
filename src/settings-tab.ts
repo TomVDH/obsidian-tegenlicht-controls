@@ -1,6 +1,7 @@
 import { App, PluginSettingTab, Notice, setIcon } from "obsidian";
 import TegenlichtControlsPlugin from "./main";
 import { DEFAULT_SETTINGS } from "./settings";
+import { ALL_FLAVOURS } from "./flavours";
 import { build as buildAppearance } from "./tabs/appearance";
 import { build as buildTypography } from "./tabs/typography";
 import { build as buildEditing }    from "./tabs/editing";
@@ -53,6 +54,26 @@ export class TegenlichtSettingsTab extends PluginSettingTab {
     containerEl.addClass("tc-settings");
     this.applyTabStyle(containerEl);
     this.applyTabSpacing(containerEl);
+
+    // ── Flavour indicator — two tiny swatches above the Tegenlicht
+    //    wordmark showing which light + dark flavours are currently
+    //    active. Light on top, dark below. Very subtle, small — reads
+    //    as a brand flourish, not a control. Labels: "licht" for the
+    //    light-mode flavour, "tegenlicht" for the dark-mode flavour
+    //    (literal wink at the plugin's name: tegen-licht = against-the-
+    //    light, i.e. dark).
+    const flavourIndicator = containerEl.createDiv("tc-flavour-indicator");
+    const buildFlavourRow = (flavCls: string, label: string) => {
+      const row = flavourIndicator.createDiv("tc-flavour-row");
+      const entry = ALL_FLAVOURS.find(f => f.cls === flavCls);
+      const sw = row.createDiv("tc-flavour-sw");
+      if (entry) {
+        sw.style.background = `linear-gradient(135deg, ${entry.base} 60%, ${entry.surface} 60%)`;
+      }
+      row.createSpan({ text: label, cls: "tc-flavour-label" });
+    };
+    buildFlavourRow(this.plugin.settings.lightFlavour, "licht");
+    buildFlavourRow(this.plugin.settings.darkFlavour,  "tegenlicht");
 
     // ── Header ────────────────────────────────────────────
     const header = containerEl.createDiv("tc-header");
