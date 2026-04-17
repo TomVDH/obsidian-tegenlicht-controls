@@ -133,10 +133,11 @@ export class TegenlichtSettingsTab extends PluginSettingTab {
     this.tabBtns.clear();
     const tabBar = containerEl.createDiv("tc-tab-bar");
 
-    // Segmented style wraps buttons in an inner div
-    const btnParent = containerEl.hasClass("tc-tabs-segment")
-      ? tabBar.createDiv("tc-tab-inner-wrap")
-      : tabBar;
+    // Always wrap tabs in an inner container. Lets switch/amber variants
+    // style the pill track on the wrap while keeping the outer .tc-tab-bar
+    // as a full-width flex container — so the reset button sits rightmost
+    // via the flex:1 spacer installed by installResetAllButton.
+    const btnParent = tabBar.createDiv("tc-tab-inner-wrap");
 
     TABS.forEach(({ id, label }) => {
       const btn = btnParent.createEl("button", { text: label, cls: "tc-tab" });
