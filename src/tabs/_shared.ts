@@ -98,7 +98,20 @@ export function buildLeftRailShell(
     // overflow container; inner is the animated element. Per-section
     // count badge dropped to conserve sidebar width.
     const labelWrap = item.createSpan({ cls: "tc-leftrail-label" });
-    labelWrap.createSpan({ text: section.label, cls: "tc-leftrail-label-text" });
+    const labelText = labelWrap.createSpan({ text: section.label, cls: "tc-leftrail-label-text" });
+
+    // Marquee gating — measure overflow on next frame; if the label
+    // clips the wrap, swap the text for a duplicated "label • label •"
+    // sequence and add the --marquee class so the hover animation
+    // engages. Short labels stay static. Duplicated content + 50%
+    // translate gives a seamless loop (end frame == start frame).
+    requestAnimationFrame(() => {
+      if (labelText.scrollWidth > labelWrap.clientWidth + 1) {
+        const sep = "\u2003\u2022\u2003"; // em-space · em-space
+        labelText.setText(section.label + sep + section.label + sep);
+        labelText.addClass("tc-leftrail-label-text--marquee");
+      }
+    });
     item.addEventListener("click", () => {
       if (section.id === activeId) return;
       railItems.forEach(el => el.removeClass("tc-leftrail-item--active"));

@@ -3578,30 +3578,28 @@ body.tc-graph-halo .workspace-leaf-content[data-type="graph"] .graph-view.color-
 }
 
 /* Rail label — overflow container for the marquee animation.
-   Text rolls on hover when it clips the rail's narrow width. */
+   The inner .tc-leftrail-label-text rolls on hover when it carries
+   the --marquee class (added by buildLeftRailShell only when the
+   single-copy text overflows the wrap). Marquee text is duplicated
+   ("label • label •") so a -50% translate brings the second copy
+   to where the first started — seamless infinite loop with no
+   visible jump-back. */
 .tc-settings .tc-leftrail-label {
   flex: 1;
   min-width: 0;
   overflow: hidden;
   white-space: nowrap;
-  container-type: inline-size;
 }
 .tc-settings .tc-leftrail-label-text {
   display: inline-block;
-  transition: transform 300ms ease;
 }
-.tc-settings .tc-leftrail-item:hover .tc-leftrail-label-text {
-  animation: tc-leftrail-roll 3.5s ease-in-out infinite alternate;
+.tc-settings .tc-leftrail-item:hover .tc-leftrail-label-text--marquee {
+  /* Linear, slow, no initial pause, seamless. */
+  animation: tc-leftrail-roll 14s linear infinite;
 }
 @keyframes tc-leftrail-roll {
-  0%, 15%   { transform: translateX(0); }
-  85%, 100% {
-    /* 100cqw = rail label width; 100% = text own width. If text is
-       wider than wrap (overflow), calc resolves negative and text
-       slides left to reveal. If text fits, min() clamps to 0 — no
-       animation visible. */
-    transform: translateX(min(0px, calc(100cqw - 100%)));
-  }
+  from { transform: translateX(0); }
+  to   { transform: translateX(-50%); }
 }
 
 /* ═══════════════════════════════════════════════════════════
