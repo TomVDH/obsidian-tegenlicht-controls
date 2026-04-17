@@ -1288,7 +1288,9 @@ body.tc-tags-solid .tc-settings .tc-mini-obsidian .mini-fm-pill:hover .mini-fm-p
    default), taller pane, wider sidebar. Lower density, more air. */
 .tc-settings .tc-mini-obsidian {
   display: grid;
-  grid-template-columns: 28px 160px 1fr;
+  /* Sidebar narrowed 160 → 128px to give the preview's main column
+     more breathing room. */
+  grid-template-columns: 28px 128px 1fr;
   grid-template-rows: 28px 1fr;
   height: 520px;
   max-height: 70vh;
@@ -1384,7 +1386,9 @@ body.tc-tags-solid .tc-settings .tc-mini-obsidian .mini-fm-pill:hover .mini-fm-p
 .tc-settings .tc-mini-obsidian .mini-side li.mini-nested { padding-left: 14px; font-size: 10px; }
 
 .tc-settings .tc-mini-obsidian .mini-main {
-  padding: 22px 32px;
+  /* Horizontal padding tightened 32 → 16px so the preview body has
+     more room to breathe alongside the narrowed sidebar. */
+  padding: 22px 16px;
   overflow-y: auto;
   max-width: 720px;
   /* Editor display font for rendered body text. !important beats
