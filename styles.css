@@ -298,7 +298,9 @@
 }
 .tc-settings .tc-tab {
   padding: 5px 14px;
-  border-radius: 100px;
+  /* Tabs follow the global cornerRadius setting via --radius-m
+     (0 / 4 / 12 for sharp / subtle / rounded). */
+  border-radius: var(--radius-m, 4px);
   color: var(--text-muted);
   font-size: 12px;
   font-weight: 500;
@@ -335,9 +337,9 @@
    the existing flex:1 spacer between the inner-wrap and the reset. */
 .tc-settings.tc-tabs-switch .tc-tab-bar,
 .tc-settings.tc-tabs-switch-amber .tc-tab-bar {
-  padding: 3px;
-  background: rgba(var(--mono-rgb-100, 200, 200, 200), 0.03);
-  border-radius: 100px;
+  /* Track removed per user directive — tabs sit on the bar without
+     a wrapping pill background. The active-tab visual carries the
+     "selected" state on its own. */
   margin-bottom: 8px;
 }
 .tc-settings.tc-tabs-switch .tc-tab-inner-wrap,
@@ -352,7 +354,7 @@
 .tc-settings.tc-tabs-switch .tc-tab,
 .tc-settings.tc-tabs-switch-amber .tc-tab {
   padding: 7px 14px;
-  border-radius: 100px;
+  border-radius: var(--radius-m, 4px);
   margin-right: var(--tc-tab-gap, 2px) !important;
   transition: color 180ms cubic-bezier(0.32, 0.72, 0, 1),
               background 180ms cubic-bezier(0.32, 0.72, 0, 1),
@@ -398,7 +400,7 @@
 /* Ghost — outlined pill, no fill */
 .tc-settings.tc-tabs-ghost .tc-tab {
   padding: 6px 13px;
-  border-radius: 100px;
+  border-radius: var(--radius-m, 4px);
   margin-right: var(--tc-tab-gap, 4px) !important;
 }
 .tc-settings.tc-tabs-ghost .tc-tab--active {
@@ -2453,7 +2455,9 @@ body.tc-borders-ligne-claire .titlebar {
 .tc-settings .tc-seg {
   display: inline-flex;
   background: rgba(var(--mono-rgb-100, 200, 200, 200), 0.04);
-  border-radius: 999px;
+  /* Track corners follow cornerRadius; +3px so the inner pills (radius
+     m) have visual breathing room inside the track. */
+  border-radius: calc(var(--radius-m, 4px) + 3px);
   padding: 3px;
   gap: 2px;
 }
@@ -2470,7 +2474,7 @@ body.tc-borders-ligne-claire .titlebar {
   box-shadow: none !important;
   color: var(--text-muted);
   padding: 4px 12px;
-  border-radius: 999px;
+  border-radius: var(--radius-m, 4px);
   font-size: 11px;
   font-weight: 500;
   cursor: pointer;
@@ -2875,7 +2879,7 @@ body .app-container {
   font-size: 11px;
   font-weight: 500;
   padding: 5px 12px;
-  border-radius: 100px;
+  border-radius: var(--radius-m, 4px);
   cursor: pointer;
   flex: 1 1 0;
   text-align: center;
@@ -3240,7 +3244,10 @@ body.tc-has-noise.tc-grain-static .workspace::after {
   justify-content: center;
   background: var(--background-secondary);
   border: 1px solid var(--background-modifier-border);
-  border-radius: 50%;
+  /* Reset / circular mini-button now follows the global cornerRadius
+     setting via --radius-m (0 / 4 / 12 for sharp / subtle / rounded).
+     Was hardcoded 50% (always circle). */
+  border-radius: var(--radius-m, 4px);
   color: var(--text-muted);
   padding: 0;
   cursor: pointer;
@@ -3704,7 +3711,7 @@ body.tc-graph-halo .workspace-leaf-content[data-type="graph"] .graph-view.color-
 .tc-settings .tc-palette-expander-btn {
   width: 28px;
   height: 28px;
-  border-radius: 50%;
+  border-radius: var(--radius-m, 4px);
   background: rgba(var(--color-accent-rgb, 229, 179, 42), 0.10);
   border: 1px solid rgba(var(--color-accent-rgb, 229, 179, 42), 0.32);
   color: var(--color-accent, #e5b32a);
