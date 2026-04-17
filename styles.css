@@ -1706,13 +1706,12 @@ body.tc-radius-rounded .tc-settings .tc-feat-group { border-radius: 14px !import
    with a neat, non-interactive label that delimits sections.
    Bottom hairline creates visual separation without adding boxes. */
 .tc-settings .tc-section-header {
-  font-size: 14px;
+  font-size: 17px;
   font-weight: 700;
   color: var(--color-accent);
-  letter-spacing: 0.03em;
-  margin: 28px 0 10px 0;
-  padding: 0 0 6px 0;
-  border-bottom: 1px solid var(--background-modifier-border);
+  letter-spacing: 0.02em;
+  margin: 28px 0 12px 0;
+  padding: 0;
 }
 .tc-settings .tc-section-header:first-of-type {
   margin-top: 14px;
@@ -1752,7 +1751,9 @@ body.tc-radius-rounded .tc-settings .tc-feat-group { border-radius: 14px !import
   border-radius: var(--radius-l, 10px);
   box-shadow: 0 1px 4px rgba(0, 0, 0, 0.08);
   padding: 14px 14px 12px;
-  margin: 14px 0 0 0;
+  /* Vertical spacing between consecutive clusters bumped 14 → 20px
+     for a touch more breathing room between cluster cards. */
+  margin: 20px 0 0 0;
 }
 .tc-settings .tc-feat-body.tc-setting-card > .tc-cluster:first-child {
   margin-top: 0;
