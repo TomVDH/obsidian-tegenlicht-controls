@@ -172,7 +172,7 @@ function renderFonts(
   // In-section collapsible preview, same pattern as Callouts.
   buildSectionPreview(pane, "typo-fonts-preview", buildTypographyPreview);
 
-  const card = buildPrettyAccordion(pane, "typo-fonts", "Role mapping");
+  const card = buildPrettyAccordion(pane, "typo-fonts", "Role mapping", true, s.accordionStyle);
 
   new Setting(card)
     .setName("Load Google Fonts")
@@ -214,7 +214,7 @@ function renderRhythm(
   // In-section collapsible preview, same pattern as Callouts.
   buildSectionPreview(pane, "typo-rhythm-preview", buildTypographyPreview);
 
-  const card = buildPrettyAccordion(pane, "typo-rhythm", "Sliders");
+  const card = buildPrettyAccordion(pane, "typo-rhythm", "Sliders", true, s.accordionStyle);
   card.addClass("tc-h-accordion-body");
 
   const headingGroup = card.createDiv("tc-h-group");
@@ -250,7 +250,7 @@ function renderPlaceholder(
 ): void {
   pane.createEl("h3", { cls: "tc-leftrail-sechead", text: title });
   pane.createEl("p", { cls: "tc-leftrail-secdesc", text: quip });
-  const card = buildPrettyAccordion(pane, key, "Not yet wired");
+  const card = buildPrettyAccordion(pane, key, "Not yet wired", true, s.accordionStyle);
   card.createEl("p", { cls: "tc-empty-hint", text: hint });
 }
 

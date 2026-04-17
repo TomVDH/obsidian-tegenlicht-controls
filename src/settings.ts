@@ -12,11 +12,18 @@ export interface TegenlichtSettings {
   //              rounded. Inactive tabs get the currentColor ring
   //              too (Pill B promoted).
   tabActiveStyle: string; // 'glow' | 'glow-b' | 'pill'
+  // Accordion paint variant applied to every foldable accordion
+  // rendered through `buildPrettyAccordion` (Typography panes,
+  // Appearance clusters, etc.). One of the eight Lab-selected picks:
+  //   Pretty · Gutter · Ghost · Two-tone · Halo · Folio · Bloc · Dashed
+  accordionStyle: string; // 'pretty' | 'gutter' | 'ghost' | 'twotone' | 'halo' | 'filed' | 'bloc' | 'subdued'
   // One-shot migration flag. When false on load, and tabActiveStyle
   // is the prior default ('glow'), loadSettings promotes it to
   // 'glow-b' and flips this to true. After that the user's explicit
   // pick is respected (so they can flip back to 'glow' if they want).
   tabActiveStyleMigratedV1: boolean;
+
+
 
   // Appearance — Colour scheme
   darkFlavour: string;
@@ -212,6 +219,7 @@ export const DEFAULT_SETTINGS: TegenlichtSettings = {
   tabBarSpacing: 6,
   tabActiveStyle: 'glow-b',
   tabActiveStyleMigratedV1: false,
+  accordionStyle: 'pretty',
 
   darkFlavour: 'tc-maneblusser',
   lightFlavour: 'tc-mechelen',

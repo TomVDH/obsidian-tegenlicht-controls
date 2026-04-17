@@ -207,7 +207,7 @@ function renderTheme(
   buildSectionPreview(pane, "app-theme-preview", buildTypographyPreview);
 
   // ── Palette cluster — accent + dark/light flavours ────
-  const paletteCluster = buildPrettyAccordion(pane, "app-palette", "Palette");
+  const paletteCluster = buildPrettyAccordion(pane, "app-palette", "Palette", true, s.accordionStyle);
 
   // ── Accent Colour — native Setting row, pips in the control slot ──
   const accentSetting = new Setting(paletteCluster)
@@ -383,7 +383,7 @@ function renderTheme(
   // than Theme & Colour (which is now strictly palette + shape/weight).
 
   // ── Shape cluster — how UI elements bend and breathe ──
-  const shapeCluster = buildPrettyAccordion(pane, "app-shape", "Shape");
+  const shapeCluster = buildPrettyAccordion(pane, "app-shape", "Shape", true, s.accordionStyle);
 
   // Corner radius leads the Shape cluster — the most visually global
   // setting (buttons, cards, inputs, images) so it gets the top slot.
@@ -410,7 +410,7 @@ function renderTheme(
   );
 
   // ── Weight cluster — line weight of icons and borders ─
-  const weightCluster = buildPrettyAccordion(pane, "app-weight", "Weight");
+  const weightCluster = buildPrettyAccordion(pane, "app-weight", "Weight", true, s.accordionStyle);
 
   // Icon intensity — weight pills + auto/mono tint pair.
   // 'auto' = theme default (accent). 'mono' = monochrome via the
@@ -464,7 +464,7 @@ function renderOutliner(
     text: "File tree (nav-files) rendering — type icons, folder glyphs, vault-title styling, plus AnuPuccin-style rainbow folder modes." });
 
   // ── File tree cluster — three toggles for how nav-files pane renders ─
-  const fileTreeCluster = buildPrettyAccordion(pane, "app-filetree", "File tree");
+  const fileTreeCluster = buildPrettyAccordion(pane, "app-filetree", "File tree", true, s.accordionStyle);
 
   new Setting(fileTreeCluster)
     .setName("File type icons")
@@ -509,7 +509,7 @@ function renderOutliner(
   // collapsed by default, hidden entirely when mode === 'off'. Mode
   // change repopulates the Advanced body in place but preserves the
   // user's open/closed choice.
-  const rainbowCluster = buildPrettyAccordion(pane, "app-rainbow", "Rainbow folders");
+  const rainbowCluster = buildPrettyAccordion(pane, "app-rainbow", "Rainbow folders", true, s.accordionStyle);
 
   const computedMode = (() => {
     if ((s.rainbowStyle ?? 'off') === 'off' && s.rainbowFileBrowser) return 'full';
@@ -640,7 +640,7 @@ function renderGraph(
     text: "Graph view — colour mode for nodes and links, plus style tweaks (hover halo, node scale, link thickness)." });
 
   // ── Colour cluster ────────────────────────────────────
-  const graphColourCluster = buildPrettyAccordion(pane, "app-graphcolour", "Colour");
+  const graphColourCluster = buildPrettyAccordion(pane, "app-graphcolour", "Colour", true, s.accordionStyle);
   buildSegmentSetting(graphColourCluster,
     "Colour mode",
     "How nodes and links take their hue",
@@ -654,7 +654,7 @@ function renderGraph(
   );
 
   // ── Style cluster ─────────────────────────────────────
-  const graphStyleCluster = buildPrettyAccordion(pane, "app-graphstyle", "Style");
+  const graphStyleCluster = buildPrettyAccordion(pane, "app-graphstyle", "Style", true, s.accordionStyle);
 
   new Setting(graphStyleCluster)
     .setName("Hover halo")
@@ -699,7 +699,7 @@ function renderWorkspace(
     text: "Sidebar treatment, canvas background + frost, surface grain, accent application (frame), editor accents (caret, selection, active line), and interface (tab style / spacing / active indicator)." });
 
   // ── Sidebar cluster ───────────────────────────────────
-  const sidebarCluster = buildPrettyAccordion(pane, "app-sidebar", "Sidebar");
+  const sidebarCluster = buildPrettyAccordion(pane, "app-sidebar", "Sidebar", true, s.accordionStyle);
   buildDropdownSetting(sidebarCluster,
     "Sidebar style", "Visual treatment of the left and right sidebars",
     [{ label: "Flat", value: "flat" }, { label: "Bordered", value: "bordered" }, { label: "Cards", value: "cards" }],
@@ -708,7 +708,7 @@ function renderWorkspace(
   );
 
   // ── Canvas cluster — editor surface treatment ─────────
-  const canvasCluster = buildPrettyAccordion(pane, "app-canvas", "Canvas");
+  const canvasCluster = buildPrettyAccordion(pane, "app-canvas", "Canvas", true, s.accordionStyle);
 
   let frostSetting: Setting | null = null;
   buildDropdownSetting(canvasCluster,
@@ -735,7 +735,7 @@ function renderWorkspace(
   );
 
   // ── Surface cluster — grain texture knobs ─────────────
-  const surfaceCluster = buildPrettyAccordion(pane, "app-surface", "Surface");
+  const surfaceCluster = buildPrettyAccordion(pane, "app-surface", "Surface", true, s.accordionStyle);
 
   // Forward-declared so the grain slider's onChange can toggle the
   // sub-dropdown's visibility when grain crosses zero.
@@ -773,7 +773,7 @@ function renderWorkspace(
 
   // ── Accent application cluster — where the accent paints beyond
   //    the palette swatches (currently: window frame). ───────────
-  const accentAppCluster = buildPrettyAccordion(pane, "app-accentapp", "Accent application");
+  const accentAppCluster = buildPrettyAccordion(pane, "app-accentapp", "Accent application", true, s.accordionStyle);
   new Setting(accentAppCluster)
     .setName("Colourful window frame")
     .setDesc("Tint Obsidian's window frame with the active flavour's accent")
@@ -786,7 +786,7 @@ function renderWorkspace(
   //    section (Active line / Selection tint / Caret colour) into the
   //    Workspace section. Same three colour-picker-plus-toggle rows, new
   //    home. Pickr instances still registered for cleanup via `pickrs`.
-  const editorAccentsCluster = buildPrettyAccordion(pane, "app-editoraccents", "Editor accents");
+  const editorAccentsCluster = buildPrettyAccordion(pane, "app-editoraccents", "Editor accents", true, s.accordionStyle);
 
   pickrs.push(buildColorToggleRow(editorAccentsCluster,
     "Active line", "Highlight the current cursor line in the editor",
@@ -822,7 +822,7 @@ function renderWorkspace(
   //    loadSettings. Until Task 5 ships the matching CSS, the picker
   //    renders but the visual effect on the tab bar only lands with
   //    that later commit.
-  const interfaceCluster = buildPrettyAccordion(pane, "app-interface", "Interface");
+  const interfaceCluster = buildPrettyAccordion(pane, "app-interface", "Interface", true, s.accordionStyle);
 
   buildSegmentSetting(interfaceCluster,
     "Tab style",
@@ -852,6 +852,28 @@ function renderWorkspace(
     ],
     s.tabActiveStyle,
     async v => { s.tabActiveStyle = v; await onChange(); },
+  );
+
+  // Accordion paint — applies to every foldable accordion rendered
+  // via `buildPrettyAccordion` (Typography panes + Appearance
+  // clusters). Dropdown (not segment) because 8 options don't fit
+  // a pill row. Change triggers refresh() so the rail panes rebuild
+  // with the new variant class on every accordion.
+  buildDropdownSetting(interfaceCluster,
+    "Accordion style",
+    "Paint applied to every foldable cluster across Typography + Appearance",
+    [
+      { label: "Pretty",    value: "pretty"   },
+      { label: "Gutter",    value: "gutter"   },
+      { label: "Ghost",     value: "ghost"    },
+      { label: "Two-tone",  value: "twotone"  },
+      { label: "Halo",      value: "halo"     },
+      { label: "Folio",     value: "filed"    },
+      { label: "Bloc",      value: "bloc"     },
+      { label: "Dashed",    value: "subdued"  },
+    ],
+    s.accordionStyle,
+    async v => { s.accordionStyle = v; await refresh(); },
   );
 
   new Setting(interfaceCluster)
