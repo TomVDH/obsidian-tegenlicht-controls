@@ -3454,38 +3454,6 @@ body.tc-graph-halo .workspace-leaf-content[data-type="graph"] .graph-view.color-
 }
 
 /* ═══════════════════════════════════════════════════════════
-   Flavour indicator — tiny swatches above the settings header
-   showing the active light + dark flavours. Very subtle, small.
-   ═══════════════════════════════════════════════════════════ */
-
-.tc-settings .tc-flavour-indicator {
-  display: flex;
-  flex-direction: column;
-  gap: 3px;
-  margin-bottom: 10px;
-  opacity: 0.6;
-}
-.tc-settings .tc-flavour-row {
-  display: flex;
-  align-items: center;
-  gap: 7px;
-}
-.tc-settings .tc-flavour-sw {
-  width: 10px;
-  height: 10px;
-  border-radius: 50%;
-  border: 1px solid rgba(var(--mono-rgb-100, 200, 200, 200), 0.18);
-  flex-shrink: 0;
-}
-.tc-settings .tc-flavour-label {
-  font-size: 9px;
-  text-transform: lowercase;
-  letter-spacing: 0.08em;
-  color: var(--text-muted);
-  font-variant: small-caps;
-}
-
-/* ═══════════════════════════════════════════════════════════
    Flavour captions — small "licht" / "tegenlicht" labels that
    sit above the Light flavour / Dark flavour setting rows inside
    the Palette cluster. Very subtle; reads as a section marker,
