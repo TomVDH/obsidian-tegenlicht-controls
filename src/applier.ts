@@ -381,24 +381,26 @@ ${s.caretColourEnabled ? `.cm-cursor { border-left-color: ${caretClr} !important
   ALL_ICON_STROKE_CLASSES.forEach(c => document.body.classList.remove(c));
   document.body.classList.add(`tc-icon-stroke-${s.iconStroke || 'regular'}`);
 
-  // Icon + Border tint overrides — two primary states:
-  //   ''       → remove the CSS var → theme default paints (accent)
-  //   'mono'   → write `rgb(var(--mono-rgb-100))` for a monochrome tint
+  // Icon + Border tint overrides — two primary states (semantics swapped
+  // in 2026-04-16 session: auto is now an active subtle override, mono
+  // is now "no plugin override, theme paints its native neutral"):
+  //   ''       → 40% transparent accent (subtle plugin-owned tint)
+  //   'mono'   → remove the CSS var so theme's own neutral paints
   // Back-compat fall-throughs (accepted but no UI exposes them):
-  //   'accent' → explicit accent var reference (legacy)
+  //   'accent' → explicit accent var reference (legacy, pre-swap)
   //   '#rrggbb'→ literal hex (legacy from the Pickr-era custom slot)
-  // Any unknown value collapses to '' so old saves don't strand the UI.
+  // Any unknown value collapses to '' (= new auto = 40% accent).
   const applyTint = (value: string, cssVar: string) => {
     if (!value) {
-      document.body.style.removeProperty(cssVar);
+      document.body.style.setProperty(cssVar, 'color-mix(in srgb, var(--color-accent) 40%, transparent)');
     } else if (value === 'mono') {
-      document.body.style.setProperty(cssVar, 'rgb(var(--mono-rgb-100, 200 200 200))');
+      document.body.style.removeProperty(cssVar);
     } else if (value === 'accent') {
       document.body.style.setProperty(cssVar, 'var(--color-accent)');
     } else if (/^#[0-9a-fA-F]{6}$/.test(value)) {
       document.body.style.setProperty(cssVar, value);
     } else {
-      document.body.style.removeProperty(cssVar);
+      document.body.style.setProperty(cssVar, 'color-mix(in srgb, var(--color-accent) 40%, transparent)');
     }
   };
   applyTint(s.iconColour   || '', '--tc-icon-color');
