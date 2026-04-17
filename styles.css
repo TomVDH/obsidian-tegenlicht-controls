@@ -147,22 +147,9 @@
   color: var(--text-faint);
   padding: 8px 0 14px;
 }
-/* Inline row — rainbow bar + copy links share one horizontal line.
-   nowrap forces them to stay on one row even when the panel is narrow;
-   the .tc-header-copy padding override prevents its own vertical
-   padding from breaking the shared baseline. */
-.tc-settings .tc-header-inline-row {
-  display: flex;
-  align-items: center;
-  flex-wrap: nowrap;
-  gap: 14px;
-  margin: 8px 0 10px;
-}
-.tc-settings .tc-header-inline-row .tc-header-copy {
-  padding: 0;
-  flex: 0 1 auto;
-  min-width: 0;
-}
+/* Inline-row + .tc-color-bar--header rules retired — rainbow bar
+   relocated to the top of the Legacy left rail. Header now hosts the
+   copy row directly without a wrapping inline row. */
 .tc-settings .tc-header-copy-sep {
   opacity: 0.4;
 }
@@ -206,12 +193,17 @@
 .tc-color-bar.tc-color-bar--accent:hover { opacity: 1; }
 
 /* Header variant — lives in the settings panel header between the
-   tagline and the footer copy row. Constrained to 25% width so it reads
-   as a small accent flourish, not a full-width divider. Tighter margin
-   top/bottom because the surrounding header rows already breathe. */
-.tc-color-bar.tc-color-bar--header {
-  width: 55px;
-  margin: 0;
+   tagline and the footer copy row — RETIRED, rainbow now lives at
+   the top of the Legacy left rail (.tc-leftrail-rainbow rule below). */
+
+/* Rainbow flourish at the top of the Legacy left rail. Inherits the
+   gradient + height + radius from .tc-color-bar; this rule just slots
+   it into the rail layout (full-width of the rail, top-aligned, not
+   interactive — no hover, no active). */
+.tc-settings .tc-leftrail-rainbow {
+  margin: 0 0 10px;
+  width: 100%;
+  pointer-events: none;
   flex-shrink: 0;
 }
 

@@ -90,6 +90,12 @@ export function buildLeftRailShell(
     active.render(pane);
   };
 
+  // Rainbow flourish at the top of the rail — non-interactive visual
+  // marker. Sits squarely top-aligned, doesn't accept hover/active
+  // styling. Replaces the rainbow bar that used to live in the
+  // settings-panel header.
+  rail.createDiv("tc-leftrail-rainbow tc-color-bar");
+
   sections.forEach(section => {
     const item = rail.createDiv("tc-leftrail-item");
     if (section.id === activeId) item.addClass("tc-leftrail-item--active");
