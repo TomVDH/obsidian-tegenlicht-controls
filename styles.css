@@ -1694,7 +1694,10 @@ body.tc-radius-rounded .tc-settings .tc-feat-group { border-radius: 14px !import
     color-mix(in srgb, var(--color-accent) 8%, transparent),
     color-mix(in srgb, var(--color-accent) 3%, transparent));
   border: 1px solid color-mix(in srgb, var(--color-accent) 22%, transparent);
-  border-radius: 10px;
+  /* Corner radius tracks the global cornerRadius setting via --radius-l
+     (0 / 6 / 18 for sharp / subtle / rounded). Fallback 10px covers
+     the case where .tc-radius-* isn't on body (plugin disabled mid-render). */
+  border-radius: var(--radius-l, 10px);
   box-shadow: 0 1px 4px rgba(0, 0, 0, 0.08);
   padding: 14px 14px 12px;
   margin: 14px 0 0 0;
@@ -3305,4 +3308,49 @@ body .workspace-leaf-content[data-type="graph"] .graph-view.color-line {
    Only active when body has tc-graph-halo. */
 body.tc-graph-halo .workspace-leaf-content[data-type="graph"] .graph-view.color-circle:hover {
   filter: drop-shadow(0 0 6px var(--color-accent));
+}
+
+/* ═══════════════════════════════════════════════════════════
+   Markdown body — follow cornerRadius setting
+
+   User-requested (2026-04-16): every element inside the markdown body
+   inherits the plugin's corner radius (sharp / subtle / rounded). This
+   is a deliberate plugin/theme boundary exception — painting over
+   theme-owned paint — because Tom wants uniform radius across the
+   entire content surface, not just chrome.
+
+   Driven by --radius-m (0 / 4 / 12 for sharp / subtle / rounded),
+   which is already written at body scope by the body.tc-radius-* class.
+   Images and embeds take the full --radius-l for stronger presence.
+   ═══════════════════════════════════════════════════════════ */
+
+.markdown-rendered .callout,
+.markdown-source-view .callout,
+.markdown-preview-view .callout,
+.markdown-rendered pre,
+.markdown-source-view pre,
+.markdown-preview-view pre,
+.markdown-rendered blockquote,
+.markdown-preview-view blockquote,
+.markdown-rendered table,
+.markdown-preview-view table,
+.HyperMD-codeblock-begin-bg,
+.HyperMD-codeblock-end-bg {
+  border-radius: var(--radius-m, 4px) !important;
+}
+
+/* Inline code — smaller radius so the chip reads as a word-level affordance */
+.markdown-rendered :not(pre) > code,
+.markdown-preview-view :not(pre) > code {
+  border-radius: var(--radius-s, 2px) !important;
+}
+
+/* Images + embeds — use the larger radius for stronger physical presence */
+.markdown-rendered img,
+.markdown-preview-view img,
+.markdown-rendered .internal-embed,
+.markdown-rendered .markdown-embed,
+.markdown-preview-view .internal-embed,
+.markdown-preview-view .markdown-embed {
+  border-radius: var(--radius-l, 8px) !important;
 }
