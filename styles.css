@@ -1777,25 +1777,33 @@ body.tc-radius-rounded .tc-settings .tc-feat-group { border-radius: 14px !import
 /* Pin the setting-item-name typography. Literal pixels + !important
    so neither Obsidian's native rule nor the inherited --font-ui-medium
    var (which can resolve large in modal scope) wins on cascade. Same
-   for the description. Hover never shifts either. */
+   for the description. Hover never shifts either. Applies inside
+   clusters AND inside left-rail panes (Legacy tab — Callouts, Tables,
+   Codeblocks, Show/Hide, Tabs deep all need the same lockdown). */
 .tc-settings .tc-cluster .setting-item .setting-item-name,
-.tc-settings .tc-cluster .setting-item:hover .setting-item-name {
+.tc-settings .tc-cluster .setting-item:hover .setting-item-name,
+.tc-settings .tc-leftrail-pane .setting-item .setting-item-name,
+.tc-settings .tc-leftrail-pane .setting-item:hover .setting-item-name {
   font-size: 13px !important;
   font-weight: 500 !important;
   line-height: 1.3 !important;
 }
 .tc-settings .tc-cluster .setting-item .setting-item-description,
-.tc-settings .tc-cluster .setting-item:hover .setting-item-description {
+.tc-settings .tc-cluster .setting-item:hover .setting-item-description,
+.tc-settings .tc-leftrail-pane .setting-item .setting-item-description,
+.tc-settings .tc-leftrail-pane .setting-item:hover .setting-item-description {
   font-size: 11px !important;
   line-height: 1.4 !important;
 }
 
-/* Inside a cluster, the .setting-item itself must be transparent so
-   the cluster's accent gradient shows through. Obsidian's native
-   .setting-item paints a near-black card bg in modal scope which read
-   as "dark insets per row" over the cluster gradient. Killing it. */
+/* Transparent .setting-item bg — kills the dark per-row card visual
+   from Obsidian's native rule painted in modal scope. Applied inside
+   clusters AND inside any left-rail pane (Legacy tab sections that
+   don't use clusters still need the dark bg gone). */
 .tc-settings .tc-cluster .setting-item,
-.tc-settings .tc-cluster .setting-item:hover {
+.tc-settings .tc-cluster .setting-item:hover,
+.tc-settings .tc-leftrail-pane .setting-item,
+.tc-settings .tc-leftrail-pane .setting-item:hover {
   background: transparent !important;
 }
 
@@ -3464,12 +3472,11 @@ body.tc-graph-halo .workspace-leaf-content[data-type="graph"] .graph-view.color-
   grid-template-columns: 116px 1fr;
   gap: 0;
   background: transparent;
-  /* Subtle outer border — reintroduced per user directive. Low-alpha
-     mono so the shell reads as a contained surface without competing
-     with the cluster outlines inside. */
-  border: 1px solid rgba(var(--mono-rgb-100, 200, 200, 200), 0.08);
-  border-radius: var(--radius-l, 8px);
-  overflow: hidden;
+  /* No outer border, no radius — shell blends into the settings dialog
+     surface (per user reversal). Removes the 2px width contributed by
+     the previous 1px border on each side. */
+  border: none;
+  border-radius: 0;
   min-height: 420px;
 }
 
@@ -3666,4 +3673,51 @@ body.tc-graph-halo .workspace-leaf-content[data-type="graph"] .graph-view.color-
   text-transform: uppercase;
   letter-spacing: 0.08em;
   color: var(--text-faint);
+}
+
+/* ═══════════════════════════════════════════════════════════
+   Palette cluster preview expander — small accent chevron button
+   at the bottom of the Palette cluster. Click reveals an Obsidian
+   preview below it via a max-height transition.
+   ═══════════════════════════════════════════════════════════ */
+
+.tc-settings .tc-palette-expander {
+  display: flex;
+  justify-content: center;
+  margin-top: 14px;
+  padding-top: 12px;
+  border-top: 1px dashed rgba(var(--color-accent-rgb, 229, 179, 42), 0.22);
+}
+.tc-settings .tc-palette-expander-btn {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: rgba(var(--color-accent-rgb, 229, 179, 42), 0.10);
+  border: 1px solid rgba(var(--color-accent-rgb, 229, 179, 42), 0.32);
+  color: var(--color-accent, #e5b32a);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  font-size: 13px;
+  line-height: 1;
+  padding: 0;
+  transition: background 0.18s ease, border-color 0.18s ease, transform 0.18s ease;
+}
+.tc-settings .tc-palette-expander-btn:hover {
+  background: rgba(var(--color-accent-rgb, 229, 179, 42), 0.20);
+  border-color: rgba(var(--color-accent-rgb, 229, 179, 42), 0.50);
+}
+.tc-settings .tc-palette-expander-chevron {
+  display: inline-block;
+  transition: transform 0.3s cubic-bezier(0.32, 0.72, 0, 1);
+}
+.tc-settings .tc-palette-expander-btn--open .tc-palette-expander-chevron {
+  transform: rotate(180deg);
+}
+.tc-settings .tc-palette-preview-wrap {
+  max-height: 0;
+  overflow: hidden;
+  transition: max-height 0.4s cubic-bezier(0.32, 0.72, 0, 1);
+  margin-top: 4px;
 }

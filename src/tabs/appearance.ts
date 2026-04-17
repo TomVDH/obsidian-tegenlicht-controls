@@ -7,6 +7,7 @@ import {
   LIGHT_BASE, LIGHT_EXTENDED, LIGHT_EXTENDED_TC, LIGHT_EXTENDED_ANP,
 } from "../flavours";
 import { buildSegmentSetting, buildCluster } from "./_shared";
+import { buildTypographyPreview } from "../preview-sample";
 
 // Section-header pattern replaces accordions on Appearance. Every
 // section is always visible — the tab reads as a continuous scroll with
@@ -403,6 +404,31 @@ export function build(
     darkExtWrap.createSpan({ text: "AnuPuccin", cls: "tc-swatch-group-label" });
     buildSwatchGrid(darkExtWrap, DARK_EXTENDED_ANP, s.darkFlavour, cls => pickFlavour('dark', cls));
   }
+
+  // Palette preview expander — small accented chevron button at the
+  // bottom of the cluster. Click → the panel below grows open with a
+  // smooth max-height transition and renders the same Obsidian
+  // preview the Typography tab uses. Lets users see flavour swatches
+  // applied to live Markdown without scrolling away.
+  const paletteExpander = paletteCluster.createDiv("tc-palette-expander");
+  const paletteExpanderBtn = paletteExpander.createEl("button", {
+    cls: "tc-palette-expander-btn",
+    attr: { "aria-label": "Toggle preview", title: "Toggle preview" },
+  });
+  paletteExpanderBtn.createSpan({ cls: "tc-palette-expander-chevron", text: "▾" });
+  const palettePreviewWrap = paletteCluster.createDiv("tc-palette-preview-wrap");
+  buildTypographyPreview(palettePreviewWrap);
+  let palettePreviewOpen = false;
+  paletteExpanderBtn.addEventListener("click", () => {
+    palettePreviewOpen = !palettePreviewOpen;
+    if (palettePreviewOpen) {
+      palettePreviewWrap.style.maxHeight = palettePreviewWrap.scrollHeight + "px";
+      paletteExpanderBtn.addClass("tc-palette-expander-btn--open");
+    } else {
+      palettePreviewWrap.style.maxHeight = "0px";
+      paletteExpanderBtn.removeClass("tc-palette-expander-btn--open");
+    }
+  });
 
   // Background-effect pill and Native-translucency toggle were REMOVED.
   // Neither approach produced reliable results: CSS backdrop-filter in
