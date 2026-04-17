@@ -3520,17 +3520,22 @@ body.tc-graph-halo .workspace-leaf-content[data-type="graph"] .graph-view.color-
   overflow-y: auto;
 }
 
-/* Section title in the rail content pane — same typography as
-   .tc-cluster-label (small-caps uppercase muted) so the section
-   header reads as a sibling of the cluster labels nested inside,
-   not a separate visual register. Indented 2px to match clusters. */
+/* Section title in the rail content pane — accented cluster-label
+   typography (small-caps uppercase) tinted to the active accent so
+   it reads as the section's primary marker. Indented 14px to align
+   with the cluster contents below (the cluster's own padding-left
+   is 14px). */
 .tc-settings .tc-leftrail-sechead {
-  margin: 0 0 6px 2px;
+  margin: 0 0 8px 14px;
   font-size: 11px;
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.05em;
-  color: var(--text-muted);
+  color: var(--color-accent, #e5b32a);
+}
+.tc-settings .tc-leftrail-secdesc {
+  margin: 0 0 14px 14px;
+  max-width: 60ch;
 }
 
 .tc-settings .tc-leftrail-secdesc {
@@ -3622,4 +3627,23 @@ body.tc-graph-halo .workspace-leaf-content[data-type="graph"] .graph-view.color-
   font-variant: small-caps;
   color: var(--text-faint);
   opacity: 0.8;
+}
+
+/* Live preview wrap inside a left-rail content pane — used in Show/Hide
+   as a test of inline preview embedding. Sits below the section's
+   controls with a small label header above the preview itself. */
+.tc-settings .tc-leftrail-preview {
+  margin: 18px 0 0;
+  padding: 14px;
+  background: rgba(var(--mono-rgb-100, 200, 200, 200), 0.02);
+  border: 1px solid var(--background-modifier-border);
+  border-radius: var(--radius-l, 8px);
+}
+.tc-settings .tc-leftrail-preview-head {
+  margin: 0 0 10px;
+  font-size: 10px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--text-faint);
 }

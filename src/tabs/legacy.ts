@@ -2,6 +2,7 @@ import { Setting } from "obsidian";
 import Pickr from "@simonwep/pickr";
 import TegenlichtControlsPlugin from "../main";
 import { buildLeftRailShell, LeftRailSection, buildSegmentSetting, buildCluster } from "./_shared";
+import { buildTypographyPreview } from "../preview-sample";
 
 /**
  * Legacy tab — surfaces AnuPpuccin theme controls that don't have a
@@ -351,6 +352,14 @@ function renderShowHide(
 
   new Setting(visibilityCluster).setName("Hide tooltips").setDesc("Suppress Obsidian's native tooltip popups")
     .addToggle(t => t.setValue(s.hideTooltips).onChange(async v => { s.hideTooltips = v; await onChange(); }));
+
+  // Test: drop the Typography tab's live preview underneath the
+  // Visibility cluster. Lets us see how an in-section preview reads
+  // inside the rail's content pane — and how the Show/Hide toggles
+  // actually affect Obsidian-rendered Markdown in real time.
+  const previewWrap = pane.createDiv("tc-leftrail-preview");
+  previewWrap.createEl("h4", { cls: "tc-leftrail-preview-head", text: "Live preview" });
+  buildTypographyPreview(previewWrap);
 }
 
 function renderTabsDeep(
