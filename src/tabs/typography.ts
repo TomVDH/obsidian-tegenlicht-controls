@@ -195,7 +195,13 @@ export function build(
   const controls = wrap.createDiv("tc-typo-controls");
 
   // ── Fonts accordion ───────────────────────────────────────────────
-  const fontsBody = buildAccordion(controls, "fonts", "Fonts");
+  // Experiment (2026-04-17): the accordion body hosts a single
+  // pretty-cluster `.tc-cluster` wrapper so the Fonts controls paint
+  // with the same accent-gradient treatment used in Appearance
+  // (Palette, Shape, etc.). All row spacing / markup stays identical —
+  // only the enclosing chrome changes.
+  const fontsAccordion = buildAccordion(controls, "fonts", "Fonts");
+  const fontsBody = fontsAccordion.createDiv("tc-cluster");
 
   // Google Fonts master toggle — native Setting row for consistency.
   // Toggling requires a redisplay so the font-role pills update their

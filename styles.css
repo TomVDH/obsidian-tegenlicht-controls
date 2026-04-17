@@ -65,17 +65,21 @@
   font-size: 28px;
   font-weight: 700;
   color: var(--text-normal);
-  letter-spacing: -0.02em;
+  /* Positive tracking (+0.02em) gives "tegenlicht" a touch of breath
+     between the letters without drifting away from the tight wordmark
+     feel. Previously sat at -0.02em (condensed). */
+  letter-spacing: 0.02em;
   /* Lowercase per Tom — "tegenlicht" reads as the brand mark, not a
      proper noun. Source string is already lowercase but text-transform
      guards against future re-casing. */
   text-transform: lowercase;
 }
 /* Subtitle "Settings Companion" — spaced small-caps style, sits beside
-   the Tegenlicht wordmark. Muted tone + tracking so it reads as a
-   label/kicker rather than continuing the brand title. */
+   the Tegenlicht wordmark. Gap tightened (was 10px) so the subtitle
+   sits closer to the wordmark and reads as a continuation rather
+   than a detached chip. */
 .tc-settings .tc-header-subtitle {
-  margin-left: 10px;
+  margin-left: 5px;
   font-size: 10px;
   font-weight: 600;
   text-transform: uppercase;
@@ -114,33 +118,26 @@
   color: var(--text-normal);
   letter-spacing: -0.02em;
 }
+/* Version badge — flattened to plain text (2026-04-17). No pill, no
+   bg, no border, no hover/shimmer. Sits as a muted kicker label in
+   the header row alongside the wordmark + GitHub icon. Same small-
+   caps typography as the Settings Companion subtitle so the two
+   read as paired metadata. */
 .tc-settings .tc-header-badge {
   font-size: 10px;
   color: var(--text-muted);
-  background: var(--background-secondary);
-  border: 1px solid var(--background-modifier-border);
-  border-radius: 100px;
-  padding: 5px 14px;
-  /* Same typography vocabulary as the "Settings Companion" subtitle —
-     interface font, weight 600, uppercase, wide tracking. Drops the
-     prior monospace family so version reads as a kicker label, not a
-     code chip. */
+  background: transparent;
+  border: none;
+  border-radius: 0;
+  padding: 0;
   font-family: inherit;
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.18em;
   cursor: default;
-  transition: border-color 0.24s ease, color 0.24s ease, box-shadow 0.24s ease, background-color 0.6s ease;
-}
-.tc-settings .tc-header-badge:hover {
-  border-color: var(--color-accent);
-  color: var(--color-accent);
-  /* Shimmer plays over the border on hover — same accent-glow vocabulary
-     as the wordmark's diamond-click shimmer (tc-golden-shimmer), but here
-     it's a one-shot box-shadow pulse on the badge's pill border, paired
-     with a slow accent-fill ramp that peaks just as the glow ends and
-     then tapers off gently. */
-  animation: tc-badge-shimmer 1.6s ease, tc-badge-fill 2.6s ease;
+  /* Align with the subtitle's baseline so the row reads level. */
+  align-self: flex-end;
+  padding-bottom: 6px;
 }
 /* Combined shimmer: outer halo + inner edge glow + text glow all peak
    together, then taper sequentially within the same 1.6s window —
@@ -510,17 +507,33 @@
 }
 
 /* ═══════════════════════════════════════════════════════════
-   STATIC TOP-RIGHT BLOOM — ambient accent paints off the top-right
-   corner of the whole settings panel, not the tab-bar.
+   MESH BLOOM — top-right ambient wash, two accent glow centres
+   drifting slowly on different phases.
 
-   Post-2026-04-17 pivot: the prior tab-bar bloom kept regressing
-   into visual mis-containment (bleeding into the content area,
-   sitting lopsided after origin-tracking experiments). Replaced
-   with a single static radial anchored to the top-right of
-   .tc-settings — no JS, no randomisation, just a wash of the
-   active accent. Responsive to --color-accent-rgb so it retints
-   with flavour switches.
+   Kept INSIDE .tc-settings bounds (top: 0, right: 0) so it no
+   longer overlaps Obsidian's modal close-button chrome. Each
+   centre is a radial gradient layer; the centre positions are
+   animated via typed custom properties so the shape breathes
+   organically without the two layers locking into phase.
+
+   Light mode still disabled pending its own alpha tuning.
    ═══════════════════════════════════════════════════════════ */
+@property --mesh-a-x { syntax: "<percentage>"; inherits: true; initial-value: 78%; }
+@property --mesh-a-y { syntax: "<percentage>"; inherits: true; initial-value: 22%; }
+@property --mesh-b-x { syntax: "<percentage>"; inherits: true; initial-value: 55%; }
+@property --mesh-b-y { syntax: "<percentage>"; inherits: true; initial-value: 48%; }
+
+@keyframes tc-mesh-drift-a {
+  0%   { --mesh-a-x: 78%; --mesh-a-y: 22%; }
+  50%  { --mesh-a-x: 92%; --mesh-a-y: 34%; }
+  100% { --mesh-a-x: 78%; --mesh-a-y: 22%; }
+}
+@keyframes tc-mesh-drift-b {
+  0%   { --mesh-b-x: 55%; --mesh-b-y: 48%; }
+  50%  { --mesh-b-x: 68%; --mesh-b-y: 30%; }
+  100% { --mesh-b-x: 55%; --mesh-b-y: 48%; }
+}
+
 .tc-settings {
   position: relative;
   isolation: isolate;
@@ -528,20 +541,35 @@
 .tc-settings::before {
   content: "";
   position: absolute;
-  top: -160px;
-  right: -200px;
+  top: 0;
+  right: 0;
   width: 620px;
-  height: 520px;
-  background: radial-gradient(
-    ellipse 58% 62% at 70% 30%,
-    rgba(var(--color-accent-rgb, 229, 179, 42), 0.14) 0%,
-    rgba(var(--color-accent-rgb, 229, 179, 42), 0.075) 32%,
-    rgba(var(--color-accent-rgb, 229, 179, 42), 0.03) 60%,
-    transparent 82%
-  );
-  filter: blur(24px);
+  height: 480px;
+  background:
+    radial-gradient(
+      ellipse 260px 220px at var(--mesh-a-x, 78%) var(--mesh-a-y, 22%),
+      rgba(var(--color-accent-rgb, 229, 179, 42), 0.18) 0%,
+      rgba(var(--color-accent-rgb, 229, 179, 42), 0.08) 40%,
+      transparent 72%
+    ),
+    radial-gradient(
+      ellipse 320px 260px at var(--mesh-b-x, 55%) var(--mesh-b-y, 48%),
+      rgba(var(--color-accent-rgb, 229, 179, 42), 0.11) 0%,
+      rgba(var(--color-accent-rgb, 229, 179, 42), 0.05) 45%,
+      transparent 78%
+    );
+  animation:
+    tc-mesh-drift-a 13s ease-in-out infinite,
+    tc-mesh-drift-b 17s ease-in-out infinite;
+  filter: blur(20px);
   pointer-events: none;
   z-index: -1;
+}
+
+/* Respect users who opt out of motion — freeze the mesh at its
+   initial phase rather than strobing through reduced-motion. */
+@media (prefers-reduced-motion: reduce) {
+  .tc-settings::before { animation: none; }
 }
 
 /* Light mode — bloom hidden until it gets its own alpha/colour
