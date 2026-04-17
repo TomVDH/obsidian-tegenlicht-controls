@@ -138,6 +138,30 @@ function renderCallouts(
   pane.createEl("p", { cls: "tc-leftrail-secdesc",
     text: "Callout box styling — shape, colour, radius, fold position. Plugin toggles body classes and writes CSS vars; the theme paints." });
 
+  // Section preview expander — same circular accent button pattern as
+  // the Palette cluster's preview, surfaced here as a section-level
+  // affordance. "We'll likely migrate to this kind of settings" — Tom.
+  const previewRow = pane.createDiv("tc-section-preview-row");
+  const previewBtn = previewRow.createEl("button", {
+    cls: "tc-section-preview-btn",
+    attr: { "aria-label": "Toggle preview", title: "Toggle preview" },
+  });
+  previewBtn.createSpan({ cls: "tc-section-preview-chevron", text: "▾" });
+  previewRow.createSpan({ cls: "tc-section-preview-label", text: "PREVIEW" });
+  const previewWrap = pane.createDiv("tc-section-preview-wrap");
+  buildTypographyPreview(previewWrap);
+  let previewOpen = false;
+  previewBtn.addEventListener("click", () => {
+    previewOpen = !previewOpen;
+    if (previewOpen) {
+      previewWrap.style.maxHeight = previewWrap.scrollHeight + "px";
+      previewBtn.addClass("tc-section-preview-btn--open");
+    } else {
+      previewWrap.style.maxHeight = "0px";
+      previewBtn.removeClass("tc-section-preview-btn--open");
+    }
+  });
+
   buildSegmentSetting(pane,
     "Callout style",
     "Overall shape and shadow language for every callout",

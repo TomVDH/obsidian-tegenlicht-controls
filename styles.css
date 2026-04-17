@@ -272,15 +272,19 @@
    shape/size from .tc-circle-btn; this block just layers the armed
    double-click state on top. ── */
 .tc-settings .tc-reset-all-btn {
-  width: 28px;
-  height: 28px;
+  width: 34px;
+  height: 34px;
+  /* Pull the button right + nestle it into the rounded corner of the
+     surrounding settings dialog so its corner appears to round into
+     the dialog's outer border-radius. */
+  margin-right: -6px;
   /* Explicit box-shadow transition for the armed outline to animate in
      and out cleanly — no looping pulse animation, just a simple grow
      on arm and fade on disarm (or timeout). */
   transition: color 0.2s ease, border-color 0.2s ease, background 0.2s ease, box-shadow 0.25s ease;
   box-shadow: 0 0 0 0 transparent;
 }
-.tc-settings .tc-reset-all-btn svg { width: 15px; height: 15px; }
+.tc-settings .tc-reset-all-btn svg { width: 17px; height: 17px; }
 .tc-settings .tc-reset-all-btn--armed {
   color: var(--text-error, #e88);
   border-color: var(--text-error, #e88);
@@ -3740,4 +3744,59 @@ body.tc-graph-halo .workspace-leaf-content[data-type="graph"] .graph-view.color-
   overflow: hidden;
   transition: max-height 0.4s cubic-bezier(0.32, 0.72, 0, 1);
   margin-top: 4px;
+}
+
+/* ═══════════════════════════════════════════════════════════
+   Section-level preview expander — circular accent chevron + uppercase
+   label, max-height-animated wrap below. Used at the top of Legacy
+   sections (Callouts is the first; will likely migrate to other
+   sections soon).
+   ═══════════════════════════════════════════════════════════ */
+
+.tc-settings .tc-section-preview-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 4px 0 14px;
+}
+.tc-settings .tc-section-preview-btn {
+  width: 28px;
+  height: 28px;
+  border-radius: var(--radius-m, 4px);
+  background: rgba(var(--color-accent-rgb, 229, 179, 42), 0.10);
+  border: 1px solid rgba(var(--color-accent-rgb, 229, 179, 42), 0.32);
+  color: var(--color-accent, #e5b32a);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  font-size: 13px;
+  line-height: 1;
+  padding: 0;
+  flex-shrink: 0;
+  transition: background 0.18s ease, border-color 0.18s ease;
+}
+.tc-settings .tc-section-preview-btn:hover {
+  background: rgba(var(--color-accent-rgb, 229, 179, 42), 0.20);
+  border-color: rgba(var(--color-accent-rgb, 229, 179, 42), 0.50);
+}
+.tc-settings .tc-section-preview-chevron {
+  display: inline-block;
+  transition: transform 0.3s cubic-bezier(0.32, 0.72, 0, 1);
+}
+.tc-settings .tc-section-preview-btn--open .tc-section-preview-chevron {
+  transform: rotate(180deg);
+}
+.tc-settings .tc-section-preview-label {
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.18em;
+  color: var(--text-muted);
+}
+.tc-settings .tc-section-preview-wrap {
+  max-height: 0;
+  overflow: hidden;
+  transition: max-height 0.4s cubic-bezier(0.32, 0.72, 0, 1);
+  margin-bottom: 16px;
 }
