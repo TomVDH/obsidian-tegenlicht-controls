@@ -138,6 +138,22 @@
   color: var(--text-faint);
   padding: 8px 0 14px;
 }
+/* Inline row — rainbow bar + copy links share one horizontal line.
+   nowrap forces them to stay on one row even when the panel is narrow;
+   the .tc-header-copy padding override prevents its own vertical
+   padding from breaking the shared baseline. */
+.tc-settings .tc-header-inline-row {
+  display: flex;
+  align-items: center;
+  flex-wrap: nowrap;
+  gap: 14px;
+  margin: 8px 0 10px;
+}
+.tc-settings .tc-header-inline-row .tc-header-copy {
+  padding: 0;
+  flex: 0 1 auto;
+  min-width: 0;
+}
 .tc-settings .tc-header-copy-sep {
   opacity: 0.4;
 }
