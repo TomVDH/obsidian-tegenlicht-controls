@@ -184,10 +184,16 @@ function renderFonts(
   onChange: () => Promise<void>,
   refresh: () => Promise<void>,
 ): void {
-  const card = buildPrettyAccordion(pane, "fonts", "Fonts");
-
-  card.createEl("p", { cls: "tc-leftrail-secdesc",
+  // Section title + quip sit OUTSIDE the accordion, matching the
+  // Callouts pattern in the Legacy tab. The accordion below carries
+  // a sub-label styled as a subtitle (regular colour, all-caps, h5-
+  // ish) — the accent-painted card is a sub-box, not the section
+  // itself.
+  pane.createEl("h3", { cls: "tc-leftrail-sechead", text: "Fonts" });
+  pane.createEl("p", { cls: "tc-leftrail-secdesc",
     text: "Role-based mapping for Interface / Editor / Source. Load optional families from Google Fonts; fall back to system when disabled." });
+
+  const card = buildPrettyAccordion(pane, "fonts", "Role mapping");
 
   new Setting(card)
     .setName("Load Google Fonts")
@@ -222,11 +228,12 @@ function renderRhythm(
   s: TegenlichtSettings,
   onChange: () => Promise<void>,
 ): void {
-  const card = buildPrettyAccordion(pane, "rhythm", "Rhythm");
-  card.addClass("tc-h-accordion-body");
-
-  card.createEl("p", { cls: "tc-leftrail-secdesc",
+  pane.createEl("h3", { cls: "tc-leftrail-sechead", text: "Rhythm" });
+  pane.createEl("p", { cls: "tc-leftrail-secdesc",
     text: "Vertical rhythm of the document — heading sizes in ems, plus list indent and item spacing." });
+
+  const card = buildPrettyAccordion(pane, "rhythm", "Sliders");
+  card.addClass("tc-h-accordion-body");
 
   const headingGroup = card.createDiv("tc-h-group");
   HEADING_SLIDERS.forEach(cfg => {
@@ -250,15 +257,18 @@ function renderRhythm(
 }
 
 /** Scaffolded section — placeholder until its AnuPpuccin port wave
- *  lands. Same foldable pretty accordion shell so the structure
- *  matches wired sections; content is just a muted hint for now. */
+ *  lands. Section title + quip sit outside, same Callouts pattern;
+ *  the accordion inside carries a generic "Not yet wired" subtitle. */
 function renderPlaceholder(
   pane: HTMLElement,
   key: keyof typeof accordionOpen,
   title: string,
+  quip: string,
   hint: string,
 ): void {
-  const card = buildPrettyAccordion(pane, key, title);
+  pane.createEl("h3", { cls: "tc-leftrail-sechead", text: title });
+  pane.createEl("p", { cls: "tc-leftrail-secdesc", text: quip });
+  const card = buildPrettyAccordion(pane, key, "Not yet wired");
   card.createEl("p", { cls: "tc-empty-hint", text: hint });
 }
 
@@ -294,12 +304,15 @@ export function build(
     // the tab.
     { id: "headings", label: "Headings",        count: 0,
       render: pane => renderPlaceholder(pane, "headings", "Headings",
+        "Per-heading colour, divider rule, decoration accents.",
         "Lands with AnuPpuccin port Wave 3 — per-H colour dropdowns, divider toggles, decoration accents.") },
     { id: "weight",   label: "Weight & leading", count: 0,
       render: pane => renderPlaceholder(pane, "weight", "Weight & leading",
+        "Per-heading font / weight / line-height plus global font weights.",
         "Lands with Wave 4 — per-H font / weight / line-height plus global weight vars.") },
     { id: "accents",  label: "Accents",         count: 0,
       render: pane => renderPlaceholder(pane, "accents", "Accents",
+        "Bold / italic / highlight / link text-colour overrides.",
         "Lands with Wave 3 decoration colours — bold / italic / highlight / link overrides.") },
   ];
 

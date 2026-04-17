@@ -270,9 +270,13 @@
      the right pane's section header (h3) midline — pane padding-top
      18 + h3 line-box ~9 = 27px from pane top; rail padding-top 8 + 17
      + 2 = 27px from rail top. Keeps the two columns optically aligned
-     across the divider. */
-  margin: 17px 0 10px;
-  width: 100%;
+     across the divider.
+
+     Horizontal margin matches the rail-item text inset (10px) so the
+     rainbow's edges line up with the labels below, cutting off a hair
+     earlier than the rail's inner edge. */
+  margin: 17px 10px 10px;
+  width: auto;
   pointer-events: none;
   flex-shrink: 0;
 }
@@ -2379,12 +2383,10 @@ body.tc-radius-rounded .tc-settings .tc-feat-group { border-radius: 14px !import
 .tc-settings .tc-feat-group--flat .tc-feat-header:hover { background: var(--background-secondary); }
 
 /* Pretty accordion — repaints the accordion shell with the same
-   accent-gradient treatment as .tc-cluster. Used for the Fonts
-   accordion in Typography (experiment 2026-04-17). Applies to the
-   container AND the header so the whole card reads as a cohesive
-   pretty box, not just the inner body. Inner setting-items lose
-   their dark per-row bg (matching .tc-cluster's behaviour) so the
-   accent wash is visible beneath. */
+   accent-gradient treatment as .tc-cluster. Used inside Typography
+   rail panes so each sub-section reads as an accent-painted card.
+   Inner setting-items lose their dark per-row bg so the accent
+   wash is visible beneath. */
 .tc-settings .tc-feat-group--pretty {
   background: linear-gradient(135deg,
     color-mix(in srgb, var(--color-accent) 8%, transparent),
@@ -2395,6 +2397,18 @@ body.tc-radius-rounded .tc-settings .tc-feat-group { border-radius: 14px !import
 .tc-settings .tc-feat-group--pretty .tc-feat-header,
 .tc-settings .tc-feat-group--pretty .tc-feat-header:hover {
   background: transparent;
+}
+/* Experimental subtitle treatment for the pretty-accordion header:
+   regular text colour (NOT accent — the card's own accent tint
+   carries that), all-caps with comfortable tracking, h5-ish size.
+   Reads as a sub-section label under the rail pane's own h3 sechead
+   (which sits outside the accordion per the Callouts pattern). */
+.tc-settings .tc-feat-group--pretty .tc-feat-title {
+  color: var(--text-normal);
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
+  font-size: 13px;
+  font-weight: 600;
 }
 .tc-settings .tc-feat-group--pretty .tc-feat-body.tc-setting-card .setting-item,
 .tc-settings .tc-feat-group--pretty .tc-feat-body.tc-setting-card .setting-item:hover {
