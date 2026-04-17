@@ -79,101 +79,10 @@ function buildDivider(container: HTMLElement): void {
 // buildSegmentSetting now lives in ./_shared so the Editing tab can
 // share the same pill-picker helper without duplication.
 
-/** Segment pill-select + an auto / mono colour pair on the same row.
- *  - Auto = empty string = theme default, which for icons and borders
- *    already resolves to the accent colour on every current flavour.
- *  - Mono = 'mono' sentinel = monochrome (rgb(var(--mono-rgb-100))),
- *    rendered in the pip as a solid white circle with a subtle border.
- *  Two binary states — no custom Pickr; the choice is opinionated.
- *
- *  Used for "Icon intensity" and "Border intensity". */
-function buildSegmentWithColor(
-  container: HTMLElement,
-  name: string,
-  desc: string,
-  options: { label: string; value: string }[],
-  currentSegment: string,
-  onSegmentChange: (value: string) => Promise<void>,
-  colour: {
-    getValue: () => string;                // '' | 'mono'
-    setValue: (v: string) => void;
-    onChange: () => Promise<void>;
-  },
-): void {
-  const setting = new Setting(container).setName(name).setDesc(desc);
-  const wrap = setting.controlEl.createDiv("tc-seg-with-color");
-
-  // Pills — identical markup to buildSegmentSetting, including the
-  // sliding accent indicator that every other .tc-seg in the plugin
-  // carries. Without this the Weight cluster's Icon/Border intensity
-  // switches read as the odd ones out — no sliding pill, mismatched
-  // with every other segment picker.
-  const group = wrap.createDiv("tc-seg");
-  const slide = group.createDiv("tc-seg-slide-indicator");
-  const buttons = new Map<string, HTMLElement>();
-
-  const updateSlide = (btn: HTMLElement) => {
-    requestAnimationFrame(() => {
-      const trackRect = group.getBoundingClientRect();
-      const btnRect   = btn.getBoundingClientRect();
-      if (!trackRect.width || !btnRect.width) return;
-      slide.style.setProperty("--tc-slide-x", `${btnRect.left - trackRect.left}px`);
-      slide.style.setProperty("--tc-slide-w", `${btnRect.width}px`);
-      slide.classList.add("tc-seg-slide-indicator--ready");
-    });
-  };
-
-  options.forEach(o => {
-    const btn = group.createEl("button", { text: o.label, cls: "tc-seg-btn" });
-    if (o.value === currentSegment) {
-      btn.addClass("tc-seg-btn--active");
-      updateSlide(btn);
-    }
-    btn.addEventListener("click", async () => {
-      if (btn.hasClass("tc-seg-btn--active")) return;
-      buttons.forEach(b => b.removeClass("tc-seg-btn--active"));
-      btn.addClass("tc-seg-btn--active");
-      updateSlide(btn);
-      await onSegmentChange(o.value);
-    });
-    buttons.set(o.value, btn);
-  });
-
-  // Separator between pills and colour dots.
-  wrap.createDiv("tc-accent-sep");
-
-  // Auto / Mono pair.
-  const autoItem = wrap.createDiv("tc-accent-item tc-accent-item--auto");
-  const autoDot = autoItem.createDiv("tc-accent-dot tc-accent-dot--auto");
-  autoDot.setAttribute("title", "Auto — subtle accent (40% alpha)");
-  autoItem.createSpan({ text: "auto", cls: "tc-accent-caption" });
-
-  const monoItem = wrap.createDiv("tc-accent-item tc-accent-item--mono");
-  const monoDot = monoItem.createDiv("tc-accent-dot tc-accent-dot--mono");
-  monoDot.setAttribute("title", "Mono — theme's native tint");
-  monoItem.createSpan({ text: "mono", cls: "tc-accent-caption" });
-
-  const setActiveDot = (which: 'auto' | 'mono') => {
-    [autoDot, monoDot].forEach(d => d.removeClass('tc-accent-dot--active'));
-    ({ auto: autoDot, mono: monoDot })[which].addClass('tc-accent-dot--active');
-  };
-
-  // Seed active state. Any legacy value that isn't 'mono' (including
-  // old 'accent' sentinels or stray hex strings from the Pickr era)
-  // collapses to auto so old saves don't leave the UI in limbo.
-  setActiveDot(colour.getValue() === 'mono' ? 'mono' : 'auto');
-
-  autoDot.addEventListener('click', async () => {
-    colour.setValue('');
-    setActiveDot('auto');
-    await colour.onChange();
-  });
-  monoDot.addEventListener('click', async () => {
-    colour.setValue('mono');
-    setActiveDot('mono');
-    await colour.onChange();
-  });
-}
+// buildSegmentWithColor (pills + auto/mono dots) retired — Weight
+// cluster now uses plain buildSegmentSetting matching Shape's style.
+// iconColour / borderColour settings kept for back-compat; default
+// 'auto' (empty string = 40% accent tint).
 
 /** Native Obsidian Setting row with dropdown for multi-option controls. */
 function buildDropdownSetting(
@@ -431,15 +340,15 @@ function renderTheme(
   );
 
   // ── Weight cluster — line weight of icons and borders ─
+  // Plain segment pickers matching Shape's pattern exactly (pills
+  // only, no auto/mono colour dots). The per-choice icon/border
+  // colour (`iconColour` / `borderColour`) stays in settings for
+  // future reuse but is no longer UI-exposed here — defaults to
+  // 'auto' (empty string = 40% accent tint).
   const weightCluster = buildPrettyAccordion(pane, "app-weight", "Weight", true, s.accordionStyle);
 
-  // Icon intensity — weight pills + auto/mono tint pair.
-  // 'auto' = theme default (accent). 'mono' = monochrome via the
-  // mono-rgb scale. Flavour switching resets to '' so each theme starts
-  // at its own default.
-  buildSegmentWithColor(
-    weightCluster,
-    "Icon intensity", "Weight + tint of every Lucide icon in the chrome",
+  buildSegmentSetting(weightCluster,
+    "Icon intensity", "Stroke weight of every Lucide icon in the chrome",
     [
       { label: "Thin",    value: "thin" },
       { label: "Regular", value: "regular" },
@@ -447,17 +356,10 @@ function renderTheme(
     ],
     s.iconStroke,
     async v => { s.iconStroke = v; await refresh(); },
-    {
-      getValue: () => s.iconColour,
-      setValue: v  => { s.iconColour = v; },
-      onChange: refresh,
-    },
   );
 
-  // Border intensity — strength pills + auto/mono tint pair.
-  buildSegmentWithColor(
-    weightCluster,
-    "Border intensity", "Strength + tint of borders across the Obsidian interface",
+  buildSegmentSetting(weightCluster,
+    "Border intensity", "Strength of borders across the Obsidian interface",
     [
       { label: "None",         value: "none" },
       { label: "Whisper",      value: "whisper" },
@@ -466,11 +368,6 @@ function renderTheme(
     ],
     s.borderIntensity,
     async v => { s.borderIntensity = v; await refresh(); },
-    {
-      getValue: () => s.borderColour,
-      setValue: v  => { s.borderColour = v; },
-      onChange: refresh,
-    },
   );
 
 }
