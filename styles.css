@@ -1168,7 +1168,7 @@
   flex-direction: column;
   align-items: center;
   justify-content: flex-start;
-  gap: 3px;
+  gap: 6px;
   flex-shrink: 0;
   /* Reserve the full dot + caption height on every pip so the dot row
      stays aligned whether the caption is present or not. */
@@ -1181,6 +1181,14 @@
   text-transform: uppercase;
   letter-spacing: 0.05em;
   opacity: 0.7;
+  transition: opacity 0.12s ease, color 0.12s ease;
+}
+/* When the pip above the caption is selected, the caption brightens —
+   adjacent-sibling selector picks the caption that immediately follows
+   the active dot inside the same .tc-accent-item column. */
+.tc-settings .tc-accent-dot--active + .tc-accent-caption {
+  opacity: 1;
+  color: var(--text-muted);
 }
 
 /* Auto: transparent, dashed border in a muted neutral tone so it reads as
