@@ -19,7 +19,10 @@
 .tc-settings .tc-header-wordmark {
   display: flex;
   align-items: center;
-  gap: 8px;
+  /* Slightly more breathing room between the diamond and the wordmark
+     now that the diamond is the focal hover target (previously the
+     wordmark was). */
+  gap: 12px;
 }
 /* Pushes the version badge to the far right of the top row */
 .tc-settings .tc-header-top-spacer { flex: 1; }
@@ -38,15 +41,28 @@
   line-height: 1;
   cursor: default;
   user-select: none;
-  transition: color 0.3s ease;
+  transition: text-shadow 0.5s ease, color 0.3s ease;
+  text-shadow: 0 0 0 transparent;
+}
+/* Easter egg — hover the diamond and it bloom-glows in the active accent.
+   No more click-required, no more wordmark shimmer; the diamond is the
+   only thing that lights up. Tapers in/out via the transition above. */
+.tc-settings .tc-header-icon:hover {
+  text-shadow:
+    0 0 8px rgba(var(--color-accent-rgb, 229, 179, 42), 0.85),
+    0 0 18px rgba(var(--color-accent-rgb, 229, 179, 42), 0.55),
+    0 0 32px rgba(var(--color-accent-rgb, 229, 179, 42), 0.30);
 }
 
-/* ── Easter egg: accent shimmer — the "Tegenlicht" wordmark glows ── */
 .tc-settings .tc-header-name-brand {
   font-size: 28px;
   font-weight: 700;
   color: var(--text-normal);
   letter-spacing: -0.02em;
+  /* Lowercase per Tom — "tegenlicht" reads as the brand mark, not a
+     proper noun. Source string is already lowercase but text-transform
+     guards against future re-casing. */
+  text-transform: lowercase;
 }
 /* Subtitle "Settings Companion" — spaced small-caps style, sits beside
    the Tegenlicht wordmark. Muted tone + tracking so it reads as a
@@ -107,21 +123,66 @@
   text-transform: uppercase;
   letter-spacing: 0.18em;
   cursor: default;
-  transition: border-color 0.24s ease, color 0.24s ease, box-shadow 0.24s ease;
+  transition: border-color 0.24s ease, color 0.24s ease, box-shadow 0.24s ease, background-color 0.6s ease;
 }
 .tc-settings .tc-header-badge:hover {
   border-color: var(--color-accent);
   color: var(--color-accent);
   /* Shimmer plays over the border on hover — same accent-glow vocabulary
      as the wordmark's diamond-click shimmer (tc-golden-shimmer), but here
-     it's a one-shot box-shadow pulse on the badge's pill border. */
-  animation: tc-badge-shimmer 1.6s ease;
+     it's a one-shot box-shadow pulse on the badge's pill border, paired
+     with a slow accent-fill ramp that peaks just as the glow ends and
+     then tapers off gently. */
+  animation: tc-badge-shimmer 1.6s ease, tc-badge-fill 2.6s ease;
 }
+/* Combined shimmer: outer halo + inner edge glow + text glow all peak
+   together, then taper sequentially within the same 1.6s window —
+   outer dies first (~72%), inner edge a beat later (~86%), text glow
+   last (~100%). All three coincide in the same fade-out arc; the
+   sequential gaps are short enough to read as a single "settling"
+   gesture rather than three discrete fades. */
 @keyframes tc-badge-shimmer {
-  0%   { box-shadow: 0 0 0 0 rgba(var(--color-accent-rgb, 229, 179, 42), 0); }
-  35%  { box-shadow: 0 0 14px 2px rgba(var(--color-accent-rgb, 229, 179, 42), 0.55); }
-  70%  { box-shadow: 0 0 8px 1px rgba(var(--color-accent-rgb, 229, 179, 42), 0.30); }
-  100% { box-shadow: 0 0 0 0 rgba(var(--color-accent-rgb, 229, 179, 42), 0); }
+  0% {
+    box-shadow:
+      0 0 0 0 rgba(var(--color-accent-rgb, 229, 179, 42), 0),
+      inset 0 0 0 0 rgba(var(--color-accent-rgb, 229, 179, 42), 0);
+    text-shadow: 0 0 0 rgba(var(--color-accent-rgb, 229, 179, 42), 0);
+  }
+  25% {
+    box-shadow:
+      0 0 14px 2px rgba(var(--color-accent-rgb, 229, 179, 42), 0.55),
+      inset 0 0 0 1px rgba(var(--color-accent-rgb, 229, 179, 42), 0.45);
+    text-shadow: 0 0 6px rgba(var(--color-accent-rgb, 229, 179, 42), 0.55);
+  }
+  55% {
+    box-shadow:
+      0 0 8px 1px rgba(var(--color-accent-rgb, 229, 179, 42), 0.30),
+      inset 0 0 0 1px rgba(var(--color-accent-rgb, 229, 179, 42), 0.40);
+    text-shadow: 0 0 5px rgba(var(--color-accent-rgb, 229, 179, 42), 0.45);
+  }
+  72% {
+    box-shadow:
+      0 0 0 0 rgba(var(--color-accent-rgb, 229, 179, 42), 0),
+      inset 0 0 0 1px rgba(var(--color-accent-rgb, 229, 179, 42), 0.22);
+    text-shadow: 0 0 4px rgba(var(--color-accent-rgb, 229, 179, 42), 0.30);
+  }
+  86% {
+    box-shadow:
+      0 0 0 0 rgba(var(--color-accent-rgb, 229, 179, 42), 0),
+      inset 0 0 0 0 rgba(var(--color-accent-rgb, 229, 179, 42), 0);
+    text-shadow: 0 0 3px rgba(var(--color-accent-rgb, 229, 179, 42), 0.12);
+  }
+  100% {
+    box-shadow:
+      0 0 0 0 rgba(var(--color-accent-rgb, 229, 179, 42), 0),
+      inset 0 0 0 0 rgba(var(--color-accent-rgb, 229, 179, 42), 0);
+    text-shadow: 0 0 0 rgba(var(--color-accent-rgb, 229, 179, 42), 0);
+  }
+}
+@keyframes tc-badge-fill {
+  0%   { background-color: var(--background-secondary); }
+  60%  { background-color: color-mix(in srgb, var(--color-accent) 70%, var(--background-secondary)); }
+  100% { background-color: var(--background-secondary); }
 }
 .tc-settings .tc-header-tagline {
   font-size: 12px;
@@ -201,7 +262,12 @@
    it into the rail layout (full-width of the rail, top-aligned, not
    interactive — no hover, no active). */
 .tc-settings .tc-leftrail-rainbow {
-  margin: 0 0 10px;
+  /* Top margin tuned so the rainbow's vertical midline lines up with
+     the right pane's section header (h3) midline — pane padding-top
+     18 + h3 line-box ~9 = 27px from pane top; rail padding-top 8 + 17
+     + 2 = 27px from rail top. Keeps the two columns optically aligned
+     across the divider. */
+  margin: 17px 0 10px;
   width: 100%;
   pointer-events: none;
   flex-shrink: 0;
@@ -278,11 +344,24 @@
      surrounding settings dialog so its corner appears to round into
      the dialog's outer border-radius. */
   margin-right: -6px;
+  position: relative;
   /* Explicit box-shadow transition for the armed outline to animate in
      and out cleanly — no looping pulse animation, just a simple grow
      on arm and fade on disarm (or timeout). */
   transition: color 0.2s ease, border-color 0.2s ease, background 0.2s ease, box-shadow 0.25s ease;
   box-shadow: 0 0 0 0 transparent;
+}
+/* Thin dashed divider between the tab cluster (and reset hint) and the
+   reset-all button — same vocabulary as the left-rail / pane vertical
+   divider, so the panel reads as a single grid of dashed gutters. */
+.tc-settings .tc-reset-all-btn::before {
+  content: "";
+  position: absolute;
+  left: -14px;
+  top: 14%;
+  bottom: 14%;
+  border-left: 1px dashed rgba(var(--mono-rgb-100, 200, 200, 200), 0.20);
+  pointer-events: none;
 }
 .tc-settings .tc-reset-all-btn svg { width: 17px; height: 17px; }
 .tc-settings .tc-reset-all-btn--armed {
@@ -410,6 +489,60 @@
 .tc-settings.tc-tabs-ghost .tc-tab--active {
   color: var(--color-accent, #e5b32a);
   box-shadow: inset 0 0 0 1px var(--color-accent, #e5b32a);
+}
+
+/* ═══════════════════════════════════════════════════════════
+   Text — minimal text-only tabs. No pill, no border, no fill at rest.
+   Active tab gets a very soft accent radial gradient that emanates
+   from a random off-centre origin (set per-activation via two CSS
+   custom properties — --tc-tab-glow-x and --tc-tab-glow-y — written
+   by settings-tab.ts on each click). Subtle bloom, not a button.
+   ═══════════════════════════════════════════════════════════ */
+.tc-settings.tc-tabs-text .tc-tab-bar {
+  margin-bottom: 8px;
+}
+.tc-settings.tc-tabs-text .tc-tab {
+  /* Retains the base typography from `.tc-tab` (font-size 12,
+     weight 500, letter-spacing) — strips only the chrome. */
+  background: transparent;
+  border: none;
+  border-radius: 6px;
+  padding: 7px 14px;
+  margin-right: var(--tc-tab-gap, 6px) !important;
+  position: relative;
+  overflow: hidden;
+  z-index: 0;
+  transition: color 0.22s ease;
+}
+.tc-settings.tc-tabs-text .tc-tab:hover {
+  /* Quiet hover — colour shift only, no background pill. */
+  background: transparent;
+  color: var(--text-normal);
+}
+.tc-settings.tc-tabs-text .tc-tab::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(
+    ellipse 130% 220% at var(--tc-tab-glow-x, 35%) var(--tc-tab-glow-y, 40%),
+    rgba(var(--color-accent-rgb, 229, 179, 42), 0.20) 0%,
+    rgba(var(--color-accent-rgb, 229, 179, 42), 0.10) 30%,
+    rgba(var(--color-accent-rgb, 229, 179, 42), 0.04) 60%,
+    transparent 100%
+  );
+  opacity: 0;
+  transition: opacity 0.55s ease;
+  pointer-events: none;
+  z-index: -1;
+  border-radius: inherit;
+}
+.tc-settings.tc-tabs-text .tc-tab--active,
+.tc-settings.tc-tabs-text .tc-tab--active:hover {
+  color: var(--color-accent);
+  background: transparent;
+}
+.tc-settings.tc-tabs-text .tc-tab--active::before {
+  opacity: 1;
 }
 
 /* ── Tab style switcher ── */
@@ -3255,10 +3388,11 @@ body.tc-has-noise.tc-grain-static .workspace::after {
   justify-content: center;
   background: var(--background-secondary);
   border: 1px solid var(--background-modifier-border);
-  /* Reset / circular mini-button now follows the global cornerRadius
-     setting via --radius-m (0 / 4 / 12 for sharp / subtle / rounded).
-     Was hardcoded 50% (always circle). */
-  border-radius: var(--radius-m, 4px);
+  /* Always round — reset / preview / inline-circle buttons read as
+     "round mini-button" everywhere, regardless of the cornerRadius
+     setting. Doubled selector for specificity over the cornerRadius
+     scope rules. */
+  border-radius: 50% !important;
   color: var(--text-muted);
   padding: 0;
   cursor: pointer;
@@ -3575,11 +3709,13 @@ body.tc-graph-halo .workspace-leaf-content[data-type="graph"] .graph-view.color-
 }
 
 .tc-settings .tc-leftrail-pane {
-  /* Right padding dropped — pane content extends to the shell's right
-     edge, which itself sits flush against the settings-modal interior
-     edge. Settings inside the pane carry their own right padding via
-     Obsidian's native .setting-item styling. */
-  padding: 18px 0 18px 20px;
+  /* Left padding = 2× the rail's right padding (8 × 2 = 16px) so the
+     gap from the divider to the pane content reads as a comfortable
+     gutter — twice the rail's inner padding rather than a perfect
+     mirror. Right padding stays 0 — pane content reaches the shell's
+     (and the modal's) right edge. Settings inside the pane carry
+     their own padding via Obsidian's native .setting-item styling. */
+  padding: 18px 0 18px 16px;
   overflow-y: auto;
 }
 
@@ -3726,9 +3862,12 @@ body.tc-graph-halo .workspace-leaf-content[data-type="graph"] .graph-view.color-
   border-top: 1px dashed rgba(var(--color-accent-rgb, 229, 179, 42), 0.22);
 }
 .tc-settings .tc-palette-expander-btn {
-  width: 28px;
-  height: 28px;
-  border-radius: var(--radius-m, 4px);
+  /* Same size + circular shape as the tab-bar reset button and the
+     section preview toggle, so all "round mini-buttons" in the panel
+     read as one family regardless of the cornerRadius setting. */
+  width: 34px;
+  height: 34px;
+  border-radius: 50% !important;
   background: rgba(var(--color-accent-rgb, 229, 179, 42), 0.10);
   border: 1px solid rgba(var(--color-accent-rgb, 229, 179, 42), 0.32);
   color: var(--color-accent, #e5b32a);
@@ -3736,7 +3875,7 @@ body.tc-graph-halo .workspace-leaf-content[data-type="graph"] .graph-view.color-
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  font-size: 13px;
+  font-size: 15px;
   line-height: 1;
   padding: 0;
   transition: background 0.18s ease, border-color 0.18s ease, transform 0.18s ease;
@@ -3766,50 +3905,176 @@ body.tc-graph-halo .workspace-leaf-content[data-type="graph"] .graph-view.color-
    sections soon).
    ═══════════════════════════════════════════════════════════ */
 
-.tc-settings .tc-section-preview-row {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  margin: 4px 0 14px;
+/* Section header row — h3 sits at its natural baseline on the left, the
+   round PREVIEW toggle floats absolute on the right so the button's
+   34px height doesn't push the row taller (which would shift the h3
+   midline away from the rainbow alignment). */
+.tc-settings .tc-leftrail-sechead-row {
+  position: relative;
+  margin: 0 0 10px 0;
 }
-.tc-settings .tc-section-preview-btn {
-  width: 28px;
-  height: 28px;
-  border-radius: var(--radius-m, 4px);
-  background: rgba(var(--color-accent-rgb, 229, 179, 42), 0.10);
-  border: 1px solid rgba(var(--color-accent-rgb, 229, 179, 42), 0.32);
-  color: var(--color-accent, #e5b32a);
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  font-size: 13px;
-  line-height: 1;
-  padding: 0;
-  flex-shrink: 0;
-  transition: background 0.18s ease, border-color 0.18s ease;
+.tc-settings .tc-leftrail-sechead-row .tc-leftrail-sechead {
+  margin: 0;
 }
-.tc-settings .tc-section-preview-btn:hover {
-  background: rgba(var(--color-accent-rgb, 229, 179, 42), 0.20);
-  border-color: rgba(var(--color-accent-rgb, 229, 179, 42), 0.50);
+.tc-settings .tc-leftrail-sechead-row .tc-section-preview-btn {
+  position: absolute;
+  /* Inside the pane right edge — pushing past with -6px caused
+     horizontal overflow / x-clip in the pane scroller. */
+  right: 0;
+  top: 50%;
+  transform: translateY(-50%);
 }
-.tc-settings .tc-section-preview-chevron {
-  display: inline-block;
+
+/* Section-level preview toggle — IDENTICAL dimensions AND visual
+   weight as the tab-bar reset-all button so they read as the same
+   round mini-button family. Hard-locked size with !important on every
+   dimension. Background + border use the same neutral tokens as reset
+   (the accent fill was bleeding out and making the button look 2-3px
+   larger than reset even though physical sizes matched). Icon stays
+   muted at rest, subtle accent on hover. */
+.tc-settings button.tc-circle-btn.tc-section-preview-btn {
+  width: 34px !important;
+  height: 34px !important;
+  min-width: 34px !important;
+  min-height: 34px !important;
+  max-width: 34px !important;
+  max-height: 34px !important;
+  padding: 0 !important;
+  box-sizing: border-box !important;
+  background: var(--background-secondary);
+  border: 1px solid var(--background-modifier-border);
+  color: var(--text-muted);
+  transition: color 0.12s, border-color 0.12s, background 0.12s;
+}
+.tc-settings button.tc-circle-btn.tc-section-preview-btn:hover {
+  background: var(--background-modifier-hover);
+  border-color: var(--text-muted);
+  color: var(--color-accent);
+}
+.tc-settings button.tc-circle-btn.tc-section-preview-btn svg {
+  width: 17px !important;
+  height: 17px !important;
   transition: transform 0.3s cubic-bezier(0.32, 0.72, 0, 1);
 }
-.tc-settings .tc-section-preview-btn--open .tc-section-preview-chevron {
+.tc-settings .tc-section-preview-btn--open svg {
   transform: rotate(180deg);
-}
-.tc-settings .tc-section-preview-label {
-  font-size: 11px;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.18em;
-  color: var(--text-muted);
 }
 .tc-settings .tc-section-preview-wrap {
   max-height: 0;
   overflow: hidden;
   transition: max-height 0.4s cubic-bezier(0.32, 0.72, 0, 1);
   margin-bottom: 16px;
+  /* Right margin reverted to 0 — the -6px overshoot was clipping
+     into the pane's horizontal-overflow boundary. */
+}
+
+/* ═══════════════════════════════════════════════════════════
+   Horizontal tabs — used by the Lab tab to subdivide each left-rail
+   section's content pane. Quiet underline tabs, distinct from the
+   segmented pill picker (.tc-seg) so the two read as different
+   semantics: tabs = "switch view", segments = "pick option".
+   ═══════════════════════════════════════════════════════════ */
+.tc-settings .tc-htabs {
+  margin: 6px 0 14px;
+}
+.tc-settings .tc-htabs-bar {
+  display: flex;
+  align-items: stretch;
+  gap: 0;
+  border-bottom: 1px dashed rgba(var(--mono-rgb-100, 200, 200, 200), 0.20);
+  margin-bottom: 14px;
+}
+.tc-settings .tc-htabs-btn {
+  background: transparent;
+  border: none;
+  border-bottom: 2px solid transparent;
+  padding: 9px 14px;
+  margin-bottom: -1px;
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: 0.02em;
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: color 0.16s ease, border-color 0.16s ease;
+}
+.tc-settings .tc-htabs-btn:hover {
+  color: var(--text-normal);
+}
+.tc-settings .tc-htabs-btn--active,
+.tc-settings .tc-htabs-btn--active:hover {
+  color: var(--color-accent);
+  border-bottom-color: var(--color-accent);
+  font-weight: 600;
+}
+.tc-settings .tc-htabs-pane {
+  /* No padding — sub-content pulls from the same left-rail pane
+     padding the section title sits on, so the alignment carries
+     through. */
+}
+
+/* ═══════════════════════════════════════════════════════════
+   Per-preview light/dark toggle — small sun/moon button in the
+   mini-Obsidian title bar, right of the vault-label idiom. Single
+   visual language across every preview (Typography, Callouts,
+   Editing). Click swaps `body.theme-dark` ↔ `body.theme-light`,
+   which cascades through every CSS var the previews read.
+   ═══════════════════════════════════════════════════════════ */
+.tc-settings .tc-mini-obsidian .tc-mini-mode-toggle {
+  /* mini-vault carries the `margin-left: auto` already, so the toggle
+     sits right beside it on the right edge with just a small gap. */
+  margin-left: 6px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  padding: 0;
+  background: transparent;
+  border: 1px solid rgba(var(--mono-rgb-100, 200, 200, 200), 0.18);
+  border-radius: 50%;
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: color 0.15s ease, background 0.15s ease, border-color 0.15s ease;
+}
+.tc-settings .tc-mini-obsidian .tc-mini-mode-toggle:hover {
+  color: var(--color-accent);
+  border-color: rgba(var(--color-accent-rgb, 229, 179, 42), 0.50);
+  background: rgba(var(--color-accent-rgb, 229, 179, 42), 0.12);
+}
+.tc-settings .tc-mini-obsidian .tc-mini-mode-toggle svg {
+  width: 13px;
+  height: 13px;
+  display: block;
+}
+
+/* ═══════════════════════════════════════════════════════════
+   Callout preview — clickable second tab gets a soft accented
+   hover-pulse so it reads as "yes, click me to switch view".
+   Active tab and the non-clickable first tab stay quiet.
+   ═══════════════════════════════════════════════════════════ */
+.tc-settings .tc-callout-mini .mini-tab[data-tab] {
+  cursor: pointer;
+  transition: color 0.16s ease, background 0.16s ease;
+}
+/* Pulse runs continuously while the gallery tab is inactive — not
+   gated on hover, so the affordance reads even at a glance. Fades
+   in/out softly between low and mid-low accent alpha; on hover the
+   text colour bumps to accent for an extra cue. */
+.tc-settings .tc-callout-mini .mini-tab--clickable:not(.active) {
+  animation: tc-mini-tab-pulse 2.2s ease-in-out infinite;
+  color: var(--color-accent);
+}
+.tc-settings .tc-callout-mini .mini-tab--clickable:not(.active):hover {
+  animation-duration: 1.2s;
+}
+@keyframes tc-mini-tab-pulse {
+  0%, 100% { background: rgba(var(--color-accent-rgb, 229, 179, 42), 0.05); }
+  50%      { background: rgba(var(--color-accent-rgb, 229, 179, 42), 0.18); }
+}
+.tc-settings .tc-callout-mini .mini-content {
+  /* Both panels share the same display context — only the active one
+     is visible (display flipped inline by the click handler). */
+}
+.tc-settings .tc-callout-mini .mini-content--active {
+  display: block;
 }

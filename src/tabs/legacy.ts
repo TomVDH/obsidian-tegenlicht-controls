@@ -1,8 +1,8 @@
-import { Setting } from "obsidian";
+import { Setting, setIcon } from "obsidian";
 import Pickr from "@simonwep/pickr";
 import TegenlichtControlsPlugin from "../main";
 import { buildLeftRailShell, LeftRailSection, buildSegmentSetting, buildCluster } from "./_shared";
-import { buildTypographyPreview } from "../preview-sample";
+import { buildTypographyPreview, buildCalloutPreview } from "../preview-sample";
 
 /**
  * Legacy tab — surfaces AnuPpuccin theme controls that don't have a
@@ -134,22 +134,22 @@ function renderCallouts(
   onChange: () => Promise<void>,
   refresh: () => Promise<void>,
 ): void {
-  pane.createEl("h3", { cls: "tc-leftrail-sechead", text: "Callouts" });
+  // Header row — title on the left, round PREVIEW toggle on the right
+  // (vertically inline with the reset-all button in the tab bar above,
+  // since both pin to the right edge of the settings modal).
+  const headRow = pane.createDiv("tc-leftrail-sechead-row");
+  headRow.createEl("h3", { cls: "tc-leftrail-sechead", text: "Callouts" });
+  const previewBtn = headRow.createEl("button", {
+    cls: "tc-circle-btn tc-section-preview-btn",
+    attr: { "aria-label": "Toggle preview", title: "Toggle preview" },
+  });
+  setIcon(previewBtn, "chevron-down");
+
   pane.createEl("p", { cls: "tc-leftrail-secdesc",
     text: "Callout box styling — shape, colour, radius, fold position. Plugin toggles body classes and writes CSS vars; the theme paints." });
 
-  // Section preview expander — same circular accent button pattern as
-  // the Palette cluster's preview, surfaced here as a section-level
-  // affordance. "We'll likely migrate to this kind of settings" — Tom.
-  const previewRow = pane.createDiv("tc-section-preview-row");
-  const previewBtn = previewRow.createEl("button", {
-    cls: "tc-section-preview-btn",
-    attr: { "aria-label": "Toggle preview", title: "Toggle preview" },
-  });
-  previewBtn.createSpan({ cls: "tc-section-preview-chevron", text: "▾" });
-  previewRow.createSpan({ cls: "tc-section-preview-label", text: "PREVIEW" });
   const previewWrap = pane.createDiv("tc-section-preview-wrap");
-  buildTypographyPreview(previewWrap);
+  buildCalloutPreview(previewWrap);
   let previewOpen = false;
   previewBtn.addEventListener("click", () => {
     previewOpen = !previewOpen;
@@ -162,19 +162,22 @@ function renderCallouts(
     }
   });
 
-  buildSegmentSetting(pane,
-    "Callout style",
-    "Overall shape and shadow language for every callout",
-    [
-      { label: "Default",       value: "default"        },
-      { label: "Sleek",         value: "sleek"          },
-      { label: "Block",         value: "block"          },
-      { label: "Vanilla",       value: "vanilla-normal" },
-      { label: "Vanilla+",      value: "vanilla-plus"   },
-    ],
-    s.calloutStyle,
-    async v => { s.calloutStyle = v; await refresh(); },
-  );
+  // Dropdown rather than segment pills — the option set will grow well
+  // past the 4-or-so we can fit horizontally, so the control type is
+  // sized for the future. Same `await onChange()` (not refresh()) so
+  // changing the style doesn't tear the open preview down.
+  new Setting(pane)
+    .setName("Callout style")
+    .setDesc("Overall shape and shadow language for every callout")
+    .addDropdown(dd => dd
+      .addOption("default",        "Default")
+      .addOption("sleek",          "Sleek")
+      .addOption("block",          "Block")
+      .addOption("vanilla-normal", "Vanilla")
+      .addOption("vanilla-plus",   "Vanilla +")
+      .setValue(s.calloutStyle)
+      .onChange(async v => { s.calloutStyle = v; await onChange(); })
+    );
 
   new Setting(pane)
     .setName("Enable custom callout colours")

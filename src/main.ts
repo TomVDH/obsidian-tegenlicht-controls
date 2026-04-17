@@ -4,6 +4,7 @@ import { apply, remove } from "./applier";
 import { TegenlichtSettingsTab } from "./settings-tab";
 import { TegenlichtQuickPanel } from "./quick-panel";
 import { ALL_FLAVOURS } from "./flavours";
+import { registerPreviewPluginRef } from "./preview-sample";
 
 // v0.1 → v0.2 used wrong class names for extended flavours.
 // Map any stale saved class to its current equivalent.
@@ -39,6 +40,10 @@ export default class TegenlichtControlsPlugin extends Plugin {
   async onload(): Promise<void> {
     await this.loadSettings();
     apply(this.settings);
+    // Hand the preview module a live settings reference so its
+    // light/dark mode toggle can re-run the applier (which writes the
+    // matching flavour class on body for the new theme).
+    registerPreviewPluginRef(this.settings);
     this.addSettingTab(new TegenlichtSettingsTab(this.app, this));
 
     // Ribbon icon — diamond (Lucide). Click opens a floating, draggable
@@ -64,11 +69,11 @@ export default class TegenlichtControlsPlugin extends Plugin {
     // Heal any stale/legacy flavour class names from older plugin versions
     this.settings.darkFlavour  = migrateFlavour(this.settings.darkFlavour,  'ctp-mocha');
     this.settings.lightFlavour = migrateFlavour(this.settings.lightFlavour, 'ctp-latte');
-    // tabBarStyle migration — any value outside the new 4-style set
-    // (switch / switch-amber / underline / ghost) collapses to 'switch'.
-    const VALID_TAB_STYLES = new Set(['switch', 'switch-amber', 'underline', 'ghost']);
+    // tabBarStyle migration — any value outside the supported set
+    // collapses to 'text' (the new default).
+    const VALID_TAB_STYLES = new Set(['text', 'switch', 'switch-amber', 'underline', 'ghost']);
     if (!VALID_TAB_STYLES.has(this.settings.tabBarStyle)) {
-      this.settings.tabBarStyle = 'switch';
+      this.settings.tabBarStyle = 'text';
     }
   }
 

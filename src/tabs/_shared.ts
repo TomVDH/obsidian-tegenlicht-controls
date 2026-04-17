@@ -132,3 +132,52 @@ export function buildLeftRailShell(
 
   return () => disposers.forEach(fn => { try { fn(); } catch { /* no-op */ } });
 }
+
+export interface HorizontalTab {
+  id: string;
+  label: string;
+  render: (pane: HTMLElement) => void;
+}
+
+/**
+ * Horizontal sub-tabs for the right side of a left-rail content pane.
+ *
+ * Renders a thin tab strip across the top of the parent, then a content
+ * pane below it. Each tab's render() callback paints the active pane.
+ * Active state lives in closure — when the parent rebuilds, we always
+ * land on the first tab.
+ *
+ * Used by the Lab tab to experiment with two-axis navigation
+ * (vertical sections in the rail, horizontal sub-sections in the pane).
+ * Style relies on .tc-htabs / .tc-htabs-bar / .tc-htabs-btn /
+ * .tc-htabs-pane CSS in styles.css.
+ */
+export function buildHorizontalTabs(parent: HTMLElement, tabs: HorizontalTab[]): void {
+  const wrap = parent.createDiv("tc-htabs");
+  const bar  = wrap.createDiv("tc-htabs-bar");
+  const pane = wrap.createDiv("tc-htabs-pane");
+
+  let activeId = tabs[0]?.id ?? "";
+  const buttons = new Map<string, HTMLElement>();
+
+  const renderActive = () => {
+    pane.empty();
+    const active = tabs.find(t => t.id === activeId);
+    active?.render(pane);
+  };
+
+  tabs.forEach(t => {
+    const btn = bar.createEl("button", { cls: "tc-htabs-btn", text: t.label });
+    if (t.id === activeId) btn.addClass("tc-htabs-btn--active");
+    btn.addEventListener("click", () => {
+      if (t.id === activeId) return;
+      buttons.forEach(b => b.removeClass("tc-htabs-btn--active"));
+      btn.addClass("tc-htabs-btn--active");
+      activeId = t.id;
+      renderActive();
+    });
+    buttons.set(t.id, btn);
+  });
+
+  renderActive();
+}

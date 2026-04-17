@@ -7,8 +7,9 @@ import { build as buildEditing }    from "./tabs/editing";
 import { build as buildLayout }     from "./tabs/layout";
 import { build as buildFeatures }   from "./tabs/features";
 import { build as buildLegacy }     from "./tabs/legacy";
+import { build as buildLab }        from "./tabs/lab";
 
-type Tab = "appearance" | "typography" | "editing" | "layout" | "features" | "legacy";
+type Tab = "appearance" | "typography" | "editing" | "layout" | "features" | "legacy" | "lab";
 
 const TABS: { id: Tab; label: string }[] = [
   { id: "appearance", label: "Appearance" },
@@ -17,14 +18,28 @@ const TABS: { id: Tab; label: string }[] = [
   { id: "layout",     label: "Layout"     },
   { id: "features",   label: "Features"   },
   { id: "legacy",     label: "Legacy"     },
+  { id: "lab",        label: "Lab"        },
 ];
 
 const TAB_STYLES: { id: string; label: string }[] = [
+  { id: "text",          label: "Text"      },
   { id: "switch",        label: "Switch"    },
   { id: "switch-amber",  label: "Amber"     },
   { id: "underline",     label: "Underline" },
   { id: "ghost",         label: "Ghost"     },
 ];
+
+/** Pick a random off-centre origin for the active-tab radial glow.
+ *  Avoids the dead-centre 45–55% band so the bloom always looks
+ *  intentionally lopsided rather than centered-by-default. */
+function randomOffCentre(): { x: number; y: number } {
+  const off = () => {
+    const sign = Math.random() < 0.5 ? -1 : 1;
+    // 50 ± (12..38) → 12-38 or 62-88
+    return Math.round(50 + sign * (12 + Math.random() * 26));
+  };
+  return { x: off(), y: off() };
+}
 
 export class TegenlichtSettingsTab extends PluginSettingTab {
   private activeTab: Tab = "appearance";
@@ -58,34 +73,43 @@ export class TegenlichtSettingsTab extends PluginSettingTab {
     const header = containerEl.createDiv("tc-header");
     const top = header.createDiv("tc-header-top");
     const wm   = top.createDiv("tc-header-wordmark");
-    const icon = wm.createSpan({ cls: "tc-header-icon", text: "◈" });
-    const nameBrand = wm.createSpan({ cls: "tc-header-name-brand", text: "Tegenlicht" });
+    wm.createSpan({ cls: "tc-header-icon", text: "◈" });
+    wm.createSpan({ cls: "tc-header-name-brand", text: "tegenlicht" });
     // Subtitle — tracked spaced small-caps reading "Settings Companion",
     // sits beside the wordmark so the header tells you what this is without
     // needing a second line.
     wm.createSpan({ cls: "tc-header-subtitle", text: "Settings Companion" });
 
-    // ── Easter egg: double-click ◈ for accent-colour shimmer
-    icon.addEventListener("dblclick", () => {
-      if (nameBrand.hasClass("tc-name-shimmer")) return;
-      nameBrand.addClass("tc-name-shimmer");
-      nameBrand.addEventListener("animationend",
-        () => nameBrand.removeClass("tc-name-shimmer"),
-        { once: true });
-    });
+    // Easter egg: hover the diamond → it bloom-glows in the active accent.
+    // Pure CSS now (.tc-header-icon:hover); no click required, no wordmark
+    // shimmer.
 
     // Spacer pushes the version badge to the far right of the top row
     top.createSpan({ cls: "tc-header-top-spacer" });
     top.createSpan({ cls: "tc-header-badge", text: `v${this.plugin.manifest.version}` });
+
+    // GitHub icon-link — same SVG and styling as the one in the footer
+    // copy row, slotted right next to the version badge so the header's
+    // top row reads as wordmark · spacer · version · github.
+    const ghBadgeLink = top.createEl("a", {
+      cls: "tc-header-gh tc-header-gh--badge",
+      href: "https://github.com/tomlinson/obsidian-tegenlicht-controls",
+    });
+    ghBadgeLink.setAttr("target", "_blank");
+    ghBadgeLink.setAttr("rel", "noopener");
+    ghBadgeLink.setAttr("aria-label", "View on GitHub");
+    ghBadgeLink.setAttr("title", "View on GitHub");
+    ghBadgeLink.innerHTML = `<svg viewBox="0 0 16 16" width="14" height="14" fill="currentColor" aria-hidden="true">
+      <path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0 0 16 8c0-4.42-3.58-8-8-8z"/>
+    </svg>`;
 
     const tagline = header.createDiv("tc-header-tagline");
     tagline.createSpan({ text: "A bespoke collection of Obsidian quality of life and appearance settings. Inspired by and forked from " });
     const link = tagline.createEl("a", { text: "AnuPuccin's theme", href: "https://github.com/AnubisNekhet/AnuPuccin" });
     link.setAttr("target", "_blank");
     link.setAttr("rel", "noopener");
-    tagline.createSpan({ text: "." });
-    tagline.createSpan({ cls: "tc-header-copy-sep tc-header-tagline-sep", text: "·" });
-    tagline.createSpan({ cls: "tc-header-tagline-sig", text: "Spun up by Onnozelaer" });
+    tagline.createSpan({ text: ", " });
+    tagline.createSpan({ cls: "tc-header-tagline-sig", text: "spun up by Onnozelaer" });
 
     // Footer copy row — GitHub · License · Acknowledgements. Rainbow
     // bar relocated to the top of the Legacy left rail (per user
@@ -137,12 +161,27 @@ export class TegenlichtSettingsTab extends PluginSettingTab {
 
     TABS.forEach(({ id, label }) => {
       const btn = btnParent.createEl("button", { text: label, cls: "tc-tab" });
-      if (id === this.activeTab) btn.addClass("tc-tab--active");
+      if (id === this.activeTab) {
+        btn.addClass("tc-tab--active");
+        const { x, y } = randomOffCentre();
+        btn.style.setProperty("--tc-tab-glow-x", x + "%");
+        btn.style.setProperty("--tc-tab-glow-y", y + "%");
+      }
       this.tabBtns.set(id, btn);
       btn.addEventListener("click", () => {
         if (id === this.activeTab) return;
-        this.tabBtns.forEach(b => b.removeClass("tc-tab--active"));
+        this.tabBtns.forEach(b => {
+          b.removeClass("tc-tab--active");
+          // Keep the previous glow origin around so the fade-out reads
+          // smoothly; just dropping the active class triggers the
+          // ::before opacity transition back to 0.
+        });
         btn.addClass("tc-tab--active");
+        // Fresh random off-centre origin every activation — gives
+        // each click a slight surprise of where the bloom emanates.
+        const { x, y } = randomOffCentre();
+        btn.style.setProperty("--tc-tab-glow-x", x + "%");
+        btn.style.setProperty("--tc-tab-glow-y", y + "%");
         this.activeTab = id;
         this.renderContent();
       });
@@ -183,6 +222,7 @@ export class TegenlichtSettingsTab extends PluginSettingTab {
       case "layout":     buildLayout(this.contentEl, this.plugin, onChange);     break;
       case "features":   buildFeatures(this.contentEl, this.plugin, onChange);   break;
       case "legacy":     this.cleanup = buildLegacy(this.contentEl, this.plugin, onChange, redisplay); break;
+      case "lab":        this.cleanup = buildLab(this.contentEl, this.plugin, onChange, redisplay); break;
     }
 
     // Restore scroll after the new DOM has laid out
@@ -281,14 +321,15 @@ export class TegenlichtSettingsTab extends PluginSettingTab {
 
   /** Apply the correct CSS class for the chosen tab style. */
   private applyTabStyle(el: HTMLElement): void {
-    // Remap any legacy or retired style to switch
+    // Remap any legacy or retired style to the new default ("text").
     const active = TAB_STYLES.map(s => s.id);
     if (!active.includes(this.plugin.settings.tabBarStyle ?? '')) {
-      this.plugin.settings.tabBarStyle = 'switch';
+      this.plugin.settings.tabBarStyle = 'text';
       this.plugin.saveSettings();
     }
     el.removeClass(
       // New set
+      "tc-tabs-text",
       "tc-tabs-switch", "tc-tabs-switch-amber",
       "tc-tabs-underline", "tc-tabs-ghost",
       // Retired pill variants
@@ -320,7 +361,7 @@ export class TegenlichtSettingsTab extends PluginSettingTab {
       "tc-tabs-seg-outline", "tc-tabs-seg-gradwrap", "tc-tabs-seg-split",
       "tc-tabs-seg-thick", "tc-tabs-seg-badge",
     );
-    el.addClass(`tc-tabs-${this.plugin.settings.tabBarStyle ?? 'switch'}`);
+    el.addClass(`tc-tabs-${this.plugin.settings.tabBarStyle ?? 'text'}`);
   }
 
   hide(): void {
