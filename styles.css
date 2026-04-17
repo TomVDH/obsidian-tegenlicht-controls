@@ -576,39 +576,61 @@
   z-index: 1;
 }
 
-/* Text style: minimal chrome at rest. Active tab gets a per-button
-   radial glow (Lab "Glow text" variant) emanating from the BUTTON's
-   centre — origin fixed at 50% 50%, no off-centre randomness. Sits
-   on top of the container bloom (.tc-tab-bar::before, z-index -1).
-   Both layers stack: the per-tab glow marks the active tab tightly,
-   the container bloom radiates ambient accent around it. */
+/* Glow on every active top tab — independent of tabBarStyle. Per-
+   button radial gradient on ::before, origin fixed at 50% 50% (no
+   off-centre randomness). Layers above the button background, below
+   the text content. Combined with the container bloom on the bar's
+   ::before, the active state reads as: bloom radiates around the
+   tab, the tab itself glows from its own centre. */
+.tc-settings .tc-tab {
+  overflow: hidden;
+}
+.tc-settings .tc-tab::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(
+    ellipse 130% 220% at 50% 50%,
+    rgba(var(--color-accent-rgb, 229, 179, 42), 0.22) 0%,
+    rgba(var(--color-accent-rgb, 229, 179, 42), 0.10) 35%,
+    rgba(var(--color-accent-rgb, 229, 179, 42), 0.03) 70%,
+    transparent 100%
+  );
+  opacity: 0;
+  transition: opacity 0.55s ease;
+  pointer-events: none;
+  /* No z-index — natural paint order puts ::before above the element
+     background but below text content. */
+  border-radius: inherit;
+}
+.tc-settings .tc-tab--active::before {
+  opacity: 1;
+}
+
+/* Active state language matches the Lab "Glow text" mock: no
+   background fill, no border ring, no box-shadow inset. The ::before
+   glow + accent text colour ARE the active indicator. Overrides
+   whichever tabBarStyle would otherwise paint a Frost pill / outline
+   / underline on the active tab. */
+.tc-settings .tc-tab--active,
+.tc-settings .tc-tab--active:hover {
+  background: transparent !important;
+  border-color: transparent !important;
+  box-shadow: none !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+  color: var(--color-accent) !important;
+}
+
+/* Text style — minimal chrome at rest, no Frost on active. The
+   universal ::before glow above carries the active visual. */
 .tc-settings.tc-tabs-text .tc-tab {
   background: transparent;
   border: none;
   border-radius: 6px;
   padding: 7px 14px;
   margin-right: var(--tc-tab-gap, 6px) !important;
-  position: relative;
-  overflow: hidden;
-  z-index: 1;
   transition: color 0.32s ease;
-}
-.tc-settings.tc-tabs-text .tc-tab::before {
-  content: "";
-  position: absolute;
-  inset: 0;
-  background: radial-gradient(
-    ellipse 130% 220% at 50% 50%,
-    rgba(var(--color-accent-rgb, 229, 179, 42), 0.20) 0%,
-    rgba(var(--color-accent-rgb, 229, 179, 42), 0.08) 35%,
-    rgba(var(--color-accent-rgb, 229, 179, 42), 0.02) 70%,
-    transparent 100%
-  );
-  opacity: 0;
-  transition: opacity 0.55s ease;
-  pointer-events: none;
-  z-index: -1;
-  border-radius: inherit;
 }
 .tc-settings.tc-tabs-text .tc-tab:hover {
   background: transparent;
@@ -621,9 +643,6 @@
   box-shadow: none;
   backdrop-filter: none;
   -webkit-backdrop-filter: none;
-}
-.tc-settings.tc-tabs-text .tc-tab--active::before {
-  opacity: 1;
 }
 
 /* ── Tab style switcher ── */
