@@ -95,8 +95,24 @@
   background: var(--background-secondary);
   border: 1px solid var(--background-modifier-border);
   border-radius: 100px;
-  padding: 2px 8px;
+  padding: 5px 14px;
   font-family: var(--font-monospace, monospace);
+  cursor: default;
+  transition: border-color 0.24s ease, color 0.24s ease, box-shadow 0.24s ease;
+}
+.tc-settings .tc-header-badge:hover {
+  border-color: var(--color-accent);
+  color: var(--color-accent);
+  /* Shimmer plays over the border on hover — same accent-glow vocabulary
+     as the wordmark's diamond-click shimmer (tc-golden-shimmer), but here
+     it's a one-shot box-shadow pulse on the badge's pill border. */
+  animation: tc-badge-shimmer 1.6s ease;
+}
+@keyframes tc-badge-shimmer {
+  0%   { box-shadow: 0 0 0 0 rgba(var(--color-accent-rgb, 229, 179, 42), 0); }
+  35%  { box-shadow: 0 0 14px 2px rgba(var(--color-accent-rgb, 229, 179, 42), 0.55); }
+  70%  { box-shadow: 0 0 8px 1px rgba(var(--color-accent-rgb, 229, 179, 42), 0.30); }
+  100% { box-shadow: 0 0 0 0 rgba(var(--color-accent-rgb, 229, 179, 42), 0); }
 }
 .tc-settings .tc-header-tagline {
   font-size: 12px;
