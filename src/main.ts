@@ -64,6 +64,12 @@ export default class TegenlichtControlsPlugin extends Plugin {
     // Heal any stale/legacy flavour class names from older plugin versions
     this.settings.darkFlavour  = migrateFlavour(this.settings.darkFlavour,  'ctp-mocha');
     this.settings.lightFlavour = migrateFlavour(this.settings.lightFlavour, 'ctp-latte');
+    // tabBarStyle migration — any value outside the new 4-style set
+    // (switch / switch-amber / underline / ghost) collapses to 'switch'.
+    const VALID_TAB_STYLES = new Set(['switch', 'switch-amber', 'underline', 'ghost']);
+    if (!VALID_TAB_STYLES.has(this.settings.tabBarStyle)) {
+      this.settings.tabBarStyle = 'switch';
+    }
   }
 
   async saveSettings(): Promise<void> {

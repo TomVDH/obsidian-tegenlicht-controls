@@ -279,655 +279,75 @@
 .tc-settings .tc-tab:last-child { margin-right: 0 !important; }
 .tc-settings .tc-tab:hover { background: var(--background-modifier-hover); color: var(--text-normal); }
 
-/* ════════════════════════════════════════
-   PILL VARIANTS (20)
-   ════════════════════════════════════════ */
+/* ═══════════════════════════════════════════════════════════
+   Tab nav — switch-first (v0.7.7)
+   Four variants: switch (default, mono), switch-amber, underline, ghost.
+   ═══════════════════════════════════════════════════════════ */
 
-/* P01 — Accent fill */
-.tc-settings.tc-tabs-pill .tc-tab--active {
-  background: var(--interactive-accent);
-  color: var(--text-on-accent);
+/* Shared: tab bar as a pill track (switch + switch-amber) */
+.tc-settings.tc-tabs-switch .tc-tab-bar,
+.tc-settings.tc-tabs-switch-amber .tc-tab-bar {
+  display: inline-flex;
+  padding: 3px;
+  background: rgba(var(--mono-rgb-100, 200, 200, 200), 0.04);
+  border: 1px solid var(--background-modifier-border);
+  border-radius: 100px;
+  position: relative;
 }
 
-/* P02 — Soft surface */
-.tc-settings.tc-tabs-pill-soft .tc-tab--active {
-  background: var(--background-secondary);
+.tc-settings.tc-tabs-switch .tc-tab,
+.tc-settings.tc-tabs-switch-amber .tc-tab {
+  padding: 7px 14px;
+  border-radius: 100px;
+  margin-right: var(--tc-tab-gap, 2px) !important;
+  transition: color 180ms cubic-bezier(0.32, 0.72, 0, 1);
+  position: relative;
+  z-index: 2;
+}
+
+/* Switch — monochrome default */
+.tc-settings.tc-tabs-switch .tc-tab--active {
   color: var(--text-normal);
+  font-weight: 600;
+  background: rgba(var(--mono-rgb-100, 200, 200, 200), 0.08);
   box-shadow: inset 0 0 0 1px var(--background-modifier-border);
 }
 
-/* P03 — Ghost outline */
-.tc-settings.tc-tabs-pill-ghost .tc-tab--active {
-  background: transparent;
-  color: var(--color-accent, #e5b32a);
-  box-shadow: inset 0 0 0 1.5px var(--color-accent, #e5b32a);
-}
-.tc-settings.tc-tabs-pill-ghost .tc-tab:hover { background: transparent; color: var(--color-accent, #e5b32a); opacity: 0.7; }
-
-/* P04 — Glow halo */
-.tc-settings.tc-tabs-pill-glow .tc-tab--active {
-  background: var(--interactive-accent);
-  color: var(--text-on-accent);
-  box-shadow: 0 0 0 3px var(--background-primary),
-              0 0 16px 5px var(--color-accent, #e5b32a);
-}
-
-/* P05 — Frosted glass */
-.tc-settings.tc-tabs-pill-frost .tc-tab--active {
-  background: rgba(var(--mono-rgb-100, 200, 200, 200), 0.07);
-  backdrop-filter: blur(10px) saturate(1.4);
-  -webkit-backdrop-filter: blur(10px) saturate(1.4);
-  color: var(--text-normal);
-  box-shadow: inset 0 0 0 1px rgba(var(--mono-rgb-100, 200, 200, 200), 0.14), 0 2px 8px rgba(0,0,0,0.2);
-}
-.tc-settings.tc-tabs-pill-frost .tc-tab:hover { background: rgba(var(--mono-rgb-100, 200, 200, 200), 0.04); }
-
-/* P06 — Gradient gold→lavender */
-.tc-settings.tc-tabs-pill-gradient .tc-tab--active {
-  background: linear-gradient(120deg, var(--color-accent, #e5b32a) 0%, #cba6f7 100%);
-  color: #1e1e2e;
-  font-weight: 600;
-}
-
-/* P07 — Lifted card */
-.tc-settings.tc-tabs-pill-lifted .tc-tab--active {
-  background: var(--background-primary);
-  color: var(--text-normal);
-  box-shadow: 0 4px 14px rgba(0,0,0,0.35), 0 1px 3px rgba(0,0,0,0.2);
-  transform: translateY(-2px);
-}
-.tc-settings.tc-tabs-pill-lifted .tc-tab:hover { transform: translateY(-1px); box-shadow: 0 2px 6px rgba(0,0,0,0.2); }
-
-/* P08 — Dot indicator */
-.tc-settings.tc-tabs-pill-dot .tc-tab { padding-bottom: 12px; }
-.tc-settings.tc-tabs-pill-dot .tc-tab::after {
-  content: '';
-  position: absolute;
-  bottom: 3px;
-  left: 50%;
-  transform: translateX(-50%) scale(0);
-  width: 4px; height: 4px;
-  border-radius: 50%;
-  background: var(--color-accent, #e5b32a);
-  transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
-}
-.tc-settings.tc-tabs-pill-dot .tc-tab--active { background: transparent; color: var(--text-normal); font-weight: 600; }
-.tc-settings.tc-tabs-pill-dot .tc-tab--active::after { transform: translateX(-50%) scale(1); }
-
-/* P09 — Tint: accent wash bg + accent text */
-.tc-settings.tc-tabs-pill-tint .tc-tab--active {
-  background: color-mix(in srgb, var(--color-accent, #e5b32a) 14%, transparent);
+/* Switch-amber — accent knob */
+.tc-settings.tc-tabs-switch-amber .tc-tab--active {
   color: var(--color-accent, #e5b32a);
   font-weight: 600;
+  background: rgba(var(--color-accent-rgb, 229, 179, 42), 0.14);
+  box-shadow: inset 0 0 0 1px rgba(var(--color-accent-rgb, 229, 179, 42), 0.42);
 }
 
-/* P10 — Inset / pressed */
-.tc-settings.tc-tabs-pill-inset .tc-tab--active {
-  background: var(--background-primary);
-  color: var(--text-normal);
-  box-shadow: inset 0 2px 5px rgba(0,0,0,0.4), inset 0 1px 2px rgba(0,0,0,0.3);
-}
-
-/* P11 — Neon: dark pill + accent glow text */
-.tc-settings.tc-tabs-pill-neon .tc-tab--active {
-  background: rgba(0,0,0,0.5);
-  color: var(--color-accent, #e5b32a);
-  box-shadow: inset 0 0 0 1px var(--color-accent, #e5b32a),
-              0 0 10px 2px var(--color-accent, #e5b32a);
-  text-shadow: 0 0 8px var(--color-accent, #e5b32a);
-}
-.tc-settings.tc-tabs-pill-neon .tc-tab:hover { background: rgba(0,0,0,0.25); }
-
-/* P12 — Duo gradient (pink→blue) */
-.tc-settings.tc-tabs-pill-duo .tc-tab--active {
-  background: linear-gradient(120deg, #f38ba8 0%, #89b4fa 100%);
-  color: #1e1e2e;
-  font-weight: 600;
-}
-
-/* P13 — Flat text only */
-.tc-settings.tc-tabs-pill-flat .tc-tab--active {
-  background: transparent;
-  color: var(--color-accent, #e5b32a);
-  font-weight: 700;
-}
-.tc-settings.tc-tabs-pill-flat .tc-tab:hover { background: transparent; color: var(--text-normal); }
-
-/* P14 — Pop: scale up on active */
-.tc-settings.tc-tabs-pill-pop .tc-tab--active {
-  background: var(--interactive-accent);
-  color: var(--text-on-accent);
-  transform: scale(1.1);
-  box-shadow: 0 2px 10px rgba(0,0,0,0.25);
-}
-
-/* P15 — Shimmer sweep animation */
-.tc-settings.tc-tabs-pill-shimmer .tc-tab--active {
-  background: linear-gradient(
-    90deg,
-    var(--color-accent, #e5b32a) 0%,
-    #cba6f7 30%,
-    #89b4fa 60%,
-    var(--color-accent, #e5b32a) 100%
-  );
-  background-size: 300% 100%;
-  animation: tc-shimmer 2.5s linear infinite;
-  color: #1e1e2e;
-  font-weight: 600;
-}
-
-/* P16 — Mono: white text, dark pill */
-.tc-settings.tc-tabs-pill-mono .tc-tab--active {
-  background: var(--text-normal);
-  color: var(--background-primary);
-  font-weight: 600;
-}
-
-/* P17 — Badge: accent with offset ring */
-.tc-settings.tc-tabs-pill-badge .tc-tab--active {
-  background: var(--interactive-accent);
-  color: var(--text-on-accent);
-  box-shadow: 0 0 0 2px var(--background-primary), 0 0 0 3.5px var(--color-accent, #e5b32a);
-}
-
-/* P18 — Line-under hybrid: pill shape + accent underline */
-.tc-settings.tc-tabs-pill-lineunder .tc-tab::after {
-  content: '';
-  position: absolute;
-  bottom: -2px;
-  left: 20%;
-  right: 20%;
-  height: 2px;
-  border-radius: 1px;
-  background: var(--color-accent, #e5b32a);
-  transform: scaleX(0);
-  transition: transform 0.2s ease;
-}
-.tc-settings.tc-tabs-pill-lineunder .tc-tab--active {
-  background: var(--background-secondary);
-  color: var(--text-normal);
-}
-.tc-settings.tc-tabs-pill-lineunder .tc-tab--active::after { transform: scaleX(1); }
-
-/* P19 — Dark matte */
-.tc-settings.tc-tabs-pill-dark .tc-tab--active {
-  background: rgba(0,0,0,0.55);
-  color: var(--text-normal);
-  box-shadow: inset 0 1px 0 rgba(var(--mono-rgb-100, 200, 200, 200), 0.06), 0 2px 8px rgba(0,0,0,0.4);
-}
-
-/* P20 — Pulse glow animation */
-.tc-settings.tc-tabs-pill-pulse .tc-tab--active {
-  background: var(--interactive-accent);
-  color: var(--text-on-accent);
-  animation: tc-pulse-glow 2s ease-in-out infinite;
-}
-
-/* P21 — Sweep: diagonal light sweep across the active tab */
-.tc-settings.tc-tabs-pill-sweep .tc-tab--active {
-  background: linear-gradient(
-    110deg,
-    transparent 0%,
-    color-mix(in srgb, var(--color-accent, #e5b32a) 20%, transparent) 40%,
-    color-mix(in srgb, var(--color-accent, #e5b32a) 10%, transparent) 70%,
-    transparent 100%
-  );
-  color: var(--color-accent, #e5b32a);
-  font-weight: 600;
-}
-.tc-settings.tc-tabs-pill-sweep .tc-tab:hover {
-  background: color-mix(in srgb, var(--color-accent, #e5b32a) 6%, transparent);
-}
-
-/* P22 — Frost + Tint: accent wash + frosted glass */
-.tc-settings.tc-tabs-pill-frosttint .tc-tab--active {
-  background: color-mix(in srgb, var(--color-accent, #e5b32a) 12%, rgba(var(--mono-rgb-100, 200, 200, 200), 0.06));
-  backdrop-filter: blur(10px) saturate(1.6);
-  -webkit-backdrop-filter: blur(10px) saturate(1.6);
-  color: var(--color-accent, #e5b32a);
-  font-weight: 600;
-  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--color-accent, #e5b32a) 30%, rgba(var(--mono-rgb-100, 200, 200, 200), 0.15)),
-              0 2px 8px rgba(0,0,0,0.2);
-}
-.tc-settings.tc-tabs-pill-frosttint .tc-tab:hover {
-  background: color-mix(in srgb, var(--color-accent, #e5b32a) 6%, rgba(var(--mono-rgb-100, 200, 200, 200), 0.03));
-}
-
-/* ════════════════════════════════════════
-   UNDERLINE VARIANTS (20)
-   All use a shared base for the bar + tab reset,
-   then ::after pseudo-elements for creative indicators
-   ════════════════════════════════════════ */
-
-/* Shared underline tab bar + tab reset */
-[class*="tc-tabs-line"] .tc-tab-bar {
-  padding: 12px 0 0;
-  border-bottom: 1px solid var(--background-modifier-border) !important;
-  margin-bottom: 36px;
-}
-[class*="tc-tabs-line"] .tc-tab {
+/* Underline — zero-chrome */
+.tc-settings.tc-tabs-underline .tc-tab-bar {
+  border-bottom: 1px solid var(--background-modifier-border);
   border-radius: 0;
-  padding: 8px 16px;
-  border-bottom: 2px solid transparent !important;
-  margin-bottom: -1px !important;
-  margin-right: 0 !important;
-  overflow: visible;
+  padding: 0 0 2px;
 }
-[class*="tc-tabs-line"] .tc-tab:first-child { border-radius: 5px 0 0 0; }
-[class*="tc-tabs-line"] .tc-tab:last-child  { border-radius: 0 5px 0 0; margin-right: 0 !important; }
-[class*="tc-tabs-line"] .tc-tab:hover { background: transparent; }
-
-/* ::after indicator base for pseudo-element variants */
-[class*="tc-tabs-line"] .tc-tab::after {
-  content: '';
-  position: absolute;
-  bottom: -1px;
-  left: 0; right: 0;
-  height: 2px;
-  background: transparent;
-  transition: background 0.15s, transform 0.2s, opacity 0.15s, height 0.15s;
+.tc-settings.tc-tabs-underline .tc-tab {
+  padding: 8px 14px 9px;
+  border-radius: 0;
+  margin-right: var(--tc-tab-gap, 4px) !important;
 }
-
-/* L01 — Thin accent line */
-.tc-settings.tc-tabs-line .tc-tab--active {
-  color: var(--text-normal);
-  border-bottom-color: var(--color-accent, #e5b32a) !important;
-}
-
-/* L02 — Thick line + tint bg */
-.tc-settings.tc-tabs-line-thick .tc-tab { border-bottom-width: 3px !important; }
-.tc-settings.tc-tabs-line-thick .tc-tab--active {
-  background: color-mix(in srgb, var(--color-accent, #e5b32a) 8%, transparent);
-  color: var(--color-accent, #e5b32a);
-  border-bottom-color: var(--color-accent, #e5b32a) !important;
-  font-weight: 600;
-}
-
-/* L03 — Fat 5px slab */
-.tc-settings.tc-tabs-line-fat .tc-tab { border-bottom-width: 5px !important; }
-.tc-settings.tc-tabs-line-fat .tc-tab--active {
-  color: var(--text-normal);
-  border-bottom-color: var(--color-accent, #e5b32a) !important;
-}
-
-/* L04 — Glow line */
-.tc-settings.tc-tabs-line-glow .tc-tab--active {
-  color: var(--text-normal);
-  border-bottom-color: var(--color-accent, #e5b32a) !important;
-  filter: drop-shadow(0 2px 6px var(--color-accent, #e5b32a));
-}
-
-/* L05 — Gradient line via ::after */
-.tc-settings.tc-tabs-line-grad .tc-tab--active { color: var(--text-normal); border-bottom-color: transparent !important; }
-.tc-settings.tc-tabs-line-grad .tc-tab--active::after {
-  background: linear-gradient(90deg, #f38ba8, var(--color-accent, #e5b32a), #cba6f7);
-  height: 2px;
-}
-
-/* L06 — Top indicator */
-.tc-settings.tc-tabs-line-top .tc-tab { border-bottom: none !important; border-top: 2px solid transparent !important; margin-bottom: 0 !important; margin-top: -1px !important; }
-.tc-settings.tc-tabs-line-top .tc-tab-bar { border-bottom: none !important; border-top: 1px solid var(--background-modifier-border) !important; padding: 0 0 12px; }
-.tc-settings.tc-tabs-line-top .tc-tab--active { color: var(--text-normal); border-top-color: var(--color-accent, #e5b32a) !important; }
-
-/* L07 — Full-height fill */
-.tc-settings.tc-tabs-line-fill .tc-tab--active {
-  background: color-mix(in srgb, var(--color-accent, #e5b32a) 12%, transparent);
-  color: var(--color-accent, #e5b32a);
-  border-bottom-color: var(--color-accent, #e5b32a) !important;
-  border-radius: 4px 4px 0 0;
-  font-weight: 600;
-}
-
-/* L08 — Rounded cap line via ::after */
-.tc-settings.tc-tabs-line-cap .tc-tab--active { color: var(--text-normal); border-bottom-color: transparent !important; }
-.tc-settings.tc-tabs-line-cap .tc-tab--active::after {
-  background: var(--color-accent, #e5b32a);
-  height: 3px;
-  border-radius: 3px;
-  left: 16px; right: 16px;
-}
-
-/* L09 — Grow from center */
-.tc-settings.tc-tabs-line-grow .tc-tab::after { transform: scaleX(0); transform-origin: center; }
-.tc-settings.tc-tabs-line-grow .tc-tab--active { color: var(--text-normal); border-bottom-color: transparent !important; }
-.tc-settings.tc-tabs-line-grow .tc-tab--active::after {
-  background: var(--color-accent, #e5b32a);
-  height: 2px;
-  transform: scaleX(1);
-}
-
-/* L10 — Three-dot indicator */
-.tc-settings.tc-tabs-line-dots .tc-tab { border-bottom: none !important; }
-.tc-settings.tc-tabs-line-dots .tc-tab::after {
-  content: '· · ·';
-  background: none;
-  color: transparent;
-  bottom: -2px;
-  left: 0; right: 0;
-  text-align: center;
-  font-size: 10px;
-  line-height: 1;
-  letter-spacing: 2px;
-  transition: color 0.15s;
-  height: auto;
-}
-.tc-settings.tc-tabs-line-dots .tc-tab--active { color: var(--text-normal); }
-.tc-settings.tc-tabs-line-dots .tc-tab--active::after { color: var(--color-accent, #e5b32a); }
-
-/* L11 — Sweep bg on active */
-.tc-settings.tc-tabs-line-sweep .tc-tab--active {
-  background: linear-gradient(180deg, transparent 40%, color-mix(in srgb, var(--color-accent, #e5b32a) 10%, transparent) 100%);
-  color: var(--text-normal);
-  border-bottom-color: var(--color-accent, #e5b32a) !important;
-}
-
-/* L12 — Highlight marker */
-.tc-settings.tc-tabs-line-highlight .tc-tab--active {
-  background: color-mix(in srgb, var(--color-accent, #e5b32a) 20%, transparent);
-  color: var(--text-normal);
-  border-bottom-color: transparent !important;
-  border-radius: 2px 2px 0 0;
-}
-
-/* L13 — Left side bar */
-.tc-settings.tc-tabs-line-side .tc-tab { border-bottom: none !important; border-left: 3px solid transparent !important; padding-left: 13px; }
-.tc-settings.tc-tabs-line-side .tc-tab-bar { border-bottom: none !important; }
-.tc-settings.tc-tabs-line-side .tc-tab--active { color: var(--text-normal); border-left-color: var(--color-accent, #e5b32a) !important; font-weight: 600; }
-
-/* L14 — Overline (top) */
-.tc-settings.tc-tabs-line-over .tc-tab { border-bottom: none !important; }
-.tc-settings.tc-tabs-line-over .tc-tab::after { top: 0; bottom: auto; height: 2px; }
-.tc-settings.tc-tabs-line-over .tc-tab--active { color: var(--text-normal); }
-.tc-settings.tc-tabs-line-over .tc-tab--active::after { background: var(--color-accent, #e5b32a); }
-
-/* L15 — Pill+line hybrid */
-.tc-settings.tc-tabs-line-pill .tc-tab--active {
-  background: color-mix(in srgb, var(--color-accent, #e5b32a) 10%, transparent);
-  color: var(--text-normal);
-  border-bottom-color: var(--color-accent, #e5b32a) !important;
-  border-radius: 6px 6px 0 0;
-}
-
-/* L16 — Neon line */
-.tc-settings.tc-tabs-line-neon .tc-tab--active {
-  color: var(--color-accent, #e5b32a);
-  border-bottom-color: var(--color-accent, #e5b32a) !important;
-  text-shadow: 0 0 8px var(--color-accent, #e5b32a);
-  filter: drop-shadow(0 2px 8px var(--color-accent, #e5b32a));
-}
-
-/* L17 — Double line via border + ::after */
-.tc-settings.tc-tabs-line-double .tc-tab--active { color: var(--text-normal); border-bottom-color: var(--color-accent, #e5b32a) !important; }
-.tc-settings.tc-tabs-line-double .tc-tab--active::after {
-  background: var(--color-accent, #e5b32a);
-  bottom: -4px;
-  height: 1px;
-  opacity: 0.4;
-}
-
-/* L18 — Bracket [ ] corners */
-.tc-settings.tc-tabs-line-bracket .tc-tab--active {
-  color: var(--text-normal);
-  border-bottom-color: transparent !important;
-  box-shadow: -2px 0 0 0 var(--color-accent, #e5b32a), 2px 0 0 0 var(--color-accent, #e5b32a);
-}
-.tc-settings.tc-tabs-line-bracket .tc-tab--active::after {
-  background: var(--color-accent, #e5b32a);
-  height: 2px;
-}
-
-/* L19 — Bold text only, no line */
-.tc-settings.tc-tabs-line-bold .tc-tab { border-bottom: none !important; }
-.tc-settings.tc-tabs-line-bold .tc-tab-bar { border-bottom: none !important; }
-.tc-settings.tc-tabs-line-bold .tc-tab--active { color: var(--text-normal); font-weight: 700; font-size: 13px; border-bottom-color: transparent !important; }
-
-/* L20 — Detached floating line (gap below) */
-.tc-settings.tc-tabs-line-float .tc-tab--active { color: var(--text-normal); border-bottom-color: transparent !important; }
-.tc-settings.tc-tabs-line-float .tc-tab--active::after {
-  background: var(--color-accent, #e5b32a);
-  height: 2px;
-  bottom: -4px;
-  border-radius: 1px;
-}
-
-/* L21 — Frost + Tint: accent wash underline + frosted full-height bg */
-.tc-settings.tc-tabs-line-frosttint .tc-tab--active {
-  background: color-mix(in srgb, var(--color-accent, #e5b32a) 10%, rgba(var(--mono-rgb-100, 200, 200, 200), 0.05));
-  backdrop-filter: blur(8px) saturate(1.5);
-  -webkit-backdrop-filter: blur(8px) saturate(1.5);
+.tc-settings.tc-tabs-underline .tc-tab--active {
   color: var(--color-accent, #e5b32a);
   font-weight: 600;
-  border-bottom-color: var(--color-accent, #e5b32a) !important;
-  border-radius: 4px 4px 0 0;
+  box-shadow: inset 0 -2px 0 var(--color-accent, #e5b32a);
 }
 
-/* ════════════════════════════════════════
-   SEGMENT VARIANTS (20)
-   ════════════════════════════════════════ */
-
-/* Shared segment base */
-[class*="tc-tabs-seg"] .tc-tab-bar { padding: 12px 0; }
-[class*="tc-tabs-seg"] .tc-tab-inner-wrap {
-  display: inline-flex;
-  border-radius: 8px;
-  padding: 3px;
+/* Ghost — outlined pill, no fill */
+.tc-settings.tc-tabs-ghost .tc-tab {
+  padding: 6px 13px;
+  border-radius: 100px;
+  margin-right: var(--tc-tab-gap, 4px) !important;
 }
-[class*="tc-tabs-seg"] .tc-tab {
-  border-radius: 6px;
-  padding: 5px 14px;
-  margin-right: var(--tc-tab-gap, 6px) !important;
-}
-[class*="tc-tabs-seg"] .tc-tab:last-child { margin-right: 0 !important; }
-
-/* S01 — Raised card */
-.tc-settings.tc-tabs-seg .tc-tab-inner-wrap { background: var(--background-secondary); }
-.tc-settings.tc-tabs-seg .tc-tab:hover { background: var(--background-primary-alt); }
-.tc-settings.tc-tabs-seg .tc-tab--active { background: var(--background-primary); color: var(--text-normal); box-shadow: 0 1px 3px rgba(0,0,0,0.2); }
-
-/* S02 — Accent fill */
-.tc-settings.tc-tabs-seg-accent .tc-tab-inner-wrap { background: var(--background-secondary); }
-.tc-settings.tc-tabs-seg-accent .tc-tab:hover { background: var(--background-primary-alt); }
-.tc-settings.tc-tabs-seg-accent .tc-tab--active { background: var(--interactive-accent); color: var(--text-on-accent); box-shadow: 0 1px 4px rgba(0,0,0,0.25); }
-
-/* S03 — Border outline wrap */
-.tc-settings.tc-tabs-seg-border .tc-tab-inner-wrap { background: transparent; box-shadow: inset 0 0 0 1px var(--background-modifier-border); }
-.tc-settings.tc-tabs-seg-border .tc-tab:hover { background: var(--background-modifier-hover); }
-.tc-settings.tc-tabs-seg-border .tc-tab--active { background: transparent; color: var(--color-accent, #e5b32a); box-shadow: inset 0 0 0 1.5px var(--color-accent, #e5b32a); }
-
-/* S04 — Full pill inside wrap */
-.tc-settings.tc-tabs-seg-pill .tc-tab-inner-wrap { background: var(--background-secondary); }
-.tc-settings.tc-tabs-seg-pill .tc-tab { border-radius: 100px; }
-.tc-settings.tc-tabs-seg-pill .tc-tab:hover { background: var(--background-primary-alt); }
-.tc-settings.tc-tabs-seg-pill .tc-tab--active { background: var(--interactive-accent); color: var(--text-on-accent); }
-
-/* S05 — Raised + glow */
-.tc-settings.tc-tabs-seg-glow .tc-tab-inner-wrap { background: var(--background-secondary); }
-.tc-settings.tc-tabs-seg-glow .tc-tab:hover { background: var(--background-primary-alt); }
-.tc-settings.tc-tabs-seg-glow .tc-tab--active {
-  background: var(--background-primary);
-  color: var(--text-normal);
-  box-shadow: 0 2px 8px rgba(0,0,0,0.3), 0 0 12px 2px var(--color-accent, #e5b32a);
-}
-
-/* S06 — Gradient active */
-.tc-settings.tc-tabs-seg-grad .tc-tab-inner-wrap { background: var(--background-secondary); }
-.tc-settings.tc-tabs-seg-grad .tc-tab:hover { background: var(--background-primary-alt); }
-.tc-settings.tc-tabs-seg-grad .tc-tab--active {
-  background: linear-gradient(120deg, var(--color-accent, #e5b32a) 0%, #cba6f7 100%);
-  color: #1e1e2e;
-  font-weight: 600;
-}
-
-/* S07 — Frosted active */
-.tc-settings.tc-tabs-seg-frost .tc-tab-inner-wrap { background: rgba(var(--mono-rgb-100, 200, 200, 200), 0.04); box-shadow: inset 0 0 0 1px rgba(var(--mono-rgb-100, 200, 200, 200), 0.08); }
-.tc-settings.tc-tabs-seg-frost .tc-tab:hover { background: rgba(var(--mono-rgb-100, 200, 200, 200), 0.04); }
-.tc-settings.tc-tabs-seg-frost .tc-tab--active {
-  background: rgba(var(--mono-rgb-100, 200, 200, 200), 0.1);
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
-  color: var(--text-normal);
-  box-shadow: inset 0 0 0 1px rgba(var(--mono-rgb-100, 200, 200, 200), 0.2), 0 2px 6px rgba(0,0,0,0.2);
-}
-
-/* S08 — Inset wrap, raised active */
-.tc-settings.tc-tabs-seg-inset .tc-tab-inner-wrap {
-  background: var(--background-primary);
-  box-shadow: inset 0 2px 6px rgba(0,0,0,0.35);
-}
-.tc-settings.tc-tabs-seg-inset .tc-tab:hover { background: var(--background-primary-alt); }
-.tc-settings.tc-tabs-seg-inset .tc-tab--active { background: var(--background-secondary); color: var(--text-normal); box-shadow: 0 1px 4px rgba(0,0,0,0.2); }
-
-/* S09 — Flat, no wrap bg */
-.tc-settings.tc-tabs-seg-flat .tc-tab-inner-wrap { background: transparent; }
-.tc-settings.tc-tabs-seg-flat .tc-tab:hover { background: var(--background-modifier-hover); }
-.tc-settings.tc-tabs-seg-flat .tc-tab--active { background: var(--background-secondary); color: var(--text-normal); }
-
-/* S10 — Underline indicator inside wrap */
-.tc-settings.tc-tabs-seg-underline .tc-tab-inner-wrap { background: var(--background-secondary); border-radius: 8px 8px 0 0; }
-.tc-settings.tc-tabs-seg-underline .tc-tab { border-radius: 0; border-bottom: 2px solid transparent; }
-.tc-settings.tc-tabs-seg-underline .tc-tab:hover { background: transparent; }
-.tc-settings.tc-tabs-seg-underline .tc-tab--active { background: transparent; color: var(--text-normal); border-bottom-color: var(--color-accent, #e5b32a); }
-
-/* S11 — Dot below active */
-.tc-settings.tc-tabs-seg-dot .tc-tab-inner-wrap { background: var(--background-secondary); }
-.tc-settings.tc-tabs-seg-dot .tc-tab { padding-bottom: 12px; }
-.tc-settings.tc-tabs-seg-dot .tc-tab::after {
-  content: '';
-  position: absolute;
-  bottom: 3px; left: 50%;
-  transform: translateX(-50%) scale(0);
-  width: 4px; height: 4px;
-  border-radius: 50%;
-  background: var(--color-accent, #e5b32a);
-  transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
-}
-.tc-settings.tc-tabs-seg-dot .tc-tab--active { background: var(--background-primary); color: var(--text-normal); }
-.tc-settings.tc-tabs-seg-dot .tc-tab--active::after { transform: translateX(-50%) scale(1); }
-
-/* S12 — Neon dark wrap */
-.tc-settings.tc-tabs-seg-neon .tc-tab-inner-wrap { background: rgba(0,0,0,0.5); box-shadow: inset 0 0 0 1px var(--color-accent, #e5b32a); }
-.tc-settings.tc-tabs-seg-neon .tc-tab:hover { background: rgba(var(--mono-rgb-100, 200, 200, 200), 0.05); }
-.tc-settings.tc-tabs-seg-neon .tc-tab--active {
-  background: rgba(0,0,0,0.3);
-  color: var(--color-accent, #e5b32a);
-  box-shadow: inset 0 0 0 1px var(--color-accent, #e5b32a), 0 0 10px 1px var(--color-accent, #e5b32a);
-  text-shadow: 0 0 6px var(--color-accent, #e5b32a);
-}
-
-/* S13 — Minimal ultra-subtle */
-.tc-settings.tc-tabs-seg-minimal .tc-tab-inner-wrap { background: color-mix(in srgb, var(--background-modifier-border) 30%, transparent); }
-.tc-settings.tc-tabs-seg-minimal .tc-tab:hover { background: var(--background-modifier-hover); }
-.tc-settings.tc-tabs-seg-minimal .tc-tab--active { background: var(--background-secondary); color: var(--text-normal); }
-
-/* S14 — Sharp corners */
-.tc-settings.tc-tabs-seg-sharp .tc-tab-inner-wrap { background: var(--background-secondary); border-radius: 2px; }
-.tc-settings.tc-tabs-seg-sharp .tc-tab { border-radius: 1px; }
-.tc-settings.tc-tabs-seg-sharp .tc-tab:hover { background: var(--background-primary-alt); }
-.tc-settings.tc-tabs-seg-sharp .tc-tab--active { background: var(--interactive-accent); color: var(--text-on-accent); }
-
-/* S15 — Outline active only */
-.tc-settings.tc-tabs-seg-outline .tc-tab-inner-wrap { background: var(--background-secondary); }
-.tc-settings.tc-tabs-seg-outline .tc-tab:hover { background: var(--background-primary-alt); }
-.tc-settings.tc-tabs-seg-outline .tc-tab--active { background: transparent; color: var(--text-normal); box-shadow: inset 0 0 0 1.5px var(--background-modifier-border); }
-
-/* S16 — Gradient wrap */
-.tc-settings.tc-tabs-seg-gradwrap .tc-tab-inner-wrap {
-  background: linear-gradient(120deg, color-mix(in srgb, var(--color-accent, #e5b32a) 15%, var(--background-secondary)), color-mix(in srgb, #cba6f7 15%, var(--background-secondary)));
-}
-.tc-settings.tc-tabs-seg-gradwrap .tc-tab:hover { background: rgba(var(--mono-rgb-100, 200, 200, 200), 0.05); }
-.tc-settings.tc-tabs-seg-gradwrap .tc-tab--active { background: var(--background-primary); color: var(--text-normal); box-shadow: 0 1px 4px rgba(0,0,0,0.2); }
-
-/* S17 — Dividers between tabs */
-.tc-settings.tc-tabs-seg-split .tc-tab-inner-wrap { background: var(--background-secondary); gap: 0; }
-.tc-settings.tc-tabs-seg-split .tc-tab { margin-right: 0 !important; border-right: 1px solid var(--background-modifier-border); border-radius: 0; }
-.tc-settings.tc-tabs-seg-split .tc-tab:first-child { border-radius: 6px 0 0 6px; }
-.tc-settings.tc-tabs-seg-split .tc-tab:last-child  { border-radius: 0 6px 6px 0; border-right: none; }
-.tc-settings.tc-tabs-seg-split .tc-tab:hover { background: var(--background-primary-alt); }
-.tc-settings.tc-tabs-seg-split .tc-tab--active { background: var(--interactive-accent); color: var(--text-on-accent); }
-
-/* S18 — Thick padding, substantial feel */
-.tc-settings.tc-tabs-seg-thick .tc-tab-inner-wrap { background: var(--background-secondary); border-radius: 10px; padding: 5px; }
-.tc-settings.tc-tabs-seg-thick .tc-tab { border-radius: 7px; padding: 8px 20px; }
-.tc-settings.tc-tabs-seg-thick .tc-tab:hover { background: var(--background-primary-alt); }
-.tc-settings.tc-tabs-seg-thick .tc-tab--active { background: var(--background-primary); color: var(--text-normal); box-shadow: 0 2px 6px rgba(0,0,0,0.25); }
-
-/* S19 — Badge active */
-.tc-settings.tc-tabs-seg-badge .tc-tab-inner-wrap { background: transparent; }
-.tc-settings.tc-tabs-seg-badge .tc-tab:hover { background: var(--background-modifier-hover); }
-.tc-settings.tc-tabs-seg-badge .tc-tab--active {
-  background: var(--interactive-accent);
-  color: var(--text-on-accent);
-  box-shadow: 0 0 0 2px var(--background-primary), 0 0 0 3.5px var(--color-accent, #e5b32a);
-}
-
-/* S20 — Mono inverted */
-.tc-settings.tc-tabs-seg-mono .tc-tab-inner-wrap { background: var(--background-secondary); }
-.tc-settings.tc-tabs-seg-mono .tc-tab:hover { background: var(--background-primary-alt); }
-.tc-settings.tc-tabs-seg-mono .tc-tab--active { background: var(--text-normal); color: var(--background-primary); font-weight: 600; }
-
-/* S-Soft — surface + inset border (mirrors pill-soft) */
-.tc-settings.tc-tabs-seg-soft .tc-tab-inner-wrap { background: var(--background-secondary); }
-.tc-settings.tc-tabs-seg-soft .tc-tab:hover { background: var(--background-primary-alt); }
-.tc-settings.tc-tabs-seg-soft .tc-tab--active {
-  background: var(--background-primary);
-  color: var(--text-normal);
-  box-shadow: inset 0 0 0 1px var(--background-modifier-border), 0 1px 3px rgba(0,0,0,0.15);
-}
-
-/* S-Ghost — transparent wrap, accent outline on active (mirrors pill-ghost) */
-.tc-settings.tc-tabs-seg-ghost .tc-tab-inner-wrap {
-  background: transparent;
-  box-shadow: inset 0 0 0 1.5px var(--background-modifier-border);
-}
-.tc-settings.tc-tabs-seg-ghost .tc-tab:hover { background: var(--background-modifier-hover); }
-.tc-settings.tc-tabs-seg-ghost .tc-tab--active {
-  background: transparent;
-  color: var(--color-accent, #e5b32a);
-  box-shadow: inset 0 0 0 1.5px var(--color-accent, #e5b32a);
-}
-
-/* S21 — Tint: accent wash bg + accent text */
-.tc-settings.tc-tabs-seg-tint .tc-tab-inner-wrap { background: var(--background-secondary); }
-.tc-settings.tc-tabs-seg-tint .tc-tab:hover { background: color-mix(in srgb, var(--color-accent, #e5b32a) 8%, transparent); }
-.tc-settings.tc-tabs-seg-tint .tc-tab--active {
-  background: color-mix(in srgb, var(--color-accent, #e5b32a) 15%, transparent);
+.tc-settings.tc-tabs-ghost .tc-tab--active {
   color: var(--color-accent, #e5b32a);
   font-weight: 600;
-}
-
-/* S22 — Sweep: diagonal accent sweep across active tab */
-.tc-settings.tc-tabs-seg-sweep .tc-tab-inner-wrap { background: var(--background-secondary); }
-.tc-settings.tc-tabs-seg-sweep .tc-tab:hover { background: color-mix(in srgb, var(--color-accent, #e5b32a) 6%, transparent); }
-.tc-settings.tc-tabs-seg-sweep .tc-tab--active {
-  background: linear-gradient(
-    110deg,
-    transparent 0%,
-    color-mix(in srgb, var(--color-accent, #e5b32a) 22%, transparent) 40%,
-    color-mix(in srgb, var(--color-accent, #e5b32a) 10%, transparent) 70%,
-    transparent 100%
-  );
-  color: var(--color-accent, #e5b32a);
-  font-weight: 600;
-}
-
-/* S23 — Frost + Tint: accent-washed frosted glass wrap + active tab */
-.tc-settings.tc-tabs-seg-frosttint .tc-tab-inner-wrap {
-  background: color-mix(in srgb, var(--color-accent, #e5b32a) 6%, rgba(var(--mono-rgb-100, 200, 200, 200), 0.04));
-  backdrop-filter: blur(8px) saturate(1.4);
-  -webkit-backdrop-filter: blur(8px) saturate(1.4);
-  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--color-accent, #e5b32a) 25%, rgba(var(--mono-rgb-100, 200, 200, 200), 0.1));
-}
-.tc-settings.tc-tabs-seg-frosttint .tc-tab:hover {
-  background: color-mix(in srgb, var(--color-accent, #e5b32a) 8%, rgba(var(--mono-rgb-100, 200, 200, 200), 0.04));
-}
-.tc-settings.tc-tabs-seg-frosttint .tc-tab--active {
-  background: color-mix(in srgb, var(--color-accent, #e5b32a) 18%, rgba(var(--mono-rgb-100, 200, 200, 200), 0.08));
-  backdrop-filter: blur(12px) saturate(1.8);
-  -webkit-backdrop-filter: blur(12px) saturate(1.8);
-  color: var(--color-accent, #e5b32a);
-  font-weight: 600;
-  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--color-accent, #e5b32a) 40%, rgba(var(--mono-rgb-100, 200, 200, 200), 0.2)),
-              0 2px 8px rgba(0,0,0,0.2);
+  box-shadow: inset 0 0 0 1px var(--color-accent, #e5b32a);
 }
 
 /* ── Tab style switcher ── */

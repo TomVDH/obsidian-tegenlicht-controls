@@ -149,7 +149,7 @@ export interface TegenlichtSettings {
 }
 
 export const DEFAULT_SETTINGS: TegenlichtSettings = {
-  tabBarStyle: 'pill-frost',
+  tabBarStyle: 'switch',
   tabBarSpacing: 6,
 
   darkFlavour: 'tc-maneblusser',

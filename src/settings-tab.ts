@@ -18,22 +18,10 @@ const TABS: { id: Tab; label: string }[] = [
 ];
 
 const TAB_STYLES: { id: string; label: string }[] = [
-  // ── Pills ──────────────────────────────
-  { id: "pill",           label: "Pill"         },
-  { id: "pill-soft",      label: "Soft"         },
-  { id: "pill-ghost",     label: "Ghost"        },
-  { id: "pill-frost",     label: "Frost"        },
-  { id: "pill-tint",      label: "Tint"         },
-  { id: "pill-frosttint", label: "Frost+Tint"   },
-  { id: "pill-mono",      label: "Mono"         },
-  // ── Segments ───────────────────────────
-  { id: "seg",            label: "Seg"          },
-  { id: "seg-soft",       label: "Soft"         },
-  { id: "seg-ghost",      label: "Ghost"        },
-  { id: "seg-frost",      label: "Frost"        },
-  { id: "seg-tint",       label: "Tint"         },
-  { id: "seg-frosttint",  label: "Frost+Tint"   },
-  { id: "seg-mono",       label: "Mono"         },
+  { id: "switch",        label: "Switch"    },
+  { id: "switch-amber",  label: "Amber"     },
+  { id: "underline",     label: "Underline" },
+  { id: "ghost",         label: "Ghost"     },
 ];
 
 export class TegenlichtSettingsTab extends PluginSettingTab {
@@ -293,14 +281,17 @@ export class TegenlichtSettingsTab extends PluginSettingTab {
 
   /** Apply the correct CSS class for the chosen tab style. */
   private applyTabStyle(el: HTMLElement): void {
-    // Remap any legacy or retired style to pill-frost
+    // Remap any legacy or retired style to switch
     const active = TAB_STYLES.map(s => s.id);
     if (!active.includes(this.plugin.settings.tabBarStyle ?? '')) {
-      this.plugin.settings.tabBarStyle = 'pill-frost';
+      this.plugin.settings.tabBarStyle = 'switch';
       this.plugin.saveSettings();
     }
     el.removeClass(
-      // pills (active + legacy)
+      // New set
+      "tc-tabs-switch", "tc-tabs-switch-amber",
+      "tc-tabs-underline", "tc-tabs-ghost",
+      // Retired pill variants
       "tc-tabs-pill", "tc-tabs-pill-soft", "tc-tabs-pill-ghost",
       "tc-tabs-pill-frost", "tc-tabs-pill-tint", "tc-tabs-pill-frosttint",
       "tc-tabs-pill-mono",
@@ -309,7 +300,7 @@ export class TegenlichtSettingsTab extends PluginSettingTab {
       "tc-tabs-pill-neon", "tc-tabs-pill-duo", "tc-tabs-pill-flat",
       "tc-tabs-pill-pop", "tc-tabs-pill-shimmer", "tc-tabs-pill-badge",
       "tc-tabs-pill-dark", "tc-tabs-pill-pulse", "tc-tabs-pill-lineunder",
-      // legacy line classes
+      // Retired line variants
       "tc-tabs-line", "tc-tabs-line-thick", "tc-tabs-line-fat",
       "tc-tabs-line-glow", "tc-tabs-line-grad", "tc-tabs-line-top",
       "tc-tabs-line-fill", "tc-tabs-line-cap", "tc-tabs-line-grow",
@@ -317,8 +308,8 @@ export class TegenlichtSettingsTab extends PluginSettingTab {
       "tc-tabs-line-side", "tc-tabs-line-over", "tc-tabs-line-pill",
       "tc-tabs-line-neon", "tc-tabs-line-double", "tc-tabs-line-bracket",
       "tc-tabs-line-bold", "tc-tabs-line-float", "tc-tabs-line-frosttint",
-      "tc-tabs-underline", "tc-tabs-underline-thick",
-      // segments (active + legacy)
+      "tc-tabs-underline-thick",
+      // Retired segment variants
       "tc-tabs-seg", "tc-tabs-seg-soft", "tc-tabs-seg-ghost",
       "tc-tabs-seg-frost", "tc-tabs-seg-tint", "tc-tabs-seg-frosttint",
       "tc-tabs-seg-mono",
@@ -327,9 +318,9 @@ export class TegenlichtSettingsTab extends PluginSettingTab {
       "tc-tabs-seg-inset", "tc-tabs-seg-flat", "tc-tabs-seg-dot",
       "tc-tabs-seg-neon", "tc-tabs-seg-minimal", "tc-tabs-seg-sharp",
       "tc-tabs-seg-outline", "tc-tabs-seg-gradwrap", "tc-tabs-seg-split",
-      "tc-tabs-seg-thick", "tc-tabs-seg-badge"
+      "tc-tabs-seg-thick", "tc-tabs-seg-badge",
     );
-    el.addClass(`tc-tabs-${this.plugin.settings.tabBarStyle ?? 'pill'}`);
+    el.addClass(`tc-tabs-${this.plugin.settings.tabBarStyle ?? 'switch'}`);
   }
 
   hide(): void {
