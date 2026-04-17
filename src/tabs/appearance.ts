@@ -364,24 +364,9 @@ export function build(
     await refresh();
   };
 
-  const darkSetting = new Setting(paletteCluster)
-    .setName("Dark flavour")
-    .setDesc("Applied when Obsidian is in dark mode");
-  const darkInlineWrap = darkSetting.controlEl.createDiv("tc-swatch-grid-inline");
-  buildSwatchGrid(darkInlineWrap, DARK_BASE, s.darkFlavour, cls => pickFlavour('dark', cls));
-  appendPlusSwatch(darkInlineWrap, s.showExtendedDark, async () => {
-    s.showExtendedDark = !s.showExtendedDark;
-    await refresh();
-  });
-  if (s.showExtendedDark) {
-    const darkExtWrap = paletteCluster.createDiv("tc-swatch-grid-wrap tc-swatch-grouped");
-    darkExtWrap.createSpan({ text: "Tegenlicht", cls: "tc-swatch-group-label" });
-    buildSwatchGrid(darkExtWrap, DARK_EXTENDED_TC, s.darkFlavour, cls => pickFlavour('dark', cls));
-    darkExtWrap.createSpan({ text: "AnuPuccin", cls: "tc-swatch-group-label" });
-    buildSwatchGrid(darkExtWrap, DARK_EXTENDED_ANP, s.darkFlavour, cls => pickFlavour('dark', cls));
-  }
-
-  // ── Light Flavours ─────────────────────────────────────
+  // ── Light Flavours (light first now, per user preference) ────
+  paletteCluster.createDiv("tc-flavour-caption")
+    .createSpan({ text: "licht", cls: "tc-flavour-caption-label" });
   const lightSetting = new Setting(paletteCluster)
     .setName("Light flavour")
     .setDesc("Applied when Obsidian is in light mode");
@@ -397,6 +382,26 @@ export function build(
     buildSwatchGrid(lightExtWrap, LIGHT_EXTENDED_TC, s.lightFlavour, cls => pickFlavour('light', cls));
     lightExtWrap.createSpan({ text: "AnuPuccin", cls: "tc-swatch-group-label" });
     buildSwatchGrid(lightExtWrap, LIGHT_EXTENDED_ANP, s.lightFlavour, cls => pickFlavour('light', cls));
+  }
+
+  // ── Dark Flavours ─────────────────────────────────────────────
+  paletteCluster.createDiv("tc-flavour-caption")
+    .createSpan({ text: "tegenlicht", cls: "tc-flavour-caption-label" });
+  const darkSetting = new Setting(paletteCluster)
+    .setName("Dark flavour")
+    .setDesc("Applied when Obsidian is in dark mode");
+  const darkInlineWrap = darkSetting.controlEl.createDiv("tc-swatch-grid-inline");
+  buildSwatchGrid(darkInlineWrap, DARK_BASE, s.darkFlavour, cls => pickFlavour('dark', cls));
+  appendPlusSwatch(darkInlineWrap, s.showExtendedDark, async () => {
+    s.showExtendedDark = !s.showExtendedDark;
+    await refresh();
+  });
+  if (s.showExtendedDark) {
+    const darkExtWrap = paletteCluster.createDiv("tc-swatch-grid-wrap tc-swatch-grouped");
+    darkExtWrap.createSpan({ text: "Tegenlicht", cls: "tc-swatch-group-label" });
+    buildSwatchGrid(darkExtWrap, DARK_EXTENDED_TC, s.darkFlavour, cls => pickFlavour('dark', cls));
+    darkExtWrap.createSpan({ text: "AnuPuccin", cls: "tc-swatch-group-label" });
+    buildSwatchGrid(darkExtWrap, DARK_EXTENDED_ANP, s.darkFlavour, cls => pickFlavour('dark', cls));
   }
 
   // Background-effect pill and Native-translucency toggle were REMOVED.

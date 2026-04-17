@@ -3483,3 +3483,27 @@ body.tc-graph-halo .workspace-leaf-content[data-type="graph"] .graph-view.color-
   color: var(--text-muted);
   font-variant: small-caps;
 }
+
+/* ═══════════════════════════════════════════════════════════
+   Flavour captions — small "licht" / "tegenlicht" labels that
+   sit above the Light flavour / Dark flavour setting rows inside
+   the Palette cluster. Very subtle; reads as a section marker,
+   not a control.
+   ═══════════════════════════════════════════════════════════ */
+
+.tc-settings .tc-flavour-caption {
+  margin-top: 8px;
+  margin-bottom: -2px;
+  padding-left: 2px;
+}
+.tc-settings .tc-flavour-caption:first-child {
+  margin-top: 4px;
+}
+.tc-settings .tc-flavour-caption-label {
+  font-size: 9px;
+  letter-spacing: 0.12em;
+  text-transform: lowercase;
+  font-variant: small-caps;
+  color: var(--text-faint);
+  opacity: 0.8;
+}

@@ -108,14 +108,12 @@ export class TegenlichtSettingsTab extends PluginSettingTab {
     tagline.createSpan({ cls: "tc-header-copy-sep tc-header-tagline-sep", text: "·" });
     tagline.createSpan({ cls: "tc-header-tagline-sig", text: "Spun up by Onnozelaer" });
 
-    // Rainbow colour bar — 25%-width Catppuccin gradient. Lives once in
-    // the header between the tagline and the footer copy row (promoted
-    // from a per-tab element so the visual divider reads as a panel-level
-    // flourish, not a tab-level one).
-    header.createDiv("tc-color-bar tc-color-bar--header");
-
-    // Footer row — GitHub · License · Acknowledgements
-    const copy = header.createDiv("tc-header-copy");
+    // Inline row — rainbow bar + GitHub · License · Acknowledgements on
+    // a single line below the tagline. Bar on the left, links on the
+    // right; flex container lets the two sit side-by-side with a gap.
+    const inlineRow = header.createDiv("tc-header-inline-row");
+    inlineRow.createDiv("tc-color-bar tc-color-bar--header");
+    const copy = inlineRow.createDiv("tc-header-copy");
 
     // GitHub icon-link
     const ghLink = copy.createEl("a", {
