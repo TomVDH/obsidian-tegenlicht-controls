@@ -3635,18 +3635,17 @@ body.tc-graph-halo .workspace-leaf-content[data-type="graph"] .graph-view.color-
   opacity: 0.8;
 }
 
-/* Live preview wrap inside a left-rail content pane — used in Show/Hide
-   as a test of inline preview embedding. Sits below the section's
-   controls with a small label header above the preview itself. */
+/* Live preview wrap inside a left-rail content pane — bare wrap, no
+   box. The preview is its own surface; wrapping it in another card
+   would steal screen real estate per user directive. */
 .tc-settings .tc-leftrail-preview {
-  margin: 18px 0 0;
-  padding: 14px;
-  background: rgba(var(--mono-rgb-100, 200, 200, 200), 0.02);
-  border: 1px solid var(--background-modifier-border);
-  border-radius: var(--radius-l, 8px);
+  margin: 22px 0 0;
+  padding: 0;
+  background: none;
+  border: none;
 }
 .tc-settings .tc-leftrail-preview-head {
-  margin: 0 0 10px;
+  margin: 0 0 8px 14px;
   font-size: 10px;
   font-weight: 600;
   text-transform: uppercase;
