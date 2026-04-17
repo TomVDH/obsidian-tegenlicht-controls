@@ -2436,13 +2436,16 @@ body.tc-borders-ligne-claire .titlebar {
   --background-modifier-border: rgba(var(--mono-rgb-100, 200, 200, 200), 0.15) !important;
   --background-modifier-border-hover: rgba(var(--mono-rgb-100, 200, 200, 200), 0.22) !important;
   --background-modifier-border-focus: rgba(var(--mono-rgb-100, 200, 200, 200), 0.32) !important;
-  /* Lock the radius-* vars inside the plugin's own UI so the user's
-     Corner radius pick (Sharp/Subtle/Rounded on body) doesn't leak in
-     and squish or balloon the accordion + setting-row borders. Same
-     specificity trick as the border vars above (double class). */
-  --radius-s: 4px !important;
-  --radius-m: 6px !important;
-  --radius-l: 8px !important;
+  /* Radius lockdown REMOVED per user directive — plugin UI buttons
+     should now track the body-level --radius-s / --radius-m / --radius-l
+     written by tc-radius-{sharp,subtle,rounded}. cornerRadius setting
+     therefore reaches the plugin's own controls (tabs / segments /
+     reset / palette expander, etc) instead of being insulated.
+
+     --anp-card-radius / --anp-border-radius left untouched — those
+     are theme-owned vars consumed by AnuPpuccin layout; locking them
+     here protected the plugin's own card padding maths against the
+     theme's radius drift, separate concern. */
   --anp-card-radius: 6px !important;
   --anp-border-radius: 6px !important;
 }
