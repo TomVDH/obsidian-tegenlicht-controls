@@ -742,7 +742,11 @@ body > div.modal-container .modal-close-button {
   border-radius: 100px !important;
   padding: 5px 16px;
   box-shadow: inset 0 0 0 1px color-mix(in srgb, currentColor 22%, transparent);
-  transition: color 0.18s ease, box-shadow 0.22s ease, background 0.22s ease;
+  /* box-shadow omitted from the transition list — transitioning
+     between currentColor color-mix and literal rgba(accent) can
+     flicker through a blocked-out intermediate. Snapping keeps
+     the border change crisp. */
+  transition: color 0.18s ease, background 0.22s ease;
 }
 .tc-settings.tc-tabs-active-pill .tc-tab:hover {
   box-shadow: inset 0 0 0 1px color-mix(in srgb, currentColor 36%, transparent);
@@ -4415,15 +4419,26 @@ body.tc-graph-halo .workspace-leaf-content[data-type="graph"] .graph-view.color-
   opacity: 1;
 }
 
-/* ── 1b. Glow text B — same radial glow as Glow text, but the
-   active tab ALSO keeps the accent border ring (same 40% alpha as
-   Pill's outline). Lets the glow + the hard-edge border coexist
-   so the active tab reads as both "lit" and "framed". ── */
+/* ── 1b. Glow text B — same radial glow as Glow text, but EVERY tab
+   wears a border ring: inactive tabs get a currentColor-based ring
+   (tracks text-muted at rest, text-normal on hover) and the active
+   tab gets the accent 40% ring. Border snaps between states — no
+   box-shadow transition so the hover/active swap can't flicker
+   through a blocked-out intermediate frame. ── */
 .tc-settings .tc-mock--glow-b .tc-mock-tab {
   overflow: hidden;
   z-index: 0;
   border-radius: 6px;
-  transition: color 0.18s ease, box-shadow 0.22s ease;
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, currentColor 22%, transparent);
+  /* No box-shadow in the transition list — transitioning between a
+     currentColor color-mix and a literal rgba() accent can briefly
+     interpolate to a transparent intermediate in some browsers,
+     reading as the border "blocking out" before coming back in
+     accent. Snapping avoids that artefact entirely. */
+  transition: color 0.18s ease;
+}
+.tc-settings .tc-mock--glow-b .tc-mock-tab:hover {
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, currentColor 36%, transparent);
 }
 .tc-settings .tc-mock--glow-b .tc-mock-tab::before {
   content: "";
@@ -4444,7 +4459,8 @@ body.tc-graph-halo .workspace-leaf-content[data-type="graph"] .graph-view.color-
 .tc-settings .tc-mock--glow-b .tc-mock-tab--active::before {
   opacity: 1;
 }
-.tc-settings .tc-mock--glow-b .tc-mock-tab--active {
+.tc-settings .tc-mock--glow-b .tc-mock-tab--active,
+.tc-settings .tc-mock--glow-b .tc-mock-tab--active:hover {
   box-shadow: inset 0 0 0 1px rgba(var(--color-accent-rgb, 229, 179, 42), 0.40);
 }
 
@@ -4478,11 +4494,14 @@ body.tc-graph-halo .workspace-leaf-content[data-type="graph"] .graph-view.color-
    persistent text-colour border on INACTIVE tabs. Every tab reads
    as a framed pill; the active one just fills in with accent.
    Inactive border uses currentColor at 0.22 alpha so it tracks
-   text-muted when at rest and text-normal on hover automatically. ── */
+   text-muted when at rest and text-normal on hover automatically.
+   Border snaps between states (no box-shadow in transition list)
+   so the currentColor↔accent swap can't flicker through a
+   transparent intermediate. ── */
 .tc-settings .tc-mock--pill-b .tc-mock-tab {
   border-radius: 100px;
   box-shadow: inset 0 0 0 1px color-mix(in srgb, currentColor 22%, transparent);
-  transition: color 0.18s ease, background 0.22s ease, box-shadow 0.22s ease;
+  transition: color 0.18s ease, background 0.22s ease;
 }
 .tc-settings .tc-mock--pill-b .tc-mock-tab:hover {
   box-shadow: inset 0 0 0 1px color-mix(in srgb, currentColor 36%, transparent);
@@ -5521,4 +5540,276 @@ body.tc-graph-halo .workspace-leaf-content[data-type="graph"] .graph-view.color-
 }
 .tc-settings .tc-callout-mini .mini-content--active {
   display: block;
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   LAB → ACCORDION STYLES — five variants of the pretty-accordion shell.
+   Shared DOM shape across variants:
+     .tc-mock-acc.{variant}.tc-mock-acc--open?
+       .tc-mock-acc-header
+         .tc-mock-acc-kicker?  (opt-in, variant E only)
+         .tc-mock-acc-title
+         .tc-mock-acc-chev     (empty — glyph via ::before per variant)
+       .tc-mock-acc-body
+         .tc-mock-acc-blurb
+         .tc-mock-acc-row × 3
+   Variant CSS owns bg/border/header flow/chevron glyph. Body expand-
+   collapse is a max-height transition driven by .tc-mock-acc--open.
+   ═══════════════════════════════════════════════════════════════════ */
+.tc-settings .tc-mock-acc {
+  margin: 14px 0;
+  border-radius: 6px;
+  overflow: hidden;
+  transition: border-color 0.22s ease, box-shadow 0.22s ease;
+}
+.tc-settings .tc-mock-acc-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 11px 14px;
+  cursor: pointer;
+  user-select: none;
+  gap: 10px;
+}
+.tc-settings .tc-mock-acc-title {
+  font-size: 13px;
+  flex: 1;
+}
+.tc-settings .tc-mock-acc-chev {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-muted);
+  font-size: 11px;
+  line-height: 1;
+  transition: transform 0.22s ease, color 0.22s ease,
+              background 0.22s ease, border-color 0.22s ease;
+  flex: 0 0 auto;
+}
+.tc-settings .tc-mock-acc-body {
+  max-height: 0;
+  overflow: hidden;
+  transition: max-height 0.36s cubic-bezier(0.32, 0.72, 0, 1),
+              padding 0.36s cubic-bezier(0.32, 0.72, 0, 1);
+  padding: 0 14px;
+}
+.tc-settings .tc-mock-acc--open .tc-mock-acc-body {
+  max-height: 280px;
+  padding: 4px 14px 14px;
+}
+.tc-settings .tc-mock-acc-blurb {
+  font-size: 11px;
+  color: var(--text-muted);
+  margin: 0 0 10px;
+  line-height: 1.5;
+  font-style: italic;
+}
+.tc-settings .tc-mock-acc-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 7px 0;
+  border-top: 1px solid rgba(var(--mono-rgb-100, 200, 200, 200), 0.08);
+}
+.tc-settings .tc-mock-acc-row:first-of-type { border-top: none; }
+.tc-settings .tc-mock-acc-row-label {
+  font-size: 12px;
+  color: var(--text-normal);
+}
+.tc-settings .tc-mock-acc-row-ctl {
+  width: 28px;
+  height: 16px;
+  border-radius: 10px;
+  background: rgba(var(--mono-rgb-100, 200, 200, 200), 0.14);
+  box-shadow: inset 0 0 0 1px rgba(var(--mono-rgb-100, 200, 200, 200), 0.14);
+}
+
+/* ── A · Pretty (default) ─────────────────────────────────────
+   Baseline — accent gradient fill + accent border, all-caps
+   subtitle header, triangle chevron that rotates 90°. */
+.tc-settings .tc-mock-acc--pretty {
+  background: linear-gradient(135deg,
+    color-mix(in srgb, var(--color-accent) 8%, transparent),
+    color-mix(in srgb, var(--color-accent) 3%, transparent));
+  border: 1px solid rgba(var(--color-accent-rgb, 229, 179, 42), 0.40);
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.08);
+}
+.tc-settings .tc-mock-acc--pretty .tc-mock-acc-title {
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-normal);
+}
+.tc-settings .tc-mock-acc--pretty .tc-mock-acc-chev::before { content: "▶"; }
+.tc-settings .tc-mock-acc--pretty.tc-mock-acc--open .tc-mock-acc-chev {
+  transform: rotate(90deg);
+}
+
+/* ── B · Gutter line ──────────────────────────────────────────
+   Accent reduced to a left-hand gutter stripe. Rest of the card
+   is near-neutral. Small-caps title, + / − glyph chevron. */
+.tc-settings .tc-mock-acc--gutter {
+  background: rgba(var(--mono-rgb-100, 200, 200, 200), 0.03);
+  border: 1px solid rgba(var(--mono-rgb-100, 200, 200, 200), 0.10);
+  border-left: 3px solid rgba(var(--color-accent-rgb, 229, 179, 42), 0.55);
+  border-radius: 3px;
+}
+.tc-settings .tc-mock-acc--gutter .tc-mock-acc-title {
+  font-variant: small-caps;
+  letter-spacing: 0.08em;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text-normal);
+}
+.tc-settings .tc-mock-acc--gutter .tc-mock-acc-chev {
+  width: 18px;
+  height: 18px;
+  font-size: 16px;
+  font-weight: 300;
+  color: var(--text-muted);
+}
+.tc-settings .tc-mock-acc--gutter .tc-mock-acc-chev::before { content: "+"; }
+.tc-settings .tc-mock-acc--gutter.tc-mock-acc--open .tc-mock-acc-chev::before { content: "−"; }
+
+/* ── C · Filing tab ──────────────────────────────────────────
+   Title lives in a chip that overhangs the top edge of the
+   card — the "filing folder tab" look. Rest of the card is
+   neutral chrome; circular ↑/↓ chevron on the right. */
+.tc-settings .tc-mock-acc--filed {
+  background: var(--background-secondary);
+  border: 1px solid var(--background-modifier-border);
+  border-radius: 8px;
+  margin-top: 28px;
+  position: relative;
+  overflow: visible;
+}
+.tc-settings .tc-mock-acc--filed .tc-mock-acc-header {
+  padding: 14px 14px 12px;
+  justify-content: flex-end;
+}
+.tc-settings .tc-mock-acc--filed .tc-mock-acc-title {
+  position: absolute;
+  top: -14px;
+  left: 14px;
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.16em;
+  padding: 5px 12px;
+  background: var(--background-primary);
+  border: 1px solid var(--background-modifier-border);
+  border-radius: 100px;
+  color: var(--text-normal);
+  flex: 0 0 auto;
+}
+.tc-settings .tc-mock-acc--filed .tc-mock-acc-chev {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  border: 1px solid var(--background-modifier-border);
+  background: var(--background-primary);
+  font-size: 11px;
+  color: var(--text-muted);
+}
+.tc-settings .tc-mock-acc--filed .tc-mock-acc-chev::before { content: "↓"; }
+.tc-settings .tc-mock-acc--filed.tc-mock-acc--open .tc-mock-acc-chev::before { content: "↑"; }
+.tc-settings .tc-mock-acc--filed .tc-mock-acc-body {
+  padding-left: 14px;
+  padding-right: 14px;
+}
+.tc-settings .tc-mock-acc--filed.tc-mock-acc--open .tc-mock-acc-body {
+  padding-bottom: 14px;
+}
+
+/* ── D · Hairline outline ────────────────────────────────────
+   No bg, no side borders. Top + bottom hairlines only. Italic
+   lowercase title read as a book outline. Text chevron ›/⌄. */
+.tc-settings .tc-mock-acc--hairline {
+  background: transparent;
+  border: none;
+  border-top: 1px solid rgba(var(--mono-rgb-100, 200, 200, 200), 0.14);
+  border-bottom: 1px solid rgba(var(--mono-rgb-100, 200, 200, 200), 0.14);
+  border-radius: 0;
+  margin: 10px 0;
+}
+.tc-settings .tc-mock-acc--hairline .tc-mock-acc-header {
+  padding: 9px 4px;
+}
+.tc-settings .tc-mock-acc--hairline .tc-mock-acc-title {
+  font-style: italic;
+  font-size: 12px;
+  color: var(--text-muted);
+  text-transform: lowercase;
+  letter-spacing: 0.02em;
+  font-weight: 400;
+}
+.tc-settings .tc-mock-acc--hairline .tc-mock-acc-chev {
+  color: var(--text-faint);
+  font-size: 13px;
+  line-height: 1;
+}
+.tc-settings .tc-mock-acc--hairline .tc-mock-acc-chev::before { content: "›"; }
+.tc-settings .tc-mock-acc--hairline.tc-mock-acc--open .tc-mock-acc-chev::before { content: "⌄"; }
+.tc-settings .tc-mock-acc--hairline .tc-mock-acc-body {
+  padding: 0 4px;
+}
+.tc-settings .tc-mock-acc--hairline.tc-mock-acc--open .tc-mock-acc-body {
+  padding: 4px 4px 12px;
+}
+
+/* ── E · Neutral bloc ────────────────────────────────────────
+   Two-row header: small-caps "SECTION" kicker STACKED ABOVE a
+   larger regular-weight title. Circular + / − disc chevron,
+   tinted-neutral (no accent) so this variant stays pure mono. */
+.tc-settings .tc-mock-acc--bloc {
+  background: rgba(var(--mono-rgb-100, 200, 200, 200), 0.04);
+  border: 1px solid rgba(var(--mono-rgb-100, 200, 200, 200), 0.10);
+  border-radius: 8px;
+}
+.tc-settings .tc-mock-acc--bloc .tc-mock-acc-header {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  grid-template-rows: auto auto;
+  row-gap: 2px;
+  column-gap: 10px;
+  align-items: center;
+  padding: 12px 14px;
+}
+.tc-settings .tc-mock-acc--bloc .tc-mock-acc-kicker {
+  grid-column: 1;
+  grid-row: 1;
+  font-size: 9px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--text-faint);
+  font-weight: 600;
+  line-height: 1;
+}
+.tc-settings .tc-mock-acc--bloc .tc-mock-acc-title {
+  grid-column: 1;
+  grid-row: 2;
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--text-normal);
+  line-height: 1.2;
+}
+.tc-settings .tc-mock-acc--bloc .tc-mock-acc-chev {
+  grid-column: 2;
+  grid-row: 1 / span 2;
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  background: rgba(var(--mono-rgb-100, 200, 200, 200), 0.10);
+  color: var(--text-muted);
+  font-size: 14px;
+  font-weight: 300;
+  align-self: center;
+}
+.tc-settings .tc-mock-acc--bloc .tc-mock-acc-chev::before { content: "+"; }
+.tc-settings .tc-mock-acc--bloc.tc-mock-acc--open .tc-mock-acc-chev {
+  background: rgba(var(--mono-rgb-100, 200, 200, 200), 0.16);
+}
+.tc-settings .tc-mock-acc--bloc.tc-mock-acc--open .tc-mock-acc-chev::before {
+  content: "−";
 }

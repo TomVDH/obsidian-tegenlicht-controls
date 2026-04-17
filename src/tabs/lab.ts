@@ -48,6 +48,10 @@ export function build(
       render: pane => renderTabStyles(pane),
     },
     {
+      id: "accordion-styles", label: "Accordion styles", count: 5,
+      render: pane => renderAccordionStyles(pane),
+    },
+    {
       id: "switches", label: "Switches & inputs", count: 11,
       render: pane => renderSwitchesInputs(pane),
     },
@@ -280,6 +284,69 @@ function renderTabStyles(pane: HTMLElement): void {
   buildMockTabBar(pane, "Dual line",        "tc-mock--dual",       {});
   buildMockTabBar(pane, "Notch",            "tc-mock--notch",      {});
   buildMockTabBar(pane, "Dot indicator",    "tc-mock--dot",        {});
+}
+
+// ─────────────────────────────────────────────────────────────────────
+// Accordion styles — 5 variants of the pretty-accordion shell, each
+// exploring a different header layout, font treatment, chevron glyph,
+// and accent-paint story (A/B/C accent-forward, C/D/E accent-free).
+// Dummy rows inside so header rhythm can be judged against real
+// content shape. Click headers to fold/unfold.
+// ─────────────────────────────────────────────────────────────────────
+function renderAccordionStyles(pane: HTMLElement): void {
+  pane.createEl("h3", { cls: "tc-leftrail-sechead", text: "Accordion styles" });
+  pane.createEl("p", { cls: "tc-leftrail-secdesc",
+    text: "Variants on the pretty-accordion pattern — header arrangement, font rhythm, chevron affordance, and accent-free vs accent-painted options. Click headers to fold." });
+
+  buildMockAccordion(pane, "tc-mock-acc--pretty",
+    "Pretty default",
+    "Accent gradient + accent border. All-caps subtitle, chevron right. Today's baseline.");
+
+  buildMockAccordion(pane, "tc-mock-acc--gutter",
+    "Gutter line",
+    "Just a 3px accent gutter on the left. Small-caps title, + / − glyph chevron.");
+
+  buildMockAccordion(pane, "tc-mock-acc--filed",
+    "Filing tab",
+    "Title sits in a chip protruding above the card border. Neutral chrome, circular ↑/↓ chevron.");
+
+  buildMockAccordion(pane, "tc-mock-acc--hairline",
+    "Hairline outline",
+    "Top + bottom hairlines only. Italic lowercase title. Book-outline feel. No accent.");
+
+  buildMockAccordion(pane, "tc-mock-acc--bloc",
+    "Neutral bloc",
+    "Neutral card with a stacked kicker above the title. Circular + / − disc chevron. Pure mono.",
+    "SECTION");
+}
+
+/** Build one foldable mock accordion inside a Lab pane. All variants
+ *  share the same DOM shape; per-variant CSS (in styles.css) handles
+ *  bg / border / header layout / chevron glyph via pseudo-elements. */
+function buildMockAccordion(
+  parent: HTMLElement,
+  variantClass: string,
+  title: string,
+  body: string,
+  kicker?: string,
+): void {
+  const acc = parent.createDiv("tc-mock-acc tc-mock-acc--open " + variantClass);
+  const header = acc.createDiv("tc-mock-acc-header");
+  if (kicker) header.createSpan({ cls: "tc-mock-acc-kicker", text: kicker });
+  header.createSpan({ cls: "tc-mock-acc-title", text: title });
+  header.createSpan({ cls: "tc-mock-acc-chev" });
+
+  const wrap = acc.createDiv("tc-mock-acc-body");
+  wrap.createEl("p", { cls: "tc-mock-acc-blurb", text: body });
+  ["Sample setting A", "Sample setting B", "Sample setting C"].forEach(label => {
+    const row = wrap.createDiv("tc-mock-acc-row");
+    row.createSpan({ cls: "tc-mock-acc-row-label", text: label });
+    row.createDiv("tc-mock-acc-row-ctl");
+  });
+
+  header.addEventListener("click", () => {
+    acc.toggleClass("tc-mock-acc--open", !acc.hasClass("tc-mock-acc--open"));
+  });
 }
 
 const MOCK_TAB_LABELS = ["Appearance", "Typography", "Editing", "Layout"];
