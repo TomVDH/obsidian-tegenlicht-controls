@@ -822,5 +822,37 @@ export function build(
     refresh,
   ));
 
+  // ── Interface cluster — surface tab nav style + spacing controls.
+  //    tabBarStyle accepts: 'switch' (default, monochrome knob),
+  //    'switch-amber' (accent knob), 'underline' (no track), 'ghost'
+  //    (1px outline). Retired legacy values migrate to 'switch' in
+  //    loadSettings. Until Task 5 ships the matching CSS, the picker
+  //    renders but the visual effect on the tab bar only lands with
+  //    that later commit.
+  const interfaceCluster = buildCluster(workspaceCard, "Interface");
+
+  buildSegmentSetting(interfaceCluster,
+    "Tab style",
+    "How the settings tab navigation renders",
+    [
+      { label: "Switch",    value: "switch"       },
+      { label: "Amber",     value: "switch-amber" },
+      { label: "Underline", value: "underline"    },
+      { label: "Ghost",     value: "ghost"        },
+    ],
+    s.tabBarStyle,
+    async v => { s.tabBarStyle = v; await refresh(); },
+  );
+
+  new Setting(interfaceCluster)
+    .setName("Tab spacing")
+    .setDesc("Gap between tab buttons (0–16px)")
+    .addSlider(sl => sl
+      .setLimits(0, 16, 1)
+      .setValue(s.tabBarSpacing ?? 6)
+      .setDynamicTooltip()
+      .onChange(async v => { s.tabBarSpacing = v; await refresh(); })
+    );
+
   return () => pickrs.forEach(p => { try { p.destroyAndRemove(); } catch(_) {} });
 }
