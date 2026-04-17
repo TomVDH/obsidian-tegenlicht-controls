@@ -63,7 +63,7 @@ const ALL_TAB_CLASSES = [
 // Plugin settings-tab active-indicator variants. Mutually exclusive
 // — the picker in Appearance → Workspace → Interface chooses one.
 const ALL_TAB_ACTIVE_CLASSES = [
-  'tc-tabs-active-glow', 'tc-tabs-active-pill',
+  'tc-tabs-active-glow', 'tc-tabs-active-glow-b', 'tc-tabs-active-pill',
 ];
 
 const ALL_BG_EFFECT_CLASSES   = [
@@ -367,7 +367,7 @@ ${s.caretColourEnabled ? `.cm-cursor { border-left-color: ${caretClr} !important
 
   // Plugin settings-tab active-indicator variant (glow | pill)
   ALL_TAB_ACTIVE_CLASSES.forEach(c => document.body.classList.remove(c));
-  document.body.classList.add(`tc-tabs-active-${s.tabActiveStyle || 'glow'}`);
+  document.body.classList.add(`tc-tabs-active-${s.tabActiveStyle || 'glow-b'}`);
 
   // Rainbow folders — three modes mirroring AnuPuccin's Style Settings
   // dropdown (None / Full / Simple). Two layers of migration:

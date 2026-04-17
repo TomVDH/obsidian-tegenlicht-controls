@@ -715,11 +715,15 @@ body > div.modal-container .modal-close-button {
 }
 .tc-settings .tc-tab-slide-indicator--ready { opacity: 1; }
 
-/* Active-indicator variant — GLOW (default).
-   Radial accent gradient with a randomised origin (--tc-slide-glow-x/y
-   rolled fresh per tab click in settings-tab.ts). Reads as a glow
-   rather than a tinted surface. */
-.tc-settings.tc-tabs-active-glow .tc-tab-slide-indicator {
+/* Active-indicator variant — GLOW and GLOW B share the slide
+   indicator paint: a radial accent gradient with a randomised
+   origin (--tc-slide-glow-x/y rolled fresh per tab click in
+   settings-tab.ts). Reads as a glow rather than a tinted surface.
+   GLOW B additionally frames every tab with a currentColor border
+   ring (see rules below) and gives the active tab an accent ring
+   overlay. */
+.tc-settings.tc-tabs-active-glow .tc-tab-slide-indicator,
+.tc-settings.tc-tabs-active-glow-b .tc-tab-slide-indicator {
   background: radial-gradient(
     ellipse 120% 200% at var(--tc-slide-glow-x, 50%) var(--tc-slide-glow-y, 50%),
     rgba(var(--color-accent-rgb, 229, 179, 42), 0.22) 0%,
@@ -727,6 +731,26 @@ body > div.modal-container .modal-close-button {
     rgba(var(--color-accent-rgb, 229, 179, 42), 0.03) 70%,
     transparent 100%
   );
+}
+
+/* Active-indicator variant — GLOW B additions.
+   Every tab wears a persistent 1px inset border in currentColor
+   (22% alpha at rest, 36% on hover) — currentColor tracks text-
+   muted / text-normal automatically so no per-state colour rule
+   is needed. Active tab overrides with the accent 40% ring so
+   its frame lines up with the pretty-cluster + rail-active border
+   language. Box-shadow excluded from the transition list to avoid
+   the currentColor↔accent flicker. */
+.tc-settings.tc-tabs-active-glow-b .tc-tab {
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, currentColor 22%, transparent);
+  transition: color 0.18s ease, background 0.22s ease;
+}
+.tc-settings.tc-tabs-active-glow-b .tc-tab:hover {
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, currentColor 36%, transparent);
+}
+.tc-settings.tc-tabs-active-glow-b .tc-tab--active,
+.tc-settings.tc-tabs-active-glow-b .tc-tab--active:hover {
+  box-shadow: inset 0 0 0 1px rgba(var(--color-accent-rgb, 229, 179, 42), 0.40) !important;
 }
 
 /* Active-indicator variant — PILL (Pill B recipe).

@@ -2,11 +2,16 @@ export interface TegenlichtSettings {
   // UI chrome
   tabBarStyle: string;   // 'pill' | 'underline' | 'segment'
   tabBarSpacing: number; // px gap between tab buttons
-  // Active-tab indicator paint. 'glow' = radial accent gradient
-  // (default, soft, randomised origin per click). 'pill' = Lab
-  // tc-mock--pill recipe: solid 16% accent fill + 40% accent inset
-  // ring, fully rounded. Drives body class tc-tabs-active-{glow|pill}.
-  tabActiveStyle: string; // 'glow' | 'pill'
+  // Active-tab indicator paint. Drives body class
+  // tc-tabs-active-{glow|glow-b|pill}.
+  //   'glow'   — radial accent gradient, no tab borders.
+  //   'glow-b' — same radial glow PLUS a persistent currentColor
+  //              border ring on every tab; active tab swaps to an
+  //              accent-coloured ring. Current default.
+  //   'pill'   — solid 16% accent fill + 40% accent ring, fully
+  //              rounded. Inactive tabs get the currentColor ring
+  //              too (Pill B promoted).
+  tabActiveStyle: string; // 'glow' | 'glow-b' | 'pill'
 
   // Appearance — Colour scheme
   darkFlavour: string;
@@ -200,7 +205,7 @@ export interface TegenlichtSettings {
 export const DEFAULT_SETTINGS: TegenlichtSettings = {
   tabBarStyle: 'text',
   tabBarSpacing: 6,
-  tabActiveStyle: 'glow',
+  tabActiveStyle: 'glow-b',
 
   darkFlavour: 'tc-maneblusser',
   lightFlavour: 'tc-mechelen',
