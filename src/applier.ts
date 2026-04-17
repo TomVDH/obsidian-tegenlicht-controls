@@ -283,6 +283,12 @@ ${s.caretColourEnabled ? `.cm-cursor { border-left-color: ${caretClr} !important
   document.documentElement.style.setProperty('--ctp-accent', hexToRgbTriplet(accent));
   document.documentElement.style.setProperty('--color-accent', accent);
   document.documentElement.style.setProperty('--color-accent-hsl', hexToHsl(accent));
+  // --color-accent-rgb is the triplet form our own plugin CSS reads via
+  // rgba(var(--color-accent-rgb), alpha). Without this write, every
+  // rule falling back to the default `229, 179, 42` literal paints
+  // amber regardless of the user's chosen accent — which broke the
+  // tab pill outline for any non-amber flavour.
+  document.documentElement.style.setProperty('--color-accent-rgb', hexToRgbTriplet(accent));
   // Propagate into --interactive-accent too — this is the var Obsidian's
   // native SliderComponent (and native toggles/buttons) reads to colour
   // the knob + fill. Without this, our typography sliders would render
@@ -503,6 +509,7 @@ export function remove(): void {
   document.getElementById(STYLE_ID)?.remove();
   document.documentElement.style.removeProperty('--color-accent');
   document.documentElement.style.removeProperty('--color-accent-hsl');
+  document.documentElement.style.removeProperty('--color-accent-rgb');
   document.documentElement.style.removeProperty('--ctp-accent');
   document.documentElement.style.removeProperty('--interactive-accent');
   document.body.classList.remove('tegenlicht-accent-toggle');
