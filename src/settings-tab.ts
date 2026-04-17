@@ -29,36 +29,10 @@ const TAB_STYLES: { id: string; label: string }[] = [
   { id: "ghost",         label: "Ghost"     },
 ];
 
-/** Refresh the ambient tab-bar bloom on every tab-switch / render.
- *
- *  Post-2026-04-17: origin stays centred (50%/50%) — tracking the active
- *  tab felt lopsided. Instead, we roll fresh elliptoid dimensions + a
- *  tiny origin jitter each call so the bloom subtly breathes between
- *  renders without shifting off-centre.
- *
- *  CSS transitions on the four typed custom props animate the drift
- *  frame-by-frame — changes feel organic, not stepped. */
-function updateTabBarBloom(activeBtn: HTMLElement): void {
-  const bar = activeBtn.closest('.tc-tab-bar') as HTMLElement | null;
-  if (!bar) return;
-  requestAnimationFrame(() => {
-    // Tiny centre jitter: keeps the bloom anchored at visual centre
-    // while adding a touch of asymmetry so the shape doesn't feel
-    // mechanical across renders. ±3% horizontally, ±6% vertically.
-    const jitter = (range: number) => (Math.random() - 0.5) * 2 * range;
-    const x = 50 + jitter(3);
-    const y = 50 + jitter(6);
-    // Elliptoid radii — rx wider than ry so the glow reads as a horizontal
-    // smear rather than a perfect circle. Ranges chosen so shape variance
-    // is perceptible but never dramatic.
-    const rx = 200 + Math.random() * 60;  // 200–260 px
-    const ry = 120 + Math.random() * 50;  // 120–170 px
-    bar.style.setProperty('--tc-bloom-x',  `${x.toFixed(2)}%`);
-    bar.style.setProperty('--tc-bloom-y',  `${y.toFixed(2)}%`);
-    bar.style.setProperty('--tc-bloom-rx', `${rx.toFixed(1)}px`);
-    bar.style.setProperty('--tc-bloom-ry', `${ry.toFixed(1)}px`);
-  });
-}
+// Ambient tab-bar bloom was removed in the 2026-04-17 pivot — the bloom
+// now lives statically in the top-right of .tc-settings (see styles.css).
+// No JS is needed to drive it. Per-tab active treatment is the frosted
+// pill + text-shadow glow, also pure CSS.
 
 export class TegenlichtSettingsTab extends PluginSettingTab {
   private activeTab: Tab = "appearance";
@@ -180,20 +154,12 @@ export class TegenlichtSettingsTab extends PluginSettingTab {
 
     TABS.forEach(({ id, label }) => {
       const btn = btnParent.createEl("button", { text: label, cls: "tc-tab" });
-      if (id === this.activeTab) {
-        btn.addClass("tc-tab--active");
-        updateTabBarBloom(btn);
-      }
+      if (id === this.activeTab) btn.addClass("tc-tab--active");
       this.tabBtns.set(id, btn);
       btn.addEventListener("click", () => {
         if (id === this.activeTab) return;
         this.tabBtns.forEach(b => b.removeClass("tc-tab--active"));
         btn.addClass("tc-tab--active");
-        // Slide the container bloom to the newly active tab. CSS
-        // transitions the bloom's origin smoothly via the background
-        // gradient interpolating between the old and new --tc-bloom-*
-        // values.
-        updateTabBarBloom(btn);
         this.activeTab = id;
         this.renderContent();
       });

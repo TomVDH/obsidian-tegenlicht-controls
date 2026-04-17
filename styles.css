@@ -510,81 +510,44 @@
 }
 
 /* ═══════════════════════════════════════════════════════════
-   AMBIENT TAB-BAR BLOOM — applies regardless of tabBarStyle.
+   STATIC TOP-RIGHT BLOOM — ambient accent paints off the top-right
+   corner of the whole settings panel, not the tab-bar.
 
-   Design (post-2026-04-17 pass):
-   - Always centred horizontally (50%) — no longer tracks the active
-     tab's position. Previous off-centre look felt lopsided.
-   - Elliptoid shape with per-render random width/height variance
-     (rx 200–260px, ry 120–170px). JS in settings-tab.ts rolls fresh
-     numbers on every tab-switch / render and writes them as CSS
-     vars, so the bloom subtly breathes between renders.
-   - VERTICALLY CLIPPED to the tab-bar's own bounds via clip-path,
-     so the bloom no longer bleeds into .tc-tab-content and sits
-     BEHIND the UI chrome below. Horizontal bleed preserved.
-   - Light-mode: disabled entirely for now (TODO: refine later —
-     the accent bloom reads harsh against pale backgrounds and
-     needs its own alpha/colour tuning).
+   Post-2026-04-17 pivot: the prior tab-bar bloom kept regressing
+   into visual mis-containment (bleeding into the content area,
+   sitting lopsided after origin-tracking experiments). Replaced
+   with a single static radial anchored to the top-right of
+   .tc-settings — no JS, no randomisation, just a wash of the
+   active accent. Responsive to --color-accent-rgb so it retints
+   with flavour switches.
    ═══════════════════════════════════════════════════════════ */
-@property --tc-bloom-x {
-  syntax: "<percentage>";
-  inherits: true;
-  initial-value: 50%;
-}
-@property --tc-bloom-y {
-  syntax: "<percentage>";
-  inherits: true;
-  initial-value: 50%;
-}
-@property --tc-bloom-rx {
-  syntax: "<length>";
-  inherits: true;
-  initial-value: 230px;
-}
-@property --tc-bloom-ry {
-  syntax: "<length>";
-  inherits: true;
-  initial-value: 150px;
-}
-
-.tc-settings .tc-tab-bar {
+.tc-settings {
   position: relative;
   isolation: isolate;
-  /* Clip the ::before bloom's vertical extent to the bar's bounds so
-     it cannot paint over .tc-tab-content below. Horizontal bleed is
-     preserved via huge inset values so the halo still fades into
-     the sides of the header/panel. */
-  clip-path: inset(-40px -100vw 0 -100vw);
-  /* Transition the typed custom properties themselves so shape + origin
-     drift smoothly frame-by-frame on each re-render. */
-  transition:
-    --tc-bloom-x  0.7s cubic-bezier(0.32, 0.72, 0, 1),
-    --tc-bloom-y  0.7s cubic-bezier(0.32, 0.72, 0, 1),
-    --tc-bloom-rx 0.7s cubic-bezier(0.32, 0.72, 0, 1),
-    --tc-bloom-ry 0.7s cubic-bezier(0.32, 0.72, 0, 1);
 }
-.tc-settings .tc-tab-bar::before {
+.tc-settings::before {
   content: "";
   position: absolute;
-  inset: -120px -160px -40px -160px;
+  top: -160px;
+  right: -200px;
+  width: 620px;
+  height: 520px;
   background: radial-gradient(
-    ellipse var(--tc-bloom-rx, 230px) var(--tc-bloom-ry, 150px)
-      at var(--tc-bloom-x, 50%) var(--tc-bloom-y, 50%),
-    rgba(var(--color-accent-rgb, 229, 179, 42), 0.07) 0%,
-    rgba(var(--color-accent-rgb, 229, 179, 42), 0.045) 30%,
-    rgba(var(--color-accent-rgb, 229, 179, 42), 0.022) 55%,
-    rgba(var(--color-accent-rgb, 229, 179, 42), 0.009) 80%,
-    transparent 100%
+    ellipse 58% 62% at 70% 30%,
+    rgba(var(--color-accent-rgb, 229, 179, 42), 0.14) 0%,
+    rgba(var(--color-accent-rgb, 229, 179, 42), 0.075) 32%,
+    rgba(var(--color-accent-rgb, 229, 179, 42), 0.03) 60%,
+    transparent 82%
   );
-  filter: blur(14px);
+  filter: blur(24px);
   pointer-events: none;
   z-index: -1;
 }
 
-/* Light mode — disable the ambient bloom for now. The accent radial
-   reads harsh on pale backgrounds and needs its own alpha/colour
-   tuning in a follow-up. See memory: `light_mode_bloom_deferred.md`. */
-.theme-light .tc-settings .tc-tab-bar::before {
+/* Light mode — bloom hidden until it gets its own alpha/colour
+   tuning (see memory: light_mode_bloom_deferred.md). Dark-mode
+   accent alphas read harsh on pale backgrounds. */
+.theme-light .tc-settings::before {
   display: none;
 }
 /* Tabs sit above the ::before via the isolation context. Important
@@ -596,58 +559,27 @@
   z-index: 1;
 }
 
-/* Glow on every active top tab — independent of tabBarStyle. Per-
-   button radial gradient on ::before, origin fixed at 50% 50% (no
-   off-centre randomness). Layers above the button background, below
-   the text content. Combined with the container bloom on the bar's
-   ::before, the active state reads as: bloom radiates around the
-   tab, the tab itself glows from its own centre. */
-.tc-settings .tc-tab {
-  overflow: hidden;
-}
-.tc-settings .tc-tab::before {
-  content: "";
-  position: absolute;
-  inset: 0;
-  background: radial-gradient(
-    ellipse 130% 220% at 50% 50%,
-    rgba(var(--color-accent-rgb, 229, 179, 42), 0.14) 0%,
-    rgba(var(--color-accent-rgb, 229, 179, 42), 0.06) 35%,
-    rgba(var(--color-accent-rgb, 229, 179, 42), 0.02) 70%,
-    transparent 100%
-  );
-  opacity: 0;
-  transition: opacity 0.55s ease;
-  pointer-events: none;
-  /* No z-index — natural paint order puts ::before above the element
-     background but below text content. */
-  border-radius: inherit;
-}
-.tc-settings .tc-tab--active::before {
-  opacity: 1;
-}
-
-/* Light mode — disable the per-tab active glow for now (paired with
-   the container bloom disable above). Active text colour alone carries
-   the selected state in light mode until the accent glow gets its own
-   light-tuned treatment. */
-.theme-light .tc-settings .tc-tab::before {
-  display: none;
-}
-
-/* Active state language matches the Lab "Glow text" mock: no
-   background fill, no border ring, no box-shadow inset. The ::before
-   glow + accent text colour ARE the active indicator. Overrides
-   whichever tabBarStyle would otherwise paint a Frost pill / outline
-   / underline on the active tab. */
+/* Frosted text glow active tab — no radial bloom behind the tab.
+   Active indicator is a three-layer recipe:
+     1. Low-alpha mono pill background (samples the workspace below)
+     2. backdrop-filter blur + saturate — the "frosted glass" halo
+     3. Text-shadow on the label itself — the "glow" part. Accent-
+        coloured, low-radius, so it reads as "lit" not "halated".
+   Same visual vocabulary as .tc-seg-btn--active segment buttons. */
 .tc-settings .tc-tab--active,
 .tc-settings .tc-tab--active:hover {
-  background: transparent !important;
-  border-color: transparent !important;
-  box-shadow: none !important;
-  backdrop-filter: none !important;
-  -webkit-backdrop-filter: none !important;
+  background: rgba(var(--mono-rgb-100, 200, 200, 200), 0.07) !important;
+  backdrop-filter: blur(10px) saturate(1.4) !important;
+  -webkit-backdrop-filter: blur(10px) saturate(1.4) !important;
+  box-shadow:
+    inset 0 0 0 1px rgba(var(--mono-rgb-100, 200, 200, 200), 0.14),
+    0 2px 8px rgba(0, 0, 0, 0.20) !important;
   color: var(--color-accent) !important;
+  text-shadow:
+    0 0 6px  rgba(var(--color-accent-rgb, 229, 179, 42), 0.65),
+    0 0 14px rgba(var(--color-accent-rgb, 229, 179, 42), 0.35) !important;
+  transition: color 0.32s ease, text-shadow 0.32s ease,
+              background 0.24s ease, box-shadow 0.24s ease;
 }
 
 /* Text style — minimal chrome at rest, no Frost on active. The
@@ -664,14 +596,9 @@
   background: transparent;
   color: var(--text-normal);
 }
-.tc-settings.tc-tabs-text .tc-tab--active,
-.tc-settings.tc-tabs-text .tc-tab--active:hover {
-  color: var(--color-accent);
-  background: transparent;
-  box-shadow: none;
-  backdrop-filter: none;
-  -webkit-backdrop-filter: none;
-}
+/* Active state styling is universal — see `.tc-settings .tc-tab--active`
+   above. Text-variant doesn't strip anymore; the frosted pill + text
+   glow paints on every tabBarStyle. */
 
 /* ── Tab style switcher ── */
 .tc-settings .tc-tab-style-switcher {
