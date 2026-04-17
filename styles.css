@@ -5627,15 +5627,23 @@ body.tc-graph-halo .workspace-leaf-content[data-type="graph"] .graph-view.color-
 
 /* Accordion card — title + quip live INSIDE the header as a
    stacked group (not above the card), so each variant reads as a
-   single integrated unit. Uniform margin between cards so the
-   Lab pane reads as a rhythmic list regardless of variant chrome. */
+   single integrated unit. Uniform 32px margin between cards so
+   the Lab pane reads as a rhythmic list with comfortable breathing,
+   regardless of variant chrome. */
 .tc-settings .tc-mock-acc {
-  margin: 0 0 26px 0;
+  margin: 0 0 32px 0;
   border-radius: 6px;
   overflow: hidden;
   transition: border-color 0.22s ease, box-shadow 0.22s ease;
 }
 .tc-settings .tc-mock-acc:last-child { margin-bottom: 0; }
+
+/* Lab subheadings (Pretty / Simple) — a touch more top margin so
+   the group change reads decisively between variants. */
+.tc-settings .tc-lab-subhead {
+  margin-top: 28px;
+}
+.tc-settings .tc-lab-subhead:first-of-type { margin-top: 12px; }
 
 /* Titlegroup — stacked title + quip inside the header. Grows to
    fill the flex row so the chevron sits at the right edge. */
