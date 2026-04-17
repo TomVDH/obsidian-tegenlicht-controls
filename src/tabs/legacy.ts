@@ -134,19 +134,23 @@ function renderCallouts(
   onChange: () => Promise<void>,
   refresh: () => Promise<void>,
 ): void {
-  // Header row — title on the left, round PREVIEW toggle on the right
-  // (vertically inline with the reset-all button in the tab bar above,
-  // since both pin to the right edge of the settings modal).
-  const headRow = pane.createDiv("tc-leftrail-sechead-row");
-  headRow.createEl("h3", { cls: "tc-leftrail-sechead", text: "Callouts" });
-  const previewBtn = headRow.createEl("button", {
+  // Header (title + description) sits flush at the top — the same
+  // shape every Legacy section uses.
+  pane.createEl("h3", { cls: "tc-leftrail-sechead", text: "Callouts" });
+  pane.createEl("p", { cls: "tc-leftrail-secdesc",
+    text: "Callout box styling — shape, colour, radius, fold position. Plugin toggles body classes and writes CSS vars; the theme paints." });
+
+  // Preview affordance row: PREVIEW label · dashed connector · foldout
+  // button. Same dashed-line vocabulary used between the top tabs and
+  // the reset button — connects label to its toggle visually.
+  const previewBar = pane.createDiv("tc-section-preview-bar");
+  previewBar.createSpan({ cls: "tc-section-preview-label", text: "PREVIEW" });
+  previewBar.createDiv("tc-section-preview-dash");
+  const previewBtn = previewBar.createEl("button", {
     cls: "tc-circle-btn tc-section-preview-btn",
     attr: { "aria-label": "Toggle preview", title: "Toggle preview" },
   });
   setIcon(previewBtn, "chevron-down");
-
-  pane.createEl("p", { cls: "tc-leftrail-secdesc",
-    text: "Callout box styling — shape, colour, radius, fold position. Plugin toggles body classes and writes CSS vars; the theme paints." });
 
   const previewWrap = pane.createDiv("tc-section-preview-wrap");
   buildCalloutPreview(previewWrap);

@@ -6,7 +6,7 @@ import {
   DARK_BASE, DARK_EXTENDED, DARK_EXTENDED_TC, DARK_EXTENDED_ANP,
   LIGHT_BASE, LIGHT_EXTENDED, LIGHT_EXTENDED_TC, LIGHT_EXTENDED_ANP,
 } from "../flavours";
-import { buildSegmentSetting, buildCluster } from "./_shared";
+import { buildSegmentSetting, buildCluster, buildColorToggleRow } from "./_shared";
 import { buildTypographyPreview } from "../preview-sample";
 
 // Section-header pattern replaces accordions on Appearance. Every
@@ -164,58 +164,6 @@ function buildDropdownSetting(
 }
 
 /** Native Obsidian Setting row: Pickr colour picker + native toggle. Returns the Pickr instance for cleanup. */
-function buildColorToggleRow(
-  container: HTMLElement,
-  name: string,
-  desc: string,
-  colourGetter: () => string,
-  colourSetter: (v: string) => void,
-  enabledGetter: () => boolean,
-  enabledSetter: (v: boolean) => void,
-  onChange: () => Promise<void>,
-): Pickr {
-  const setting = new Setting(container).setName(name).setDesc(desc);
-
-  // Mount Pickr in the control slot, before the toggle
-  const pickerEl = setting.controlEl.createDiv("pickr");
-  const pickr = Pickr.create({
-    el: pickerEl,
-    container: container.closest('.modal-content') as HTMLElement ?? document.body,
-    theme: 'nano',
-    default: colourGetter(),
-    // No transparency slider — opacity would've been a transparency
-    // control, not a brightness one. Brightness is the 2D palette's
-    // vertical axis already; a dedicated linear brightness slider is a
-    // bigger refactor tracked separately.
-    lockOpacity: true,
-    swatches: [colourGetter()],
-    position: 'left-middle',
-    components: {
-      preview: true,
-      hue: true,
-      opacity: false,
-      interaction: { hex: true, input: true, save: true, cancel: true },
-    },
-  });
-
-  pickr.on('save', (color: Pickr.HSVaColor | null, instance: Pickr) => {
-    if (!color) return;
-    const hex = color.toHEXA().toString().slice(0, 7);
-    colourSetter(hex);
-    instance.hide();
-    onChange();
-  });
-
-  pickr.on('cancel', (instance: Pickr) => instance.hide());
-
-  setting.addToggle(t => t
-    .setValue(enabledGetter())
-    .onChange(async v => { enabledSetter(v); await onChange(); })
-  );
-
-  return pickr;
-}
-
 export function build(
   containerEl: HTMLElement,
   plugin: TegenlichtControlsPlugin,

@@ -29,16 +29,24 @@ const TAB_STYLES: { id: string; label: string }[] = [
   { id: "ghost",         label: "Ghost"     },
 ];
 
-/** Pick a random off-centre origin for the active-tab radial glow.
- *  Avoids the dead-centre 45–55% band so the bloom always looks
- *  intentionally lopsided rather than centered-by-default. */
-function randomOffCentre(): { x: number; y: number } {
-  const off = () => {
-    const sign = Math.random() < 0.5 ? -1 : 1;
-    // 50 ± (12..38) → 12-38 or 62-88
-    return Math.round(50 + sign * (12 + Math.random() * 26));
-  };
-  return { x: off(), y: off() };
+/** Compute the active tab's centre relative to its containing tab bar
+ *  and write the % coordinates as --tc-bloom-x / --tc-bloom-y on the
+ *  bar element. The bar's ::before paints a circular radial gradient
+ *  at that origin — the bloom slides between tabs as the user clicks.
+ *  Smooth slide is handled by the CSS transition on background-image. */
+function updateTabBarBloom(activeBtn: HTMLElement): void {
+  const bar = activeBtn.closest('.tc-tab-bar') as HTMLElement | null;
+  if (!bar) return;
+  // Defer one frame so layout has settled before we read rects.
+  requestAnimationFrame(() => {
+    const barRect = bar.getBoundingClientRect();
+    const btnRect = activeBtn.getBoundingClientRect();
+    if (!barRect.width || !barRect.height) return;
+    const x = ((btnRect.left + btnRect.width / 2) - barRect.left) / barRect.width * 100;
+    const y = ((btnRect.top + btnRect.height / 2) - barRect.top) / barRect.height * 100;
+    bar.style.setProperty('--tc-bloom-x', `${x.toFixed(2)}%`);
+    bar.style.setProperty('--tc-bloom-y', `${y.toFixed(2)}%`);
+  });
 }
 
 export class TegenlichtSettingsTab extends PluginSettingTab {
@@ -163,25 +171,18 @@ export class TegenlichtSettingsTab extends PluginSettingTab {
       const btn = btnParent.createEl("button", { text: label, cls: "tc-tab" });
       if (id === this.activeTab) {
         btn.addClass("tc-tab--active");
-        const { x, y } = randomOffCentre();
-        btn.style.setProperty("--tc-tab-glow-x", x + "%");
-        btn.style.setProperty("--tc-tab-glow-y", y + "%");
+        updateTabBarBloom(btn);
       }
       this.tabBtns.set(id, btn);
       btn.addEventListener("click", () => {
         if (id === this.activeTab) return;
-        this.tabBtns.forEach(b => {
-          b.removeClass("tc-tab--active");
-          // Keep the previous glow origin around so the fade-out reads
-          // smoothly; just dropping the active class triggers the
-          // ::before opacity transition back to 0.
-        });
+        this.tabBtns.forEach(b => b.removeClass("tc-tab--active"));
         btn.addClass("tc-tab--active");
-        // Fresh random off-centre origin every activation — gives
-        // each click a slight surprise of where the bloom emanates.
-        const { x, y } = randomOffCentre();
-        btn.style.setProperty("--tc-tab-glow-x", x + "%");
-        btn.style.setProperty("--tc-tab-glow-y", y + "%");
+        // Slide the container bloom to the newly active tab. CSS
+        // transitions the bloom's origin smoothly via the background
+        // gradient interpolating between the old and new --tc-bloom-*
+        // values.
+        updateTabBarBloom(btn);
         this.activeTab = id;
         this.renderContent();
       });

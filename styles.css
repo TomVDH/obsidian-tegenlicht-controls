@@ -321,17 +321,23 @@
   font-size: 11px;
   font-style: italic;
   color: var(--text-error, #e88);
-  margin-right: 8px;
-  align-self: center;
+  /* Position-absolute so the hint never takes flex space — letting
+     the dashed-line spacer fill the whole gap between tabs and the
+     reset button. Anchored just left of reset (34px wide, no margin). */
+  position: absolute;
+  right: 42px;
+  top: 50%;
+  transform: translate(6px, -50%);
   opacity: 0;
-  transform: translateX(6px);
   pointer-events: none;
   transition: opacity 0.25s ease, transform 0.25s ease;
   white-space: nowrap;
+  background: var(--background-primary);
+  padding: 0 6px;
 }
 .tc-settings .tc-reset-all-hint--visible {
   opacity: 1;
-  transform: translateX(0);
+  transform: translate(0, -50%);
 }
 
 /* ── Reset-all button — right-aligned in the tab bar. Inherits circle
@@ -340,10 +346,10 @@
 .tc-settings .tc-reset-all-btn {
   width: 34px;
   height: 34px;
-  /* Pull the button right + nestle it into the rounded corner of the
-     surrounding settings dialog so its corner appears to round into
-     the dialog's outer border-radius. */
-  margin-right: -6px;
+  /* Stay inside the tab-bar's right edge — the prior -6px overshoot
+     was getting clipped by an ancestor's overflow:hidden, slicing
+     the right half of the button off. */
+  margin-right: 0;
   position: relative;
   /* Explicit box-shadow transition for the armed outline to animate in
      and out cleanly — no looping pulse animation, just a simple grow
@@ -351,16 +357,21 @@
   transition: color 0.2s ease, border-color 0.2s ease, background 0.2s ease, box-shadow 0.25s ease;
   box-shadow: 0 0 0 0 transparent;
 }
-/* Thin dashed divider between the tab cluster (and reset hint) and the
-   reset-all button — same vocabulary as the left-rail / pane vertical
-   divider, so the panel reads as a single grid of dashed gutters. */
-.tc-settings .tc-reset-all-btn::before {
-  content: "";
-  position: absolute;
-  left: -14px;
-  top: 14%;
-  bottom: 14%;
-  border-left: 1px dashed rgba(var(--mono-rgb-100, 200, 200, 200), 0.20);
+/* Spacer between the tab cluster and the reset button — dashed
+   horizontal connector spanning the FULL gap (no inset margins) so
+   the line truly "wires" the last tab to the reset button. Same
+   idiom as .tc-section-preview-dash. */
+.tc-settings .tc-tab-bar {
+  position: relative;
+}
+.tc-settings .tc-tab-bar-spacer {
+  flex: 1;
+  align-self: center;
+  height: 0;
+  border-top: 1px dashed rgba(var(--mono-rgb-100, 200, 200, 200), 0.20);
+  /* Symmetric inset gap so the dashed line breathes against both
+     the last tab and the reset button. */
+  margin: 0 14px;
   pointer-events: none;
 }
 .tc-settings .tc-reset-all-btn svg { width: 17px; height: 17px; }
@@ -492,57 +503,107 @@
 }
 
 /* ═══════════════════════════════════════════════════════════
-   Text — minimal text-only tabs. No pill, no border, no fill at rest.
-   Active tab gets a very soft accent radial gradient that emanates
-   from a random off-centre origin (set per-activation via two CSS
-   custom properties — --tc-tab-glow-x and --tc-tab-glow-y — written
-   by settings-tab.ts on each click). Subtle bloom, not a button.
+   AMBIENT TAB-BAR BLOOM — applies regardless of tabBarStyle.
+
+   Two technical fixes vs the prior version:
+   1. @property declarations make --tc-bloom-x / --tc-bloom-y
+      interpolatable as percentages, so the transition on the parent
+      drifts the gradient ORIGIN smoothly frame-by-frame instead of
+      crossfading between two static gradients (which jumped + banded).
+   2. The bloom is now CONTAINED inside the tab-bar via overflow:
+      hidden, so it no longer bleeds into the settings panel below.
+      Many close alpha stops smooth the edge ramp — kills banding.
    ═══════════════════════════════════════════════════════════ */
-.tc-settings.tc-tabs-text .tc-tab-bar {
-  margin-bottom: 8px;
+@property --tc-bloom-x {
+  syntax: "<percentage>";
+  inherits: true;
+  initial-value: 10%;
 }
+@property --tc-bloom-y {
+  syntax: "<percentage>";
+  inherits: true;
+  initial-value: 50%;
+}
+
+.tc-settings .tc-tab-bar {
+  position: relative;
+  isolation: isolate;
+  /* Bloom SPREADS freely past the bar — no clipping. The radial's own
+     alpha ramp does the soft-edge work. */
+  overflow: visible;
+  /* Transition the typed custom properties themselves — origin
+     interpolates frame-by-frame, the gradient re-renders each frame,
+     visible drift is smooth. */
+  transition:
+    --tc-bloom-x 0.7s cubic-bezier(0.32, 0.72, 0, 1),
+    --tc-bloom-y 0.7s cubic-bezier(0.32, 0.72, 0, 1);
+}
+.tc-settings .tc-tab-bar::before {
+  content: "";
+  position: absolute;
+  /* Generous negative inset on all sides — gradient extends well past
+     the bar's bounds so the bloom can bleed into the surrounding
+     header / panel chrome. Larger than the gradient's outer radius
+     PLUS the blur extension (filter: blur expands the visible
+     bounding box). */
+  inset: -160px -160px;
+  background: radial-gradient(
+    /* Circular, fixed 200px radius — round halo regardless of bar
+       aspect. Lower peak alpha for a quieter bloom (was 0.16, now
+       0.09); the blur filter below physically smooths the alpha ramp
+       so even a sparse stop list no longer bands. */
+    circle 200px at var(--tc-bloom-x, 10%) var(--tc-bloom-y, 50%),
+    rgba(var(--color-accent-rgb, 229, 179, 42), 0.09) 0%,
+    rgba(var(--color-accent-rgb, 229, 179, 42), 0.06) 30%,
+    rgba(var(--color-accent-rgb, 229, 179, 42), 0.03) 55%,
+    rgba(var(--color-accent-rgb, 229, 179, 42), 0.012) 80%,
+    transparent 100%
+  );
+  /* Physical blur on the gradient itself — eliminates the concentric
+     "band" rings that low-alpha radial-gradients show on 8-bit
+     displays. Also softens the falloff so the bloom edge feels like
+     a haze rather than a crisp circle. */
+  filter: blur(14px);
+  pointer-events: none;
+  z-index: -1;
+}
+/* Tabs sit above the ::before via the isolation context. Important
+   for the switch / amber styles whose pills also need to sit above
+   the bloom. */
+.tc-settings .tc-tab,
+.tc-settings .tc-tab-inner-wrap {
+  position: relative;
+  z-index: 1;
+}
+
+/* Text style: minimal chrome at rest, Accented Frost pill on the
+   active tab. Frost sits ABOVE the bloom (bloom is on the bar's
+   ::before at z-index -1; tabs are z-index 1) so the bloom radiates
+   from behind/around the Frost pill — both languages stack. */
 .tc-settings.tc-tabs-text .tc-tab {
-  /* Retains the base typography from `.tc-tab` (font-size 12,
-     weight 500, letter-spacing) — strips only the chrome. */
   background: transparent;
   border: none;
   border-radius: 6px;
   padding: 7px 14px;
   margin-right: var(--tc-tab-gap, 6px) !important;
-  position: relative;
-  overflow: hidden;
-  z-index: 0;
-  transition: color 0.22s ease;
+  transition:
+    color 0.32s ease,
+    background 0.32s ease,
+    box-shadow 0.32s ease;
 }
 .tc-settings.tc-tabs-text .tc-tab:hover {
-  /* Quiet hover — colour shift only, no background pill. */
   background: transparent;
   color: var(--text-normal);
 }
-.tc-settings.tc-tabs-text .tc-tab::before {
-  content: "";
-  position: absolute;
-  inset: 0;
-  background: radial-gradient(
-    ellipse 130% 220% at var(--tc-tab-glow-x, 35%) var(--tc-tab-glow-y, 40%),
-    rgba(var(--color-accent-rgb, 229, 179, 42), 0.20) 0%,
-    rgba(var(--color-accent-rgb, 229, 179, 42), 0.10) 30%,
-    rgba(var(--color-accent-rgb, 229, 179, 42), 0.04) 60%,
-    transparent 100%
-  );
-  opacity: 0;
-  transition: opacity 0.55s ease;
-  pointer-events: none;
-  z-index: -1;
-  border-radius: inherit;
-}
+/* Accented Frost on active — same recipe as the rail / pop-out
+   active item (16% accent bg + 48% inset ring + backdrop-filter). */
 .tc-settings.tc-tabs-text .tc-tab--active,
 .tc-settings.tc-tabs-text .tc-tab--active:hover {
   color: var(--color-accent);
-  background: transparent;
-}
-.tc-settings.tc-tabs-text .tc-tab--active::before {
-  opacity: 1;
+  background: rgba(var(--color-accent-rgb, 229, 179, 42), 0.16);
+  box-shadow: inset 0 0 0 1px rgba(var(--color-accent-rgb, 229, 179, 42), 0.48);
+  backdrop-filter: blur(10px) saturate(1.4);
+  -webkit-backdrop-filter: blur(10px) saturate(1.4);
 }
 
 /* ── Tab style switcher ── */
@@ -3905,58 +3966,60 @@ body.tc-graph-halo .workspace-leaf-content[data-type="graph"] .graph-view.color-
    sections soon).
    ═══════════════════════════════════════════════════════════ */
 
-/* Section header row — h3 sits at its natural baseline on the left, the
-   round PREVIEW toggle floats absolute on the right so the button's
-   34px height doesn't push the row taller (which would shift the h3
-   midline away from the rainbow alignment). */
-.tc-settings .tc-leftrail-sechead-row {
-  position: relative;
-  margin: 0 0 10px 0;
+/* PREVIEW affordance row — sits below the section header.
+   Layout: [PREVIEW label] · [dashed connector] · [foldout button]
+   Same visual idiom as the tab-bar spacer + reset button. The dashed
+   connector visually "wires" the label to its toggle. */
+.tc-settings .tc-section-preview-bar {
+  display: flex;
+  align-items: center;
+  gap: 0;
+  margin: 6px 0 14px;
 }
-.tc-settings .tc-leftrail-sechead-row .tc-leftrail-sechead {
-  margin: 0;
+.tc-settings .tc-section-preview-label {
+  font-size: 10px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.18em;
+  color: var(--text-muted);
+  flex: 0 0 auto;
 }
-.tc-settings .tc-leftrail-sechead-row .tc-section-preview-btn {
-  position: absolute;
-  /* Inside the pane right edge — pushing past with -6px caused
-     horizontal overflow / x-clip in the pane scroller. */
-  right: 0;
-  top: 50%;
-  transform: translateY(-50%);
+.tc-settings .tc-section-preview-dash {
+  flex: 1;
+  align-self: center;
+  height: 0;
+  border-top: 1px dashed rgba(var(--mono-rgb-100, 200, 200, 200), 0.20);
+  margin: 0 12px;
+  pointer-events: none;
 }
 
-/* Section-level preview toggle — IDENTICAL dimensions AND visual
-   weight as the tab-bar reset-all button so they read as the same
-   round mini-button family. Hard-locked size with !important on every
-   dimension. Background + border use the same neutral tokens as reset
-   (the accent fill was bleeding out and making the button look 2-3px
-   larger than reset even though physical sizes matched). Icon stays
-   muted at rest, subtle accent on hover. */
-.tc-settings button.tc-circle-btn.tc-section-preview-btn {
+/* Foldout button at the right end of the bar — sized to match the
+   tab-bar reset button (34×34, fully round, neutral chrome). Inherits
+   border-radius: 50% !important from .tc-circle-btn. */
+.tc-settings .tc-section-preview-bar > button.tc-section-preview-btn {
   width: 34px !important;
   height: 34px !important;
   min-width: 34px !important;
   min-height: 34px !important;
-  max-width: 34px !important;
-  max-height: 34px !important;
   padding: 0 !important;
+  margin: 0 !important;
   box-sizing: border-box !important;
   background: var(--background-secondary);
   border: 1px solid var(--background-modifier-border);
   color: var(--text-muted);
   transition: color 0.12s, border-color 0.12s, background 0.12s;
 }
-.tc-settings button.tc-circle-btn.tc-section-preview-btn:hover {
+.tc-settings .tc-section-preview-bar > button.tc-section-preview-btn:hover {
   background: var(--background-modifier-hover);
   border-color: var(--text-muted);
   color: var(--color-accent);
 }
-.tc-settings button.tc-circle-btn.tc-section-preview-btn svg {
+.tc-settings .tc-section-preview-bar > button.tc-section-preview-btn > svg {
   width: 17px !important;
   height: 17px !important;
   transition: transform 0.3s cubic-bezier(0.32, 0.72, 0, 1);
 }
-.tc-settings .tc-section-preview-btn--open svg {
+.tc-settings .tc-section-preview-btn--open > svg {
   transform: rotate(180deg);
 }
 .tc-settings .tc-section-preview-wrap {
@@ -3964,8 +4027,6 @@ body.tc-graph-halo .workspace-leaf-content[data-type="graph"] .graph-view.color-
   overflow: hidden;
   transition: max-height 0.4s cubic-bezier(0.32, 0.72, 0, 1);
   margin-bottom: 16px;
-  /* Right margin reverted to 0 — the -6px overshoot was clipping
-     into the pane's horizontal-overflow boundary. */
 }
 
 /* ═══════════════════════════════════════════════════════════
@@ -4010,6 +4071,1065 @@ body.tc-graph-halo .workspace-leaf-content[data-type="graph"] .graph-view.color-
   /* No padding — sub-content pulls from the same left-rail pane
      padding the section title sits on, so the alignment carries
      through. */
+}
+
+/* ═══════════════════════════════════════════════════════════
+   Lab → Tab styles section — visual sandbox for top-tab styling
+   variants. Each demo is a small mock tab bar, click-through.
+   Pure visual showcase; doesn't touch the live tabBarStyle setting.
+   ═══════════════════════════════════════════════════════════ */
+.tc-settings .tc-mock-tab-demo {
+  margin: 18px 0 24px;
+}
+.tc-settings .tc-mock-tab-label {
+  display: block;
+  font-size: 10px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.18em;
+  color: var(--text-muted);
+  margin-bottom: 10px;
+}
+.tc-settings .tc-mock-tab-bar {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 0;
+  position: relative;
+}
+.tc-settings .tc-mock-tab {
+  background: transparent;
+  border: none;
+  padding: 7px 14px;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--text-muted);
+  cursor: pointer;
+  font-family: inherit;
+  transition: color 0.18s ease, background 0.18s ease;
+  position: relative;
+  border-radius: 6px;
+}
+.tc-settings .tc-mock-tab:hover {
+  color: var(--text-normal);
+}
+.tc-settings .tc-mock-tab--active,
+.tc-settings .tc-mock-tab--active:hover {
+  color: var(--color-accent);
+}
+
+/* ── 1. Glow text — random off-centre radial bloom (current default) ── */
+.tc-settings .tc-mock--glow .tc-mock-tab {
+  overflow: hidden;
+  z-index: 0;
+}
+.tc-settings .tc-mock--glow .tc-mock-tab::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(
+    ellipse 130% 220% at var(--tc-tab-glow-x, 35%) var(--tc-tab-glow-y, 40%),
+    rgba(var(--color-accent-rgb, 229, 179, 42), 0.20) 0%,
+    rgba(var(--color-accent-rgb, 229, 179, 42), 0.08) 35%,
+    transparent 75%
+  );
+  opacity: 0;
+  transition: opacity 0.55s ease;
+  pointer-events: none;
+  z-index: -1;
+  border-radius: inherit;
+}
+.tc-settings .tc-mock--glow .tc-mock-tab--active::before {
+  opacity: 1;
+}
+
+/* ── 2. Underline — thin accent rule under the active tab ── */
+.tc-settings .tc-mock--underline {
+  border-bottom: 1px solid rgba(var(--mono-rgb-100, 200, 200, 200), 0.10);
+}
+.tc-settings .tc-mock--underline .tc-mock-tab {
+  border-radius: 0;
+  padding-bottom: 8px;
+  margin-bottom: -1px;
+  border-bottom: 2px solid transparent;
+  transition: color 0.18s ease, border-color 0.22s ease;
+}
+.tc-settings .tc-mock--underline .tc-mock-tab--active {
+  border-bottom-color: var(--color-accent);
+  font-weight: 600;
+}
+
+/* ── 3. Pill — rounded accent fill on the active tab ── */
+.tc-settings .tc-mock--pill .tc-mock-tab {
+  border-radius: 100px;
+  transition: color 0.18s ease, background 0.22s ease;
+}
+.tc-settings .tc-mock--pill .tc-mock-tab--active {
+  background: rgba(var(--color-accent-rgb, 229, 179, 42), 0.16);
+  box-shadow: inset 0 0 0 1px rgba(var(--color-accent-rgb, 229, 179, 42), 0.40);
+}
+
+/* ── 4. Segment — track containing all tabs, active is filled ── */
+.tc-settings .tc-mock--segment {
+  background: var(--background-secondary);
+  border: 1px solid var(--background-modifier-border);
+  border-radius: 8px;
+  padding: 3px;
+  gap: 0;
+  display: inline-flex;
+}
+.tc-settings .tc-mock--segment .tc-mock-tab {
+  border-radius: 5px;
+  padding: 6px 14px;
+  flex: 0 0 auto;
+}
+.tc-settings .tc-mock--segment .tc-mock-tab--active {
+  background: var(--background-primary);
+  color: var(--color-accent);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.14);
+}
+
+/* ── 5. Cap — small accent indicator above the active tab ── */
+.tc-settings .tc-mock--cap .tc-mock-tab {
+  border-radius: 0;
+  padding-top: 9px;
+  padding-bottom: 8px;
+  position: relative;
+}
+.tc-settings .tc-mock--cap .tc-mock-tab::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 50%;
+  transform: translateX(-50%) scaleX(0);
+  width: 60%;
+  height: 2px;
+  background: var(--color-accent);
+  border-radius: 0 0 2px 2px;
+  transition: transform 0.22s cubic-bezier(0.32, 0.72, 0, 1);
+}
+.tc-settings .tc-mock--cap .tc-mock-tab--active::after {
+  transform: translateX(-50%) scaleX(1);
+}
+
+/* ── 6. Container bloom — accent radial floods the SURROUND, not the
+   button. The active tab acts as the origin (--tc-bloom-x/y set by JS
+   from its centre) but the gradient lives on the surrounding container,
+   so the bloom bleeds out around the tab bar — beyond the button's
+   own bounds, into the panel chrome. */
+.tc-settings .tc-mock--cbloom {
+  position: relative;
+  padding: 18px 12px;
+  border-radius: 12px;
+  overflow: hidden;
+  background: var(--background-secondary);
+  isolation: isolate;
+}
+.tc-settings .tc-mock--cbloom::before {
+  content: "";
+  position: absolute;
+  inset: -10%;
+  background: radial-gradient(
+    ellipse 50% 70% at var(--tc-bloom-x, 50%) var(--tc-bloom-y, 50%),
+    rgba(var(--color-accent-rgb, 229, 179, 42), 0.32) 0%,
+    rgba(var(--color-accent-rgb, 229, 179, 42), 0.12) 40%,
+    transparent 75%
+  );
+  transition: background 0.6s ease;
+  pointer-events: none;
+  z-index: 0;
+}
+.tc-settings .tc-mock--cbloom .tc-mock-tab-bar {
+  position: relative;
+  z-index: 1;
+}
+.tc-settings .tc-mock--cbloom .tc-mock-tab--active {
+  color: var(--color-accent);
+  font-weight: 600;
+}
+
+/* ── 7. Aura — soft outer accent glow on the active tab that extends
+   past its bounds (box-shadow, no overflow:hidden on the bar). */
+.tc-settings .tc-mock--aura {
+  padding: 14px 10px;
+  overflow: visible;
+}
+.tc-settings .tc-mock--aura .tc-mock-tab-bar {
+  overflow: visible;
+}
+.tc-settings .tc-mock--aura .tc-mock-tab {
+  border-radius: 6px;
+  transition: color 0.18s ease, background 0.22s ease, box-shadow 0.4s ease;
+}
+.tc-settings .tc-mock--aura .tc-mock-tab--active {
+  background: rgba(var(--color-accent-rgb, 229, 179, 42), 0.10);
+  box-shadow:
+    0 0 16px 4px rgba(var(--color-accent-rgb, 229, 179, 42), 0.30),
+    0 0 32px 8px rgba(var(--color-accent-rgb, 229, 179, 42), 0.14);
+}
+
+/* ── 8. Sliding indicator — single accent pill that translates +
+   resizes between tabs (FLIP-style, JS-driven via CSS vars). */
+.tc-settings .tc-mock--slide .tc-mock-tab-bar {
+  position: relative;
+  isolation: isolate;
+}
+.tc-settings .tc-mock-slide-indicator {
+  position: absolute;
+  top: 4px;
+  bottom: 4px;
+  left: 0;
+  width: var(--tc-slide-w, 0);
+  transform: translateX(var(--tc-slide-x, 0));
+  background: rgba(var(--color-accent-rgb, 229, 179, 42), 0.16);
+  border: 1px solid rgba(var(--color-accent-rgb, 229, 179, 42), 0.40);
+  border-radius: 100px;
+  z-index: 0;
+  transition:
+    transform 0.36s cubic-bezier(0.32, 0.72, 0, 1),
+    width 0.36s cubic-bezier(0.32, 0.72, 0, 1);
+  pointer-events: none;
+}
+.tc-settings .tc-mock--slide .tc-mock-tab {
+  position: relative;
+  z-index: 1;
+  border-radius: 100px;
+}
+.tc-settings .tc-mock--slide .tc-mock-tab--active {
+  color: var(--color-accent);
+}
+
+/* ── 9. Spotlight — soft circular halo BEHIND the active tab text only,
+   tightly contained (no overflow), reads as a focused pinpoint. */
+.tc-settings .tc-mock--spot .tc-mock-tab {
+  border-radius: 100px;
+  position: relative;
+  overflow: visible;
+  z-index: 0;
+  transition: color 0.18s ease;
+}
+.tc-settings .tc-mock--spot .tc-mock-tab--active::before {
+  content: "";
+  position: absolute;
+  inset: -8px -16px;
+  background: radial-gradient(
+    circle at 50% 50%,
+    rgba(var(--color-accent-rgb, 229, 179, 42), 0.18) 0%,
+    rgba(var(--color-accent-rgb, 229, 179, 42), 0.08) 35%,
+    transparent 70%
+  );
+  z-index: -1;
+  pointer-events: none;
+  animation: tc-mock-spotlight-fade 0.5s ease forwards;
+}
+@keyframes tc-mock-spotlight-fade {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+/* ── 10. Dual line — top + bottom hairlines on active. */
+.tc-settings .tc-mock--dual {
+  padding: 12px 0;
+}
+.tc-settings .tc-mock--dual .tc-mock-tab {
+  border-radius: 0;
+  border-top: 1px solid transparent;
+  border-bottom: 1px solid transparent;
+  padding: 6px 14px;
+  transition: color 0.18s ease, border-color 0.22s ease;
+}
+.tc-settings .tc-mock--dual .tc-mock-tab--active {
+  border-top-color: var(--color-accent);
+  border-bottom-color: var(--color-accent);
+}
+
+/* ── 11. Notch — small accent triangle above the active tab. */
+.tc-settings .tc-mock--notch .tc-mock-tab-bar {
+  padding-top: 6px;
+}
+.tc-settings .tc-mock--notch .tc-mock-tab {
+  border-radius: 0;
+  position: relative;
+  padding-top: 10px;
+}
+.tc-settings .tc-mock--notch .tc-mock-tab::before {
+  content: "";
+  position: absolute;
+  top: -1px;
+  left: 50%;
+  transform: translateX(-50%) translateY(-100%) scale(0);
+  width: 0;
+  height: 0;
+  border-left: 6px solid transparent;
+  border-right: 6px solid transparent;
+  border-top: 6px solid var(--color-accent);
+  transform-origin: bottom center;
+  transition: transform 0.24s cubic-bezier(0.32, 0.72, 0, 1);
+}
+.tc-settings .tc-mock--notch .tc-mock-tab--active::before {
+  transform: translateX(-50%) translateY(0) scale(1);
+}
+
+/* ── 12. Dot indicator — small accent dot to the LEFT of the active
+   tab's label; rest stays neutral text. Quiet, list-style. */
+.tc-settings .tc-mock--dot .tc-mock-tab {
+  border-radius: 0;
+  padding-left: 22px;
+  position: relative;
+}
+.tc-settings .tc-mock--dot .tc-mock-tab::before {
+  content: "";
+  position: absolute;
+  left: 8px;
+  top: 50%;
+  transform: translateY(-50%) scale(0);
+  width: 6px;
+  height: 6px;
+  background: var(--color-accent);
+  border-radius: 50%;
+  transition: transform 0.22s cubic-bezier(0.32, 0.72, 0, 1);
+}
+.tc-settings .tc-mock--dot .tc-mock-tab--active::before {
+  transform: translateY(-50%) scale(1);
+}
+
+/* ═══════════════════════════════════════════════════════════
+   Lab → Switches & inputs section — custom toggle / checkbox demos.
+   Pure visual, click-to-flip. Lets us audition different control
+   languages before adopting one project-wide.
+   ═══════════════════════════════════════════════════════════ */
+.tc-settings .tc-mock-input-group {
+  margin: 18px 0 24px;
+}
+.tc-settings .tc-mock-input-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 0;
+  border-bottom: 1px dashed rgba(var(--mono-rgb-100, 200, 200, 200), 0.10);
+}
+.tc-settings .tc-mock-input-row:last-child {
+  border-bottom: none;
+}
+.tc-settings .tc-mock-input-label {
+  flex: 1;
+  font-size: 13px;
+  color: var(--text-normal);
+}
+
+/* ── Toggle base — track + thumb + on/off state. Variant CSS layers
+   shape, fill, animation on top. ── */
+.tc-settings .tc-mock-toggle {
+  flex: 0 0 auto;
+  position: relative;
+  width: 38px;
+  height: 22px;
+  background: var(--background-modifier-border);
+  border-radius: 100px;
+  cursor: pointer;
+  transition: background 0.22s ease;
+}
+.tc-settings .tc-mock-toggle-thumb {
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 18px;
+  height: 18px;
+  background: var(--background-primary);
+  border-radius: 50%;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.18);
+  transition: transform 0.26s cubic-bezier(0.32, 0.72, 0, 1), background 0.22s ease;
+}
+.tc-settings .tc-mock-toggle--on {
+  background: var(--color-accent);
+}
+.tc-settings .tc-mock-toggle--on .tc-mock-toggle-thumb {
+  transform: translateX(16px);
+}
+
+/* Classic — Obsidian baseline (thin track, small thumb). Inherits base. */
+.tc-settings .tc-mtog--classic {
+  width: 32px;
+  height: 18px;
+}
+.tc-settings .tc-mtog--classic .tc-mock-toggle-thumb {
+  width: 14px;
+  height: 14px;
+}
+.tc-settings .tc-mtog--classic.tc-mock-toggle--on .tc-mock-toggle-thumb {
+  transform: translateX(14px);
+}
+
+/* iOS — taller pill, larger thumb, full bg colour shift on. */
+.tc-settings .tc-mtog--ios {
+  width: 50px;
+  height: 28px;
+}
+.tc-settings .tc-mtog--ios .tc-mock-toggle-thumb {
+  width: 24px;
+  height: 24px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.22);
+}
+.tc-settings .tc-mtog--ios.tc-mock-toggle--on .tc-mock-toggle-thumb {
+  transform: translateX(22px);
+}
+
+/* Squared — rectangular, no rounding, hard-edged industrial. */
+.tc-settings .tc-mtog--squared {
+  width: 42px;
+  height: 22px;
+  border-radius: 4px;
+}
+.tc-settings .tc-mtog--squared .tc-mock-toggle-thumb {
+  border-radius: 3px;
+  width: 16px;
+  height: 16px;
+  top: 3px;
+  left: 3px;
+}
+.tc-settings .tc-mtog--squared.tc-mock-toggle--on .tc-mock-toggle-thumb {
+  transform: translateX(20px);
+}
+
+/* Frosted — Accented Frost recipe on the track when on. */
+.tc-settings .tc-mtog--frost {
+  width: 44px;
+  height: 24px;
+}
+.tc-settings .tc-mtog--frost.tc-mock-toggle--on {
+  background: rgba(var(--color-accent-rgb, 229, 179, 42), 0.30);
+  box-shadow: inset 0 0 0 1px rgba(var(--color-accent-rgb, 229, 179, 42), 0.55);
+  backdrop-filter: blur(8px) saturate(1.4);
+  -webkit-backdrop-filter: blur(8px) saturate(1.4);
+}
+.tc-settings .tc-mtog--frost .tc-mock-toggle-thumb {
+  width: 20px;
+  height: 20px;
+}
+.tc-settings .tc-mtog--frost.tc-mock-toggle--on .tc-mock-toggle-thumb {
+  transform: translateX(20px);
+}
+
+/* Pulsing glow — soft accent pulse around the track when on. */
+.tc-settings .tc-mtog--pulse {
+  width: 42px;
+  height: 22px;
+}
+.tc-settings .tc-mtog--pulse.tc-mock-toggle--on {
+  animation: tc-mock-tog-pulse 2s ease-in-out infinite;
+}
+@keyframes tc-mock-tog-pulse {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(var(--color-accent-rgb, 229, 179, 42), 0.35); }
+  50%      { box-shadow: 0 0 0 6px rgba(var(--color-accent-rgb, 229, 179, 42), 0); }
+}
+.tc-settings .tc-mtog--pulse.tc-mock-toggle--on .tc-mock-toggle-thumb {
+  transform: translateX(20px);
+}
+
+/* ── Checkbox base ── */
+.tc-settings .tc-mock-checkbox {
+  flex: 0 0 auto;
+  position: relative;
+  width: 20px;
+  height: 20px;
+  background: var(--background-secondary);
+  border: 1px solid var(--background-modifier-border);
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.18s ease, border-color 0.18s ease;
+}
+.tc-settings .tc-mock-checkbox:hover {
+  border-color: var(--text-muted);
+}
+.tc-settings .tc-mock-check-mark {
+  position: absolute;
+  width: 12px;
+  height: 7px;
+  border-left: 2px solid var(--text-on-accent, #fff);
+  border-bottom: 2px solid var(--text-on-accent, #fff);
+  transform: rotate(-45deg) translate(1px, -2px) scale(0);
+  transform-origin: center;
+  transition: transform 0.22s cubic-bezier(0.32, 0.72, 0, 1);
+}
+.tc-settings .tc-mock-checkbox--on .tc-mock-check-mark {
+  transform: rotate(-45deg) translate(1px, -2px) scale(1);
+}
+
+/* Square — sharp corners, accent fill on. */
+.tc-settings .tc-mcb--square {
+  border-radius: 3px;
+}
+.tc-settings .tc-mcb--square.tc-mock-checkbox--on {
+  background: var(--color-accent);
+  border-color: var(--color-accent);
+}
+
+/* Soft fill — accent-tinted background, accent check, no flip. */
+.tc-settings .tc-mcb--fill {
+  border-radius: 5px;
+}
+.tc-settings .tc-mcb--fill.tc-mock-checkbox--on {
+  background: rgba(var(--color-accent-rgb, 229, 179, 42), 0.20);
+  border-color: rgba(var(--color-accent-rgb, 229, 179, 42), 0.55);
+}
+.tc-settings .tc-mcb--fill.tc-mock-checkbox--on .tc-mock-check-mark {
+  border-left-color: var(--color-accent);
+  border-bottom-color: var(--color-accent);
+}
+
+/* Round — circular checkbox (radio-style without the dot). */
+.tc-settings .tc-mcb--round {
+  border-radius: 50%;
+}
+.tc-settings .tc-mcb--round.tc-mock-checkbox--on {
+  background: var(--color-accent);
+  border-color: var(--color-accent);
+}
+
+/* ── Long pill — sleek extra-long pill, smaller thumb, ample slide. */
+.tc-settings .tc-mtog--long {
+  width: 60px;
+  height: 22px;
+}
+.tc-settings .tc-mtog--long .tc-mock-toggle-thumb {
+  width: 16px;
+  height: 16px;
+  top: 3px;
+  left: 3px;
+}
+.tc-settings .tc-mtog--long.tc-mock-toggle--on .tc-mock-toggle-thumb {
+  transform: translateX(38px);
+}
+
+/* ── Compact dot — minimal track, small dot thumb only. */
+.tc-settings .tc-mtog--dot {
+  width: 28px;
+  height: 8px;
+  border-radius: 100px;
+}
+.tc-settings .tc-mtog--dot .tc-mock-toggle-thumb {
+  width: 14px;
+  height: 14px;
+  top: -3px;
+  left: -2px;
+  background: var(--background-primary);
+  border: 1px solid var(--background-modifier-border);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.18);
+}
+.tc-settings .tc-mtog--dot.tc-mock-toggle--on .tc-mock-toggle-thumb {
+  transform: translateX(16px);
+  background: var(--color-accent);
+  border-color: var(--color-accent);
+}
+
+/* ── Tab-rail Frost — same Accented Frost recipe as the active rail
+   item / pop-out tab. Reads as part of the same family. */
+.tc-settings .tc-mtog--rail {
+  width: 44px;
+  height: 24px;
+  border-radius: 6px;
+}
+.tc-settings .tc-mtog--rail.tc-mock-toggle--on {
+  background: rgba(var(--color-accent-rgb, 229, 179, 42), 0.16);
+  box-shadow: inset 0 0 0 1px rgba(var(--color-accent-rgb, 229, 179, 42), 0.48);
+  backdrop-filter: blur(10px) saturate(1.4);
+  -webkit-backdrop-filter: blur(10px) saturate(1.4);
+}
+.tc-settings .tc-mtog--rail .tc-mock-toggle-thumb {
+  border-radius: 4px;
+  width: 18px;
+  height: 18px;
+  background: var(--color-accent);
+}
+.tc-settings .tc-mtog--rail.tc-mock-toggle--on .tc-mock-toggle-thumb {
+  transform: translateX(20px);
+}
+
+/* ── Outlined checkbox — accent border, accent-coloured checkmark, no
+   fill. Quiet, ready-to-print look. */
+.tc-settings .tc-mcb--outline {
+  border-radius: 4px;
+}
+.tc-settings .tc-mcb--outline.tc-mock-checkbox--on {
+  border-color: var(--color-accent);
+  background: transparent;
+}
+.tc-settings .tc-mcb--outline.tc-mock-checkbox--on .tc-mock-check-mark {
+  border-left-color: var(--color-accent);
+  border-bottom-color: var(--color-accent);
+}
+
+/* ── Filled disc — large solid accent circle, no check mark, indicates
+   "on" via solid-fill alone. */
+.tc-settings .tc-mcb--disc {
+  border-radius: 50%;
+  width: 22px;
+  height: 22px;
+}
+.tc-settings .tc-mcb--disc.tc-mock-checkbox--on {
+  background: var(--color-accent);
+  border-color: var(--color-accent);
+  box-shadow: inset 0 0 0 4px var(--background-secondary);
+}
+.tc-settings .tc-mcb--disc .tc-mock-check-mark {
+  display: none;
+}
+
+/* ── Frosted checkbox — Accented Frost surface; muted accent fill +
+   inset ring, blurred-glass back. */
+.tc-settings .tc-mcb--frost {
+  border-radius: 4px;
+}
+.tc-settings .tc-mcb--frost.tc-mock-checkbox--on {
+  background: rgba(var(--color-accent-rgb, 229, 179, 42), 0.16);
+  border-color: rgba(var(--color-accent-rgb, 229, 179, 42), 0.50);
+  box-shadow: inset 0 0 0 1px rgba(var(--color-accent-rgb, 229, 179, 42), 0.32);
+  backdrop-filter: blur(8px) saturate(1.3);
+  -webkit-backdrop-filter: blur(8px) saturate(1.3);
+}
+.tc-settings .tc-mcb--frost.tc-mock-checkbox--on .tc-mock-check-mark {
+  border-left-color: var(--color-accent);
+  border-bottom-color: var(--color-accent);
+}
+
+/* ── Wireframe toggle — outline only, no fill. */
+.tc-settings .tc-mtog--wire {
+  background: transparent;
+  border: 1px solid var(--background-modifier-border);
+  width: 38px; height: 22px;
+}
+.tc-settings .tc-mtog--wire .tc-mock-toggle-thumb {
+  background: var(--background-modifier-border);
+  box-shadow: none;
+  width: 14px; height: 14px;
+  top: 3px; left: 3px;
+}
+.tc-settings .tc-mtog--wire.tc-mock-toggle--on {
+  background: transparent;
+  border-color: var(--color-accent);
+}
+.tc-settings .tc-mtog--wire.tc-mock-toggle--on .tc-mock-toggle-thumb {
+  background: var(--color-accent);
+  transform: translateX(16px);
+}
+
+/* ── Notch toggle — track has a notched cutout along the bottom. */
+.tc-settings .tc-mtog--notch {
+  width: 42px; height: 22px;
+  position: relative;
+}
+.tc-settings .tc-mtog--notch::after {
+  content: "";
+  position: absolute;
+  bottom: -3px; left: 50%;
+  transform: translateX(-50%);
+  width: 8px; height: 4px;
+  background: var(--background-primary);
+  border-radius: 0 0 4px 4px;
+}
+.tc-settings .tc-mtog--notch.tc-mock-toggle--on .tc-mock-toggle-thumb {
+  transform: translateX(20px);
+}
+
+/* ── Inverted thumb — accent thumb on neutral track. */
+.tc-settings .tc-mtog--invert {
+  background: var(--background-modifier-border);
+  width: 42px; height: 22px;
+}
+.tc-settings .tc-mtog--invert .tc-mock-toggle-thumb {
+  background: var(--color-accent);
+  box-shadow: 0 0 6px rgba(var(--color-accent-rgb, 229, 179, 42), 0.40);
+}
+.tc-settings .tc-mtog--invert.tc-mock-toggle--on {
+  background: rgba(var(--color-accent-rgb, 229, 179, 42), 0.20);
+}
+.tc-settings .tc-mtog--invert.tc-mock-toggle--on .tc-mock-toggle-thumb {
+  transform: translateX(20px);
+}
+
+/* ── Heavy track — extra thick. */
+.tc-settings .tc-mtog--heavy {
+  width: 50px; height: 28px;
+  border-radius: 8px;
+}
+.tc-settings .tc-mtog--heavy .tc-mock-toggle-thumb {
+  width: 22px; height: 22px;
+  border-radius: 6px;
+  top: 3px; left: 3px;
+}
+.tc-settings .tc-mtog--heavy.tc-mock-toggle--on .tc-mock-toggle-thumb {
+  transform: translateX(22px);
+}
+
+/* ── Skeumorphic — gradient + shadow depth, classic dial-y feel. */
+.tc-settings .tc-mtog--skeu {
+  width: 44px; height: 24px;
+  background: linear-gradient(to bottom, var(--background-modifier-border), var(--background-secondary));
+  box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.3);
+}
+.tc-settings .tc-mtog--skeu .tc-mock-toggle-thumb {
+  width: 20px; height: 20px;
+  background: linear-gradient(to bottom, var(--background-primary), var(--background-secondary));
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.2);
+}
+.tc-settings .tc-mtog--skeu.tc-mock-toggle--on {
+  background: linear-gradient(to bottom,
+    rgba(var(--color-accent-rgb, 229, 179, 42), 0.45),
+    rgba(var(--color-accent-rgb, 229, 179, 42), 0.20));
+}
+.tc-settings .tc-mtog--skeu.tc-mock-toggle--on .tc-mock-toggle-thumb {
+  transform: translateX(20px);
+}
+
+/* ── Big check — large box, larger checkmark. */
+.tc-settings .tc-mcb--big {
+  width: 26px; height: 26px;
+  border-radius: 5px;
+}
+.tc-settings .tc-mcb--big.tc-mock-checkbox--on {
+  background: var(--color-accent);
+  border-color: var(--color-accent);
+}
+.tc-settings .tc-mcb--big .tc-mock-check-mark {
+  width: 16px; height: 9px;
+  border-left-width: 3px;
+  border-bottom-width: 3px;
+}
+
+/* ── Halo — accent ring grows around it when on. */
+.tc-settings .tc-mcb--halo {
+  border-radius: 50%;
+  box-shadow: 0 0 0 0 rgba(var(--color-accent-rgb, 229, 179, 42), 0);
+  transition: box-shadow 0.28s ease, background 0.18s ease, border-color 0.18s ease;
+}
+.tc-settings .tc-mcb--halo.tc-mock-checkbox--on {
+  background: var(--color-accent);
+  border-color: var(--color-accent);
+  box-shadow: 0 0 0 4px rgba(var(--color-accent-rgb, 229, 179, 42), 0.30);
+}
+
+/* ── Cross — × indicator instead of check (good for "off" semantics). */
+.tc-settings .tc-mcb--cross {
+  border-radius: 4px;
+}
+.tc-settings .tc-mcb--cross .tc-mock-check-mark {
+  border: none;
+  width: 10px; height: 2px;
+  background: var(--color-accent);
+  transform: rotate(45deg) scale(0);
+  transition: transform 0.22s cubic-bezier(0.32, 0.72, 0, 1);
+}
+.tc-settings .tc-mcb--cross .tc-mock-check-mark::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: inherit;
+  transform: rotate(90deg);
+}
+.tc-settings .tc-mcb--cross.tc-mock-checkbox--on .tc-mock-check-mark {
+  transform: rotate(45deg) scale(1);
+}
+
+/* ── Inset — pressed-in look, accent fill always visible (default ON). */
+.tc-settings .tc-mcb--inset {
+  border-radius: 4px;
+  box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.3);
+}
+.tc-settings .tc-mcb--inset.tc-mock-checkbox--on {
+  background: rgba(var(--color-accent-rgb, 229, 179, 42), 0.30);
+  border-color: rgba(var(--color-accent-rgb, 229, 179, 42), 0.50);
+}
+.tc-settings .tc-mcb--inset.tc-mock-checkbox--on .tc-mock-check-mark {
+  border-left-color: var(--color-accent);
+  border-bottom-color: var(--color-accent);
+}
+
+/* ── Pill — wider rounded, almost toggle-like. */
+.tc-settings .tc-mcb--pill {
+  width: 32px; height: 18px;
+  border-radius: 100px;
+  background: var(--background-modifier-border);
+  border: none;
+}
+.tc-settings .tc-mcb--pill .tc-mock-check-mark {
+  display: none;
+}
+.tc-settings .tc-mcb--pill.tc-mock-checkbox--on {
+  background: var(--color-accent);
+}
+
+/* ═══════════════════════════════════════════════════════════
+   Sliders — track + fill + thumb + optional value badge.
+   All variants share the same JS-driven pct → width/left mechanism;
+   CSS layers shape, fill behaviour, badge presence on top.
+   ═══════════════════════════════════════════════════════════ */
+.tc-settings .tc-mock-slider {
+  flex: 0 0 180px;
+  position: relative;
+  height: 22px;
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+}
+.tc-settings .tc-mock-slider-track {
+  position: relative;
+  width: 100%;
+  height: 4px;
+  background: var(--background-modifier-border);
+  border-radius: 100px;
+  overflow: hidden;
+}
+.tc-settings .tc-mock-slider-fill {
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: 0;
+  background: var(--color-accent);
+  border-radius: inherit;
+}
+.tc-settings .tc-mock-slider-thumb {
+  position: absolute;
+  top: 50%;
+  left: 0;
+  transform: translate(-50%, -50%);
+  width: 14px;
+  height: 14px;
+  background: var(--background-primary);
+  border: 1px solid var(--color-accent);
+  border-radius: 50%;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+}
+.tc-settings .tc-mock-slider-badge {
+  display: none;
+}
+
+/* Classic — Obsidian baseline (no fill, just thumb on track). */
+.tc-settings .tc-msl--classic .tc-mock-slider-fill {
+  background: transparent;
+}
+
+/* Filled track — accent fill on the active portion. */
+/* (already default — variant is the contrast to classic) */
+
+/* Notched — visible step marks along the track. */
+.tc-settings .tc-msl--notch .tc-mock-slider-track {
+  background: repeating-linear-gradient(
+    to right,
+    var(--background-modifier-border) 0,
+    var(--background-modifier-border) 8px,
+    transparent 8px,
+    transparent 12px
+  );
+}
+
+/* Mini — thinner track + smaller thumb. */
+.tc-settings .tc-msl--mini .tc-mock-slider-track {
+  height: 2px;
+}
+.tc-settings .tc-msl--mini .tc-mock-slider-thumb {
+  width: 10px;
+  height: 10px;
+}
+
+/* Value badge — small numeric chip above the thumb. */
+.tc-settings .tc-msl--badge .tc-mock-slider-badge {
+  display: inline-flex;
+  position: absolute;
+  top: -22px;
+  left: 0;
+  transform: translateX(-50%);
+  background: var(--color-accent);
+  color: var(--text-on-accent, #fff);
+  font-size: 10px;
+  font-variant-numeric: tabular-nums;
+  font-weight: 600;
+  padding: 2px 6px;
+  border-radius: 4px;
+  pointer-events: none;
+}
+/* Sync the badge's left to the thumb's left via inline style — JS
+   sets thumb.style.left, badge follows by reading the same %. We use
+   a CSS var to thread it: */
+.tc-settings .tc-msl--badge .tc-mock-slider-thumb {
+  /* Make the badge anchor to the thumb's centre using a wrapper trick:
+     position the badge inside the same parent at an absolute left that
+     matches the thumb's left. JS sets both. */
+}
+
+/* ═══════════════════════════════════════════════════════════
+   Dropdowns — clickable mock that cycles through fake values.
+   ═══════════════════════════════════════════════════════════ */
+.tc-settings .tc-mock-dropdown {
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 10px 6px 12px;
+  font-size: 12px;
+  color: var(--text-normal);
+  cursor: pointer;
+  user-select: none;
+  background: var(--background-secondary);
+  border: 1px solid var(--background-modifier-border);
+  border-radius: 4px;
+  transition: background 0.15s, border-color 0.15s;
+}
+.tc-settings .tc-mock-dropdown:hover {
+  border-color: var(--text-muted);
+}
+.tc-settings .tc-mock-dd-chev {
+  font-size: 10px;
+  color: var(--text-muted);
+}
+
+/* Pill — fully rounded. */
+.tc-settings .tc-mdd--pill {
+  border-radius: 100px;
+  padding: 5px 14px 5px 16px;
+}
+
+/* Soft — minimal underline only. */
+.tc-settings .tc-mdd--soft {
+  background: transparent;
+  border: none;
+  border-bottom: 1px solid var(--background-modifier-border);
+  border-radius: 0;
+  padding: 5px 4px;
+}
+.tc-settings .tc-mdd--soft:hover {
+  border-bottom-color: var(--color-accent);
+}
+
+/* Frost — Accented Frost recipe. */
+.tc-settings .tc-mdd--frost {
+  background: rgba(var(--color-accent-rgb, 229, 179, 42), 0.10);
+  border-color: rgba(var(--color-accent-rgb, 229, 179, 42), 0.30);
+  color: var(--color-accent);
+  backdrop-filter: blur(10px) saturate(1.3);
+  -webkit-backdrop-filter: blur(10px) saturate(1.3);
+}
+
+/* Mono — monospace, code-style. */
+.tc-settings .tc-mdd--mono {
+  font-family: var(--font-monospace);
+  font-size: 11px;
+  letter-spacing: 0;
+  background: var(--background-primary-alt, var(--background-secondary));
+}
+
+/* ═══════════════════════════════════════════════════════════
+   Text inputs — Frost is the new default for every input field in
+   the plugin (per user directive). Variants below are alternative
+   showcases; the base rule + the global rule below render every real
+   input throughout the settings panel in the Frost vocabulary.
+   ═══════════════════════════════════════════════════════════ */
+
+/* Global rule — every text/search/number input inside the settings
+   panel takes the Frost recipe (subtle accent tint + blurred glass).
+   Includes the searchable font combobox + Pickr's hex input. */
+.tc-settings input[type="text"],
+.tc-settings input[type="search"],
+.tc-settings input[type="number"],
+.tc-settings input[type="email"],
+.tc-settings input[type="url"],
+.tc-settings .tc-font-combobox-input,
+.tc-settings .pickr .pcr-result {
+  background: rgba(var(--color-accent-rgb, 229, 179, 42), 0.06) !important;
+  border: 1px solid rgba(var(--color-accent-rgb, 229, 179, 42), 0.22) !important;
+  border-radius: 6px !important;
+  color: var(--text-normal) !important;
+  backdrop-filter: blur(10px) saturate(1.3);
+  -webkit-backdrop-filter: blur(10px) saturate(1.3);
+  transition: background 0.18s ease, border-color 0.18s ease, box-shadow 0.18s ease !important;
+}
+.tc-settings input[type="text"]:focus,
+.tc-settings input[type="search"]:focus,
+.tc-settings input[type="number"]:focus,
+.tc-settings input[type="email"]:focus,
+.tc-settings input[type="url"]:focus,
+.tc-settings .tc-font-combobox-input:focus,
+.tc-settings .pickr .pcr-result:focus {
+  outline: none !important;
+  background: rgba(var(--color-accent-rgb, 229, 179, 42), 0.12) !important;
+  border-color: rgba(var(--color-accent-rgb, 229, 179, 42), 0.50) !important;
+  box-shadow: 0 0 0 2px rgba(var(--color-accent-rgb, 229, 179, 42), 0.16) !important;
+}
+
+/* Lab mock-input base — also Frost-by-default so the demos reflect the
+   same default. Variants (--under, --pill, --mono) override below. */
+.tc-settings .tc-mock-text-input {
+  flex: 0 0 200px;
+  height: 30px;
+  padding: 0 12px;
+  font-size: 12px;
+  color: var(--text-normal);
+  background: rgba(var(--color-accent-rgb, 229, 179, 42), 0.08);
+  border: 1px solid rgba(var(--color-accent-rgb, 229, 179, 42), 0.25);
+  border-radius: 6px;
+  font-family: inherit;
+  backdrop-filter: blur(10px) saturate(1.3);
+  -webkit-backdrop-filter: blur(10px) saturate(1.3);
+  transition: border-color 0.15s, background 0.15s, box-shadow 0.15s;
+  box-sizing: border-box;
+}
+.tc-settings .tc-mock-text-input:focus {
+  outline: none;
+  background: rgba(var(--color-accent-rgb, 229, 179, 42), 0.14);
+  border-color: rgba(var(--color-accent-rgb, 229, 179, 42), 0.50);
+  box-shadow: 0 0 0 2px rgba(var(--color-accent-rgb, 229, 179, 42), 0.16);
+}
+
+/* Classic — the old neutral look kept as an alternate for comparison. */
+.tc-settings .tc-mti--classic {
+  background: var(--background-secondary);
+  border: 1px solid var(--background-modifier-border);
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+}
+.tc-settings .tc-mti--classic:focus {
+  background: var(--background-secondary);
+  border-color: var(--color-accent);
+  box-shadow: 0 0 0 2px rgba(var(--color-accent-rgb, 229, 179, 42), 0.18);
+}
+
+/* Underline — bottom-line only. */
+.tc-settings .tc-mti--under {
+  background: transparent;
+  border: none;
+  border-bottom: 1px solid var(--background-modifier-border);
+  border-radius: 0;
+  padding: 0 0 0 4px;
+}
+.tc-settings .tc-mti--under:focus {
+  box-shadow: none;
+  border-bottom-color: var(--color-accent);
+}
+
+/* Pill — fully rounded with subtle inner padding. */
+.tc-settings .tc-mti--pill {
+  border-radius: 100px;
+  padding: 0 16px;
+}
+
+/* Mono — code-style monospace. */
+.tc-settings .tc-mti--mono {
+  font-family: var(--font-monospace);
+  font-size: 11px;
+  background: var(--background-primary-alt, var(--background-secondary));
+  letter-spacing: 0;
+}
+
+/* Frost — Accented Frost recipe. */
+.tc-settings .tc-mti--frost {
+  background: rgba(var(--color-accent-rgb, 229, 179, 42), 0.08);
+  border-color: rgba(var(--color-accent-rgb, 229, 179, 42), 0.25);
+  backdrop-filter: blur(10px) saturate(1.3);
+  -webkit-backdrop-filter: blur(10px) saturate(1.3);
+}
+.tc-settings .tc-mti--frost:focus {
+  background: rgba(var(--color-accent-rgb, 229, 179, 42), 0.14);
+  border-color: rgba(var(--color-accent-rgb, 229, 179, 42), 0.50);
 }
 
 /* ═══════════════════════════════════════════════════════════

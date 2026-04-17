@@ -1,4 +1,58 @@
 import { Setting } from "obsidian";
+import Pickr from "@simonwep/pickr";
+
+/**
+ * Colour-picker + toggle row used by the Editor-accents-style settings:
+ * a Pickr swatch on the left, an enable/disable toggle on the right,
+ * inside a single Setting row. Returns the Pickr instance so the caller
+ * can include it in its disposer set (Pickr leaks DOM on tab teardown
+ * if not destroyed).
+ *
+ * Lifted out of appearance.ts so the Lab tab (and any future surface)
+ * can build the same row without duplicating Pickr boilerplate.
+ */
+export function buildColorToggleRow(
+  container: HTMLElement,
+  name: string,
+  desc: string,
+  colourGetter: () => string,
+  colourSetter: (v: string) => void,
+  enabledGetter: () => boolean,
+  enabledSetter: (v: boolean) => void,
+  onChange: () => Promise<void>,
+): Pickr {
+  const setting = new Setting(container).setName(name).setDesc(desc);
+  const pickerEl = setting.controlEl.createDiv("pickr");
+  const pickr = Pickr.create({
+    el: pickerEl,
+    container: container.closest('.modal-content') as HTMLElement ?? document.body,
+    theme: 'nano',
+    default: colourGetter(),
+    lockOpacity: true,
+    swatches: [colourGetter()],
+    position: 'left-middle',
+    components: {
+      preview: true,
+      hue: true,
+      opacity: false,
+      interaction: { hex: true, input: true, save: true, cancel: true },
+    },
+  });
+  pickr.on('save', (color: Pickr.HSVaColor | null, instance: Pickr) => {
+    if (!color) return;
+    const hex = color.toHEXA().toString().slice(0, 7);
+    colourSetter(hex);
+    instance.hide();
+    onChange();
+  });
+  pickr.on('cancel', (instance: Pickr) => instance.hide());
+  setting.addToggle(t => t
+    .setValue(enabledGetter())
+    .onChange(async v => { enabledSetter(v); await onChange(); })
+  );
+  return pickr;
+}
+
 
 /**
  * Create an inset-card cluster inside an accordion body. Used to group
