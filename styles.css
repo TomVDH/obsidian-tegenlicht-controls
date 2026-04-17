@@ -1765,11 +1765,21 @@ body.tc-radius-rounded .tc-settings .tc-feat-group { border-radius: 14px !import
   color: var(--text-muted);
   margin: 0 0 4px 0;
 }
-/* Strip the top-border of the first setting-item inside a cluster — the
-   cluster's own padding already provides separation, the divider line
-   would be visual noise right after the cluster label. */
-.tc-settings .tc-cluster .setting-item:first-of-type {
+/* No dividers inside clusters — the cluster's own border + padding
+   already groups the rows, so per-row top borders read as noise. Per
+   user directive, applies to all setting-items inside a cluster, not
+   just the first-of-type. */
+.tc-settings .tc-cluster .setting-item {
   border-top: none;
+}
+
+/* Pin the setting-item-name typography so hover never shifts size or
+   weight (Obsidian's native :hover on .setting-item can bump weight
+   in some themes — locking here keeps the row stable). */
+.tc-settings .tc-cluster .setting-item .setting-item-name,
+.tc-settings .tc-cluster .setting-item:hover .setting-item-name {
+  font-size: var(--font-ui-medium, 13px);
+  font-weight: 500;
 }
 
 /* Advanced disclosure — integrated foldable section inside a cluster
@@ -1786,8 +1796,11 @@ body.tc-radius-rounded .tc-settings .tc-feat-group { border-radius: 14px !import
   align-items: center;
   gap: 6px;
   padding: 6px 0;
-  font-size: 12px;
-  font-weight: 500;
+  /* Same typography as .tc-cluster-label — small-caps uppercase muted */
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
   color: var(--text-muted);
   user-select: none;
 }

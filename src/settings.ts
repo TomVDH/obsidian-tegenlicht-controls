@@ -279,7 +279,7 @@ export const DEFAULT_SETTINGS: TegenlichtSettings = {
   rainbowSimpleIndent: true,
   rainbowSimpleFileIcon: true,
   fileIcons: false,
-  collapseFolderIcons: true,
+  collapseFolderIcons: false,
   colorfulFrame: false,
   customVaultTitle: true,
   customCheckboxes: true,

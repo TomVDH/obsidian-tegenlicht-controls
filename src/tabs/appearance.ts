@@ -512,13 +512,21 @@ export function build(
       .onChange(async v => { s.fileIcons = v; await onChange(); })
     );
 
-  new Setting(fileTreeCluster)
-    .setName("Collapsed folder arrows")
-    .setDesc("Use the theme's compact chevron for collapsed folders (less chrome)")
-    .addToggle(t => t
-      .setValue(s.collapseFolderIcons)
-      .onChange(async v => { s.collapseFolderIcons = v; await onChange(); })
-    );
+  // Folder display — segment picker (was a boolean toggle "Collapsed
+  // folder arrows"). Two states: Chevrons (collapseFolderIcons: false,
+  // Obsidian's native chevrons) or Folders (true, AnuPpuccin's folder
+  // icon glyphs via the anp-collapse-folders class). Default is now
+  // Chevrons; users opt in to Folders.
+  buildSegmentSetting(fileTreeCluster,
+    "Folder display",
+    "Show chevrons or folder glyphs in the file tree",
+    [
+      { label: "Chevrons", value: "chevrons" },
+      { label: "Folders",  value: "folders"  },
+    ],
+    s.collapseFolderIcons ? "folders" : "chevrons",
+    async v => { s.collapseFolderIcons = (v === "folders"); await onChange(); },
+  );
 
   new Setting(fileTreeCluster)
     .setName("Custom vault title")
