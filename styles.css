@@ -3373,17 +3373,17 @@ body.tc-graph-halo .workspace-leaf-content[data-type="graph"] .graph-view.color-
 
 .tc-settings .tc-leftrail-shell {
   display: grid;
-  grid-template-columns: 180px 1fr;
+  grid-template-columns: 140px 1fr;
   gap: 0;
-  background: var(--background-primary);
-  border: 1px solid var(--background-modifier-border);
-  border-radius: var(--radius-l, 8px);
+  background: transparent;
+  border: none;
+  border-radius: 0;
   overflow: hidden;
   min-height: 420px;
 }
 
 .tc-settings .tc-leftrail-rail {
-  background: var(--background-secondary);
+  background: transparent;
   border-right: 1px solid var(--background-modifier-border);
   padding: 8px 0;
 }
@@ -3444,13 +3444,39 @@ body.tc-graph-halo .workspace-leaf-content[data-type="graph"] .graph-view.color-
   max-width: 62ch;
 }
 
-/* Row dividers inside the content pane — dashboard hardening */
+/* Pane settings — flat, no inset-card treatment per user directive.
+   Rows blend into the settings-dialog surface with only vertical
+   padding, no border dividers or background. */
 .tc-settings .tc-leftrail-pane .setting-item {
-  border-top: 1px solid var(--background-modifier-border-hover);
+  border-top: none;
   padding: 9px 0;
 }
-.tc-settings .tc-leftrail-pane .setting-item:first-of-type {
-  border-top: none;
+
+/* Rail label — overflow container for the marquee animation.
+   Text rolls on hover when it clips the rail's narrow width. */
+.tc-settings .tc-leftrail-label {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  white-space: nowrap;
+  container-type: inline-size;
+}
+.tc-settings .tc-leftrail-label-text {
+  display: inline-block;
+  transition: transform 300ms ease;
+}
+.tc-settings .tc-leftrail-item:hover .tc-leftrail-label-text {
+  animation: tc-leftrail-roll 3.5s ease-in-out infinite alternate;
+}
+@keyframes tc-leftrail-roll {
+  0%, 15%   { transform: translateX(0); }
+  85%, 100% {
+    /* 100cqw = rail label width; 100% = text own width. If text is
+       wider than wrap (overflow), calc resolves negative and text
+       slides left to reveal. If text fits, min() clamps to 0 — no
+       animation visible. */
+    transform: translateX(min(0px, calc(100cqw - 100%)));
+  }
 }
 
 /* ═══════════════════════════════════════════════════════════
@@ -3461,8 +3487,8 @@ body.tc-graph-halo .workspace-leaf-content[data-type="graph"] .graph-view.color-
    ═══════════════════════════════════════════════════════════ */
 
 .tc-settings .tc-flavour-caption {
-  margin-top: 8px;
-  margin-bottom: -2px;
+  margin-top: 14px;
+  margin-bottom: 6px;
   padding-left: 2px;
 }
 .tc-settings .tc-flavour-caption:first-child {
