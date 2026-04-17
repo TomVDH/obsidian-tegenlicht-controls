@@ -437,11 +437,13 @@ ${s.caretColourEnabled ? `.cm-cursor { border-left-color: ${caretClr} !important
   ALL_BG_EFFECT_CLASSES.forEach(c => document.body.classList.remove(c));
 
   // Film-grain noise — tc-has-noise gates the overlay presence; tc-grain-{style}
-  // picks which texture pattern renders. The --tc-noise-opacity var still
-  // drives intensity for all four variants.
-  document.body.classList.toggle('tc-has-noise', (s.noiseAmount ?? 0) > 0);
+  // picks which texture pattern renders. Only applied when noise is active,
+  // so a disabled grain leaves body with no tc-grain-* class at all.
+  // The --tc-noise-opacity var still drives intensity for all four variants.
+  const noiseOn = (s.noiseAmount ?? 0) > 0;
+  document.body.classList.toggle('tc-has-noise', noiseOn);
   ALL_GRAIN_CLASSES.forEach(c => document.body.classList.remove(c));
-  document.body.classList.add(`tc-grain-${s.grainStyle || 'film'}`);
+  if (noiseOn) document.body.classList.add(`tc-grain-${s.grainStyle || 'film'}`);
   document.getElementById('tc-noise-overlay')?.remove();
 
   // No-ops: metadataMods, itsCallouts, kanban, calendar, cardsMinimal

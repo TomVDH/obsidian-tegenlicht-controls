@@ -3585,9 +3585,14 @@ body.tc-has-noise.tc-grain-paper .workspace::after {
 
 /* Halftone — regular dot tile, 6px period */
 body.tc-has-noise.tc-grain-halftone .workspace::after {
+  /* Two radial-gradient tiles at 6px periods, both at tile-local 25%,25%,
+     offset by (3, 3) so absolute dots land at (1.5, 1.5) and (4.5, 4.5) —
+     a proper staggered checkerboard. Reviewer caught this during Task 2
+     QA: prior version had 75%,75% + (3,3) offset which collapsed both
+     layers onto the same absolute positions (1.5, 1.5) mod 6. */
   background-image:
     radial-gradient(circle at 25% 25%, rgba(255,255,255,0.8) 0.9px, transparent 1.2px),
-    radial-gradient(circle at 75% 75%, rgba(255,255,255,0.8) 0.9px, transparent 1.2px);
+    radial-gradient(circle at 25% 25%, rgba(255,255,255,0.8) 0.9px, transparent 1.2px);
   background-size: 6px 6px, 6px 6px;
   background-position: 0 0, 3px 3px;
 }
