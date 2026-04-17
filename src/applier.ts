@@ -97,6 +97,14 @@ const ALL_TABLE_HIGHLIGHT_CLASSES = [
   'anp-table-row-alt', 'anp-table-col-alt', 'anp-table-checkered', 'anp-table-full',
 ];
 
+// Legacy — Codeblocks wrap: each mode (edit / preview / highlighted-preview)
+// has its own mutually-exclusive no-wrap class. "wrap" is the default (no
+// body class), "nowrap" adds the corresponding class. Tracked as arrays so
+// the cleanup list stays consistent with the other ALL_*_CLASSES groups.
+const ALL_CB_WRAP_EDIT_CLASSES     = ['anp-codeblock-edit-nowrap'];
+const ALL_CB_WRAP_PREVIEW_CLASSES  = ['anp-codeblock-preview-nowrap'];
+const ALL_CB_WRAP_HL_CLASSES       = ['anp-codeblock-preview-hl-nowrap'];
+
 // AnuPuccin rainbow folders — three mutually-exclusive style classes
 // (None / Full / Simple) plus an orthogonal "subfolder inherit" modifier.
 // Names match AnuPuccin's Style Settings YAML at theme.css line 2122 so
@@ -263,6 +271,18 @@ export function apply(s: TegenlichtSettings): void {
   --anp-table-align-th: ${s.tableAlignTh || 'left'};
   --anp-table-align-td: ${s.tableAlignTd || 'left'};
   --anp-table-thickness: ${s.tableBorderWidth ?? 1}px;
+  /* Legacy — Codeblock colour overrides (empty = no override so theme wins) */
+  ${s.codeblockBgColor   ? `--anp-code-bg-color: ${s.codeblockBgColor};` : ''}
+  ${s.codeblockTextColor ? `--anp-code-text-color: ${s.codeblockTextColor};` : ''}
+  /* Legacy — Show/Hide */
+  --anp-cursor: ${s.uiPointerCursor === 'pointer' ? 'pointer' : 'initial'};
+  /* Legacy — Tabs (deep) */
+  --anp-alt-tab-custom-height: ${s.tabCustomHeight ?? 32}px;
+  --anp-depth-tab-opacity: ${((s.tabDepthOpacity ?? 100) / 100).toFixed(2)};
+  --anp-depth-tab-gap: ${s.tabDepthGap ?? 4}px;
+  --anp-safari-tab-radius: ${s.tabSafariRadius ?? 8}px;
+  --anp-safari-tab-gap: ${s.tabSafariGap ?? 4}px;
+  --anp-safari-border-width: ${s.tabSafariBorderWidth ?? 1}px;
 }
 ${headingVar !== 'inherit' ? `
 .markdown-rendered h1, .markdown-rendered h2, .markdown-rendered h3,
@@ -499,6 +519,26 @@ ${s.caretColourEnabled ? `.cm-cursor { border-left-color: ${caretClr} !important
     document.body.classList.add(`anp-table-${s.tableRowHighlight}`);
   }
 
+  // Legacy — Codeblocks / Show-Hide / Tabs-deep
+
+  // Legacy — Codeblocks (wrap modes + colour overrides)
+  ALL_CB_WRAP_EDIT_CLASSES.forEach(c => document.body.classList.remove(c));
+  if (s.codeblockWrapEdit === 'nowrap') document.body.classList.add('anp-codeblock-edit-nowrap');
+  ALL_CB_WRAP_PREVIEW_CLASSES.forEach(c => document.body.classList.remove(c));
+  if (s.codeblockWrapPreview === 'nowrap') document.body.classList.add('anp-codeblock-preview-nowrap');
+  ALL_CB_WRAP_HL_CLASSES.forEach(c => document.body.classList.remove(c));
+  if (s.codeblockWrapHlPreview === 'nowrap') document.body.classList.add('anp-codeblock-preview-hl-nowrap');
+
+  // Legacy — Show / Hide
+  cls('anp-autohide-titlebar', !!s.hideTitlebarAuto);
+  cls('anp-toggle-metadata',   !!s.hideMetadata);
+  cls('anp-tooltip-toggle',    !!s.hideTooltips);
+
+  // Legacy — Tabs (deep)
+  cls('anp-disable-newtab-align', !!s.tabDisableNewTabAlign);
+  cls('anp-depth-tab-text-invert', !!s.tabDepthTextInvert);
+  cls('anp-safari-tab-animated',  !!s.tabSafariAnimated);
+
   // No-ops: metadataMods, itsCallouts, kanban, calendar, cardsMinimal
   // These settings have no body class equivalent in the theme.
   // They're stored in settings for UI completeness / future expansion.
@@ -548,5 +588,10 @@ export function remove(): void {
   document.body.classList.remove('anp-callout-color-toggle');
   ALL_TABLE_HIGHLIGHT_CLASSES.forEach(c => document.body.classList.remove(c));
   ['anp-table-toggle', 'anp-table-width', 'anp-table-auto', 'anp-table-th-highlight']
+    .forEach(c => document.body.classList.remove(c));
+  // Legacy — Codeblocks + Show/Hide + Tabs-deep cleanup
+  [...ALL_CB_WRAP_EDIT_CLASSES, ...ALL_CB_WRAP_PREVIEW_CLASSES, ...ALL_CB_WRAP_HL_CLASSES,
+   'anp-autohide-titlebar', 'anp-toggle-metadata', 'anp-tooltip-toggle',
+   'anp-disable-newtab-align', 'anp-depth-tab-text-invert', 'anp-safari-tab-animated']
     .forEach(c => document.body.classList.remove(c));
 }

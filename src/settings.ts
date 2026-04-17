@@ -166,6 +166,30 @@ export interface TegenlichtSettings {
   tableAlignTh: string;               // 'left' | 'center' | 'right'
   tableAlignTd: string;               // 'left' | 'center' | 'right'
   tableBorderWidth: number;           // 0–4 px
+
+  // Legacy — Codeblocks
+  codeblockWrapEdit: string;       // 'wrap' | 'nowrap'
+  codeblockWrapPreview: string;    // 'wrap' | 'nowrap'
+  codeblockWrapHlPreview: string;  // 'wrap' | 'nowrap'
+  codeblockBgColor: string;        // '' = reset, '#rrggbb' = override
+  codeblockTextColor: string;
+
+  // Legacy — Show / Hide (4 new; scrollbars + status bar already in Features)
+  hideTitlebarAuto: boolean;
+  uiPointerCursor: string;         // 'initial' | 'pointer'
+  hideMetadata: boolean;
+  hideTooltips: boolean;
+
+  // Legacy — Tabs (deep) — per-style tuning for Depth + Safari variants
+  tabCustomHeight: number;         // 20–48 px
+  tabDisableNewTabAlign: boolean;
+  tabDepthTextInvert: boolean;
+  tabDepthOpacity: number;         // 0–100 → 0–1
+  tabDepthGap: number;             // 0–16 px
+  tabSafariRadius: number;         // 0–16 px
+  tabSafariGap: number;            // 0–16 px
+  tabSafariBorderWidth: number;    // 0–4 px
+  tabSafariAnimated: boolean;
 }
 
 export const DEFAULT_SETTINGS: TegenlichtSettings = {
@@ -297,4 +321,25 @@ export const DEFAULT_SETTINGS: TegenlichtSettings = {
   tableAlignTh: 'left',
   tableAlignTd: 'left',
   tableBorderWidth: 1,
+
+  codeblockWrapEdit: 'wrap',
+  codeblockWrapPreview: 'wrap',
+  codeblockWrapHlPreview: 'wrap',
+  codeblockBgColor: '',
+  codeblockTextColor: '',
+
+  hideTitlebarAuto: false,
+  uiPointerCursor: 'initial',
+  hideMetadata: false,
+  hideTooltips: false,
+
+  tabCustomHeight: 32,
+  tabDisableNewTabAlign: false,
+  tabDepthTextInvert: false,
+  tabDepthOpacity: 100,
+  tabDepthGap: 4,
+  tabSafariRadius: 8,
+  tabSafariGap: 4,
+  tabSafariBorderWidth: 1,
+  tabSafariAnimated: false,
 };

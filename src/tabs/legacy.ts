@@ -1,4 +1,5 @@
 import { Setting } from "obsidian";
+import Pickr from "@simonwep/pickr";
 import TegenlichtControlsPlugin from "../main";
 import { buildLeftRailShell, LeftRailSection, buildSegmentSetting } from "./_shared";
 
@@ -11,6 +12,50 @@ import { buildLeftRailShell, LeftRailSection, buildSegmentSetting } from "./_sha
  * Ship-push 2 (future): Headings + Lists & Tags + Workspace details
  * Skipped: Palette overrides, Integrations (Kanban / MAKE.md / Minimal Cards)
  */
+
+/** Single-use Pickr row for Codeblocks — colour picker with no toggle.
+ *  Empty-string value means "no override" (removes the CSS var so the
+ *  theme paints). The Clear button in Pickr resets to empty. Returns
+ *  the Pickr instance so the caller can include it in its disposer set. */
+function buildColourVarRow(
+  container: HTMLElement,
+  name: string,
+  desc: string,
+  getValue: () => string,
+  setValue: (v: string) => void,
+  onChange: () => Promise<void>,
+): Pickr {
+  const setting = new Setting(container).setName(name).setDesc(desc);
+  const pickerEl = setting.controlEl.createDiv("pickr");
+  const pickr = Pickr.create({
+    el: pickerEl,
+    container: container.closest('.modal-content') as HTMLElement ?? document.body,
+    theme: 'nano',
+    default: getValue() || '#000000',
+    lockOpacity: true,
+    position: 'left-middle',
+    components: {
+      preview: true,
+      hue: true,
+      opacity: false,
+      interaction: { hex: true, input: true, clear: true, save: true, cancel: true },
+    },
+  });
+  pickr.on('save', (color: Pickr.HSVaColor | null, instance: Pickr) => {
+    if (!color) return;
+    setValue(color.toHEXA().toString().slice(0, 7));
+    instance.hide();
+    onChange();
+  });
+  pickr.on('clear', (instance: Pickr) => {
+    setValue('');
+    instance.hide();
+    onChange();
+  });
+  pickr.on('cancel', (instance: Pickr) => instance.hide());
+  return pickr;
+}
+
 export function build(
   containerEl: HTMLElement,
   plugin: TegenlichtControlsPlugin,
@@ -22,6 +67,7 @@ export function build(
     await onChange();
     redisplay?.();
   };
+  const pickrs: Pickr[] = [];
 
   const sections: LeftRailSection[] = [
     {
@@ -40,7 +86,7 @@ export function build(
       id: "codeblocks",
       label: "Codeblocks",
       count: 5,
-      render: (pane) => renderCodeblocks(pane, s, onChange, refresh),
+      render: (pane) => renderCodeblocks(pane, s, onChange, refresh, pickrs),
     },
     {
       id: "show-hide",
@@ -56,7 +102,12 @@ export function build(
     },
   ];
 
-  return buildLeftRailShell(containerEl, sections);
+  const shellCleanup = buildLeftRailShell(containerEl, sections);
+
+  return () => {
+    shellCleanup();
+    pickrs.forEach(p => { try { p.destroyAndRemove(); } catch (_) { /* no-op */ } });
+  };
 }
 
 // Section renderers — each is called when its rail item becomes active.
@@ -220,11 +271,51 @@ function renderCodeblocks(
   s: import("../settings").TegenlichtSettings,
   onChange: () => Promise<void>,
   refresh: () => Promise<void>,
+  pickrs: Pickr[],
 ): void {
   pane.createEl("h3", { cls: "tc-leftrail-sechead", text: "Codeblocks" });
   pane.createEl("p", { cls: "tc-leftrail-secdesc",
-    text: "Line wrap behaviour in Edit and Preview modes, plus background/text colour overrides." });
-  pane.createEl("p", { cls: "tc-empty-hint", text: "Controls incoming — Task 8." });
+    text: "Line wrap behaviour across editor modes + optional background/text colour overrides." });
+
+  buildSegmentSetting(pane,
+    "Wrap (edit mode)",
+    "Line wrap inside code blocks when editing",
+    [ { label: "Wrap", value: "wrap" }, { label: "No wrap", value: "nowrap" } ],
+    s.codeblockWrapEdit,
+    async v => { s.codeblockWrapEdit = v; await onChange(); },
+  );
+
+  buildSegmentSetting(pane,
+    "Wrap (preview mode)",
+    "Line wrap in Reading view",
+    [ { label: "Wrap", value: "wrap" }, { label: "No wrap", value: "nowrap" } ],
+    s.codeblockWrapPreview,
+    async v => { s.codeblockWrapPreview = v; await onChange(); },
+  );
+
+  buildSegmentSetting(pane,
+    "Wrap (highlighted preview)",
+    "Line wrap for syntax-highlighted blocks in Reading view",
+    [ { label: "Wrap", value: "wrap" }, { label: "No wrap", value: "nowrap" } ],
+    s.codeblockWrapHlPreview,
+    async v => { s.codeblockWrapHlPreview = v; await onChange(); },
+  );
+
+  pickrs.push(buildColourVarRow(pane,
+    "Background colour",
+    "Override the code block background. Clear = theme default.",
+    () => s.codeblockBgColor,
+    v => { s.codeblockBgColor = v; },
+    onChange,
+  ));
+
+  pickrs.push(buildColourVarRow(pane,
+    "Text colour",
+    "Override the code block text colour. Clear = theme default.",
+    () => s.codeblockTextColor,
+    v => { s.codeblockTextColor = v; },
+    onChange,
+  ));
 }
 
 function renderShowHide(
@@ -236,7 +327,23 @@ function renderShowHide(
   pane.createEl("h3", { cls: "tc-leftrail-sechead", text: "Show / Hide" });
   pane.createEl("p", { cls: "tc-leftrail-secdesc",
     text: "Autohide titlebar, pointer cursor mode, metadata panel visibility, tooltip suppression. Scrollbars and status bar live in the Features tab." });
-  pane.createEl("p", { cls: "tc-empty-hint", text: "Controls incoming — Task 8." });
+
+  new Setting(pane).setName("Autohide titlebar").setDesc("Collapse the title bar until you hover near it")
+    .addToggle(t => t.setValue(s.hideTitlebarAuto).onChange(async v => { s.hideTitlebarAuto = v; await onChange(); }));
+
+  buildSegmentSetting(pane,
+    "Cursor style",
+    "Use a pointer cursor over interactive chrome",
+    [ { label: "Normal",  value: "initial" }, { label: "Pointer", value: "pointer" } ],
+    s.uiPointerCursor,
+    async v => { s.uiPointerCursor = v; await onChange(); },
+  );
+
+  new Setting(pane).setName("Hide metadata panel").setDesc("Hide the Properties panel wrapper entirely")
+    .addToggle(t => t.setValue(s.hideMetadata).onChange(async v => { s.hideMetadata = v; await onChange(); }));
+
+  new Setting(pane).setName("Hide tooltips").setDesc("Suppress Obsidian's native tooltip popups")
+    .addToggle(t => t.setValue(s.hideTooltips).onChange(async v => { s.hideTooltips = v; await onChange(); }));
 }
 
 function renderTabsDeep(
@@ -247,6 +354,38 @@ function renderTabsDeep(
 ): void {
   pane.createEl("h3", { cls: "tc-leftrail-sechead", text: "Tabs (deep)" });
   pane.createEl("p", { cls: "tc-leftrail-secdesc",
-    text: "Per-tab-style tuning — depth tab gap/opacity/text invert, safari-style tab height/radius/border." });
-  pane.createEl("p", { cls: "tc-empty-hint", text: "Controls incoming — Task 8." });
+    text: "Per-style tuning for Depth and Safari tab variants. Top-level tab style lives in the Features tab." });
+
+  new Setting(pane).setName("Custom tab height").setDesc("Tab bar height in pixels (20–48)")
+    .addSlider(sl => sl.setLimits(20, 48, 1).setValue(s.tabCustomHeight ?? 32).setDynamicTooltip()
+      .onChange(async v => { s.tabCustomHeight = v; await onChange(); }));
+
+  new Setting(pane).setName("Disable new-tab right-align").setDesc("Keep the new-tab button inline with the tabs instead of right-aligned")
+    .addToggle(t => t.setValue(s.tabDisableNewTabAlign).onChange(async v => { s.tabDisableNewTabAlign = v; await onChange(); }));
+
+  new Setting(pane).setName("Depth — invert tab text colour").setDesc("Only affects Depth tab style")
+    .addToggle(t => t.setValue(s.tabDepthTextInvert).onChange(async v => { s.tabDepthTextInvert = v; await onChange(); }));
+
+  new Setting(pane).setName("Depth — tab opacity").setDesc("Opacity of inactive Depth tabs, 0–100")
+    .addSlider(sl => sl.setLimits(0, 100, 1).setValue(s.tabDepthOpacity ?? 100).setDynamicTooltip()
+      .onChange(async v => { s.tabDepthOpacity = v; await onChange(); }));
+
+  new Setting(pane).setName("Depth — tab gap").setDesc("Gap between Depth tabs, 0–16px")
+    .addSlider(sl => sl.setLimits(0, 16, 1).setValue(s.tabDepthGap ?? 4).setDynamicTooltip()
+      .onChange(async v => { s.tabDepthGap = v; await onChange(); }));
+
+  new Setting(pane).setName("Safari — tab radius").setDesc("Corner radius on Safari tabs, 0–16px")
+    .addSlider(sl => sl.setLimits(0, 16, 1).setValue(s.tabSafariRadius ?? 8).setDynamicTooltip()
+      .onChange(async v => { s.tabSafariRadius = v; await onChange(); }));
+
+  new Setting(pane).setName("Safari — tab gap").setDesc("Gap between Safari tabs, 0–16px")
+    .addSlider(sl => sl.setLimits(0, 16, 1).setValue(s.tabSafariGap ?? 4).setDynamicTooltip()
+      .onChange(async v => { s.tabSafariGap = v; await onChange(); }));
+
+  new Setting(pane).setName("Safari — border width").setDesc("Border thickness on Safari tabs, 0–4px")
+    .addSlider(sl => sl.setLimits(0, 4, 1).setValue(s.tabSafariBorderWidth ?? 1).setDynamicTooltip()
+      .onChange(async v => { s.tabSafariBorderWidth = v; await onChange(); }));
+
+  new Setting(pane).setName("Safari — animated variant (WIP)").setDesc("Enable the animated-safari tab class (theme's WIP)")
+    .addToggle(t => t.setValue(s.tabSafariAnimated).onChange(async v => { s.tabSafariAnimated = v; await onChange(); }));
 }
