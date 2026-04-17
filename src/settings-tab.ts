@@ -29,23 +29,34 @@ const TAB_STYLES: { id: string; label: string }[] = [
   { id: "ghost",         label: "Ghost"     },
 ];
 
-/** Compute the active tab's centre relative to its containing tab bar
- *  and write the % coordinates as --tc-bloom-x / --tc-bloom-y on the
- *  bar element. The bar's ::before paints a circular radial gradient
- *  at that origin — the bloom slides between tabs as the user clicks.
- *  Smooth slide is handled by the CSS transition on background-image. */
+/** Refresh the ambient tab-bar bloom on every tab-switch / render.
+ *
+ *  Post-2026-04-17: origin stays centred (50%/50%) — tracking the active
+ *  tab felt lopsided. Instead, we roll fresh elliptoid dimensions + a
+ *  tiny origin jitter each call so the bloom subtly breathes between
+ *  renders without shifting off-centre.
+ *
+ *  CSS transitions on the four typed custom props animate the drift
+ *  frame-by-frame — changes feel organic, not stepped. */
 function updateTabBarBloom(activeBtn: HTMLElement): void {
   const bar = activeBtn.closest('.tc-tab-bar') as HTMLElement | null;
   if (!bar) return;
-  // Defer one frame so layout has settled before we read rects.
   requestAnimationFrame(() => {
-    const barRect = bar.getBoundingClientRect();
-    const btnRect = activeBtn.getBoundingClientRect();
-    if (!barRect.width || !barRect.height) return;
-    const x = ((btnRect.left + btnRect.width / 2) - barRect.left) / barRect.width * 100;
-    const y = ((btnRect.top + btnRect.height / 2) - barRect.top) / barRect.height * 100;
-    bar.style.setProperty('--tc-bloom-x', `${x.toFixed(2)}%`);
-    bar.style.setProperty('--tc-bloom-y', `${y.toFixed(2)}%`);
+    // Tiny centre jitter: keeps the bloom anchored at visual centre
+    // while adding a touch of asymmetry so the shape doesn't feel
+    // mechanical across renders. ±3% horizontally, ±6% vertically.
+    const jitter = (range: number) => (Math.random() - 0.5) * 2 * range;
+    const x = 50 + jitter(3);
+    const y = 50 + jitter(6);
+    // Elliptoid radii — rx wider than ry so the glow reads as a horizontal
+    // smear rather than a perfect circle. Ranges chosen so shape variance
+    // is perceptible but never dramatic.
+    const rx = 200 + Math.random() * 60;  // 200–260 px
+    const ry = 120 + Math.random() * 50;  // 120–170 px
+    bar.style.setProperty('--tc-bloom-x',  `${x.toFixed(2)}%`);
+    bar.style.setProperty('--tc-bloom-y',  `${y.toFixed(2)}%`);
+    bar.style.setProperty('--tc-bloom-rx', `${rx.toFixed(1)}px`);
+    bar.style.setProperty('--tc-bloom-ry', `${ry.toFixed(1)}px`);
   });
 }
 
