@@ -29,6 +29,16 @@ export interface TegenlichtSettings {
   cornerRadius: string;  // 'sharp' | 'subtle' | 'rounded'
   editorMood: string;    // experimental: 'minimal' | 'warm' | 'cool'
 
+  // Appearance — Graph section
+  // Visual tweaks that extend Obsidian's native graph view without
+  // duplicating its native controls. Colour mode drives body classes
+  // the theme reads; scale/thickness are plugin-owned CSS vars applied
+  // via pseudo-selectors on the graph canvas container.
+  graphColourMode: string;     // 'mono' | 'accent' | 'folders'
+  graphHalo: boolean;          // subtle accent glow under hovered node
+  graphNodeScale: number;      // 0.5–2.0, multiplier on Obsidian's native size
+  graphLinkThickness: number;  // 0.5–3.0, multiplier on link stroke weight
+
   // Typography — Google Fonts
   fontPairing: string;       // one of the PAIRINGS keys, or 'custom'
   fontCustomInterface: string; // Google font name, used when pairing === 'custom'
@@ -155,6 +165,11 @@ export const DEFAULT_SETTINGS: TegenlichtSettings = {
   iconColour: '',
   cornerRadius: 'subtle',
   editorMood: 'minimal',
+
+  graphColourMode: 'accent',
+  graphHalo: true,
+  graphNodeScale: 1.0,
+  graphLinkThickness: 1.0,
 
   fontPairing: 'system',
   fontCustomInterface: '',

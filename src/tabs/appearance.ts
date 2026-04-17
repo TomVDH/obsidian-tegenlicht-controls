@@ -651,11 +651,54 @@ export function build(
   };
   populateAdvanced(computedMode);
 
-  // ── Graph section (placeholder shell) ──────────────────
+  // ── Graph section ─────────────────────────────────────
   containerEl.createEl("div", { cls: "tc-section-header", text: "Graph" });
   const graphBody = containerEl.createDiv("tc-section-body tc-feat-body tc-setting-card");
-  graphBody.createEl("p", { cls: "tc-empty-hint",
-    text: "Graph-view controls arrive here — node size, link thickness, hover halo, cluster tinting." });
+
+  // ── Colour cluster ────────────────────────────────────
+  const graphColourCluster = buildCluster(graphBody, "Colour");
+  buildSegmentSetting(graphColourCluster,
+    "Colour mode",
+    "How nodes and links take their hue",
+    [
+      { label: "Mono",    value: "mono"    },
+      { label: "Accent",  value: "accent"  },
+      { label: "Folders", value: "folders" },
+    ],
+    s.graphColourMode,
+    async v => { s.graphColourMode = v; await refresh(); },
+  );
+
+  // ── Style cluster ─────────────────────────────────────
+  const graphStyleCluster = buildCluster(graphBody, "Style");
+
+  new Setting(graphStyleCluster)
+    .setName("Hover halo")
+    .setDesc("Soft accent glow under the node you're hovering")
+    .addToggle(t => t
+      .setValue(s.graphHalo)
+      .onChange(async v => { s.graphHalo = v; await onChange(); })
+    );
+
+  new Setting(graphStyleCluster)
+    .setName("Node scale")
+    .setDesc("Multiplies Obsidian's native node size (0.5× – 2×)")
+    .addSlider(sl => sl
+      .setLimits(0.5, 2.0, 0.1)
+      .setValue(s.graphNodeScale ?? 1.0)
+      .setDynamicTooltip()
+      .onChange(async v => { s.graphNodeScale = v; await onChange(); })
+    );
+
+  new Setting(graphStyleCluster)
+    .setName("Link thickness")
+    .setDesc("Stroke weight of connection lines (0.5× – 3×)")
+    .addSlider(sl => sl
+      .setLimits(0.5, 3.0, 0.1)
+      .setValue(s.graphLinkThickness ?? 1.0)
+      .setDynamicTooltip()
+      .onChange(async v => { s.graphLinkThickness = v; await onChange(); })
+    );
 
   // ── Workspace section ─────────────────────────────────
   containerEl.createEl("div", { cls: "tc-section-header", text: "Workspace" });

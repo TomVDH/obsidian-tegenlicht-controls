@@ -3817,3 +3817,22 @@ body.tc-has-noise .workspace::before {
   margin-top: -2px;
   margin-bottom: 0.9em;
 }
+
+/* ═══════════════════════════════════════════════════════════
+   Graph view — plugin-owned overlays
+   ═══════════════════════════════════════════════════════════ */
+
+/* Node and link scale via CSS vars — applied only inside the graph
+   view container so we don't affect any other circle/line elements. */
+body .workspace-leaf-content[data-type="graph"] .graph-view.color-circle {
+  transform: scale(var(--tc-graph-node-scale, 1));
+}
+body .workspace-leaf-content[data-type="graph"] .graph-view.color-line {
+  stroke-width: calc(1px * var(--tc-graph-link-thickness, 1));
+}
+
+/* Hover halo — plugin-owned SVG filter / box-shadow overlay.
+   Only active when body has tc-graph-halo. */
+body.tc-graph-halo .workspace-leaf-content[data-type="graph"] .graph-view.color-circle:hover {
+  filter: drop-shadow(0 0 6px var(--color-accent));
+}

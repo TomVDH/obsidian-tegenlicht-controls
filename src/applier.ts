@@ -73,6 +73,11 @@ const ALL_ICON_STROKE_CLASSES = ['tc-icon-stroke-thin', 'tc-icon-stroke-regular'
 const ALL_RADIUS_CLASSES      = ['tc-radius-sharp', 'tc-radius-subtle', 'tc-radius-rounded', 'tc-radius-pill'];
 const ALL_BORDER_CLASSES      = ['tc-borders-none', 'tc-borders-whisper', 'tc-borders-subtle', 'tc-borders-ligne-claire'];
 const ALL_MOOD_CLASSES        = ['tc-mood-minimal', 'tc-mood-warm', 'tc-mood-cool'];
+const ALL_GRAPH_MODE_CLASSES  = [
+  'tc-graph-colour-mode-mono',
+  'tc-graph-colour-mode-accent',
+  'tc-graph-colour-mode-folders',
+];
 
 // AnuPuccin rainbow folders — three mutually-exclusive style classes
 // (None / Full / Simple) plus an orthogonal "subfolder inherit" modifier.
@@ -227,6 +232,8 @@ export function apply(s: TegenlichtSettings): void {
   ${headingVar !== 'inherit' ? `--font-text: ${headingVar};` : ''}
   --tc-frost-depth: ${s.frostDepth ?? 40}px;
   --tc-noise-opacity: ${((s.noiseAmount ?? 0) * 0.007).toFixed(4)};
+  --tc-graph-node-scale: ${s.graphNodeScale ?? 1.0};
+  --tc-graph-link-thickness: ${s.graphLinkThickness ?? 1.0};
 }
 ${headingVar !== 'inherit' ? `
 .markdown-rendered h1, .markdown-rendered h2, .markdown-rendered h3,
@@ -410,6 +417,13 @@ ${s.caretColourEnabled ? `.cm-cursor { border-left-color: ${caretClr} !important
   ALL_MOOD_CLASSES.forEach(c => document.body.classList.remove(c));
   document.body.classList.add(`tc-mood-${s.editorMood || 'minimal'}`);
 
+  // Graph — colour mode is mutually exclusive, halo is an orthogonal overlay.
+  // Scale + thickness are applied as CSS vars that the graph-view container
+  // reads to multiply Obsidian's native node/link sizing. No theme paint.
+  ALL_GRAPH_MODE_CLASSES.forEach(c => document.body.classList.remove(c));
+  document.body.classList.add(`tc-graph-colour-mode-${s.graphColourMode || 'accent'}`);
+  cls('tc-graph-halo', !!s.graphHalo);
+
   // Background effect + native translucency toggle were DISABLED —
   // neither approach produced reliable results (see appearance.ts
   // removal note). We still clear any stale bg-effect class that might
@@ -452,6 +466,8 @@ export function remove(): void {
   ALL_RADIUS_CLASSES.forEach(c => document.body.classList.remove(c));
   ALL_BORDER_CLASSES.forEach(c => document.body.classList.remove(c));
   ALL_MOOD_CLASSES.forEach(c => document.body.classList.remove(c));
+  ALL_GRAPH_MODE_CLASSES.forEach(c => document.body.classList.remove(c));
+  document.body.classList.remove('tc-graph-halo');
   document.body.classList.remove('tc-has-noise');
   document.getElementById('tc-noise-overlay')?.remove();
   ALL_RAINBOW_CLASSES.forEach(c => document.body.classList.remove(c));
