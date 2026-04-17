@@ -103,16 +103,37 @@ function buildSegmentWithColor(
   const setting = new Setting(container).setName(name).setDesc(desc);
   const wrap = setting.controlEl.createDiv("tc-seg-with-color");
 
-  // Pills — identical markup to buildSegmentSetting.
+  // Pills — identical markup to buildSegmentSetting, including the
+  // sliding accent indicator that every other .tc-seg in the plugin
+  // carries. Without this the Weight cluster's Icon/Border intensity
+  // switches read as the odd ones out — no sliding pill, mismatched
+  // with every other segment picker.
   const group = wrap.createDiv("tc-seg");
+  const slide = group.createDiv("tc-seg-slide-indicator");
   const buttons = new Map<string, HTMLElement>();
+
+  const updateSlide = (btn: HTMLElement) => {
+    requestAnimationFrame(() => {
+      const trackRect = group.getBoundingClientRect();
+      const btnRect   = btn.getBoundingClientRect();
+      if (!trackRect.width || !btnRect.width) return;
+      slide.style.setProperty("--tc-slide-x", `${btnRect.left - trackRect.left}px`);
+      slide.style.setProperty("--tc-slide-w", `${btnRect.width}px`);
+      slide.classList.add("tc-seg-slide-indicator--ready");
+    });
+  };
+
   options.forEach(o => {
     const btn = group.createEl("button", { text: o.label, cls: "tc-seg-btn" });
-    if (o.value === currentSegment) btn.addClass("tc-seg-btn--active");
+    if (o.value === currentSegment) {
+      btn.addClass("tc-seg-btn--active");
+      updateSlide(btn);
+    }
     btn.addEventListener("click", async () => {
       if (btn.hasClass("tc-seg-btn--active")) return;
       buttons.forEach(b => b.removeClass("tc-seg-btn--active"));
       btn.addClass("tc-seg-btn--active");
+      updateSlide(btn);
       await onSegmentChange(o.value);
     });
     buttons.set(o.value, btn);
