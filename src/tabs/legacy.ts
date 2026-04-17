@@ -1,7 +1,7 @@
 import { Setting } from "obsidian";
 import Pickr from "@simonwep/pickr";
 import TegenlichtControlsPlugin from "../main";
-import { buildLeftRailShell, LeftRailSection, buildSegmentSetting } from "./_shared";
+import { buildLeftRailShell, LeftRailSection, buildSegmentSetting, buildCluster } from "./_shared";
 
 /**
  * Legacy tab — surfaces AnuPpuccin theme controls that don't have a
@@ -328,10 +328,17 @@ function renderShowHide(
   pane.createEl("p", { cls: "tc-leftrail-secdesc",
     text: "Autohide titlebar, pointer cursor mode, metadata panel visibility, tooltip suppression. Scrollbars and status bar live in the Features tab." });
 
-  new Setting(pane).setName("Autohide titlebar").setDesc("Collapse the title bar until you hover near it")
+  // Experimental: wrap the four controls in the same accent-gradient
+  // inset cluster used in Appearance. Lets us judge whether the cluster
+  // visual reads well inside the rail's narrower content pane, or whether
+  // flat rows hold up better at this density. Other Legacy sections stay
+  // flat for now — A/B by eye.
+  const visibilityCluster = buildCluster(pane, "Visibility");
+
+  new Setting(visibilityCluster).setName("Autohide titlebar").setDesc("Collapse the title bar until you hover near it")
     .addToggle(t => t.setValue(s.hideTitlebarAuto).onChange(async v => { s.hideTitlebarAuto = v; await onChange(); }));
 
-  buildSegmentSetting(pane,
+  buildSegmentSetting(visibilityCluster,
     "Cursor style",
     "Use a pointer cursor over interactive chrome",
     [ { label: "Normal",  value: "initial" }, { label: "Pointer", value: "pointer" } ],
@@ -339,10 +346,10 @@ function renderShowHide(
     async v => { s.uiPointerCursor = v; await onChange(); },
   );
 
-  new Setting(pane).setName("Hide metadata panel").setDesc("Hide the Properties panel wrapper entirely")
+  new Setting(visibilityCluster).setName("Hide metadata panel").setDesc("Hide the Properties panel wrapper entirely")
     .addToggle(t => t.setValue(s.hideMetadata).onChange(async v => { s.hideMetadata = v; await onChange(); }));
 
-  new Setting(pane).setName("Hide tooltips").setDesc("Suppress Obsidian's native tooltip popups")
+  new Setting(visibilityCluster).setName("Hide tooltips").setDesc("Suppress Obsidian's native tooltip popups")
     .addToggle(t => t.setValue(s.hideTooltips).onChange(async v => { s.hideTooltips = v; await onChange(); }));
 }
 
