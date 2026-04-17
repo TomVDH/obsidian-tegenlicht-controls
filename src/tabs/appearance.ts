@@ -789,11 +789,13 @@ export function build(
       .onChange(async v => { s.colorfulFrame = v; await onChange(); })
     );
 
-  // ── Highlights & Tints section ────────────────────────
-  containerEl.createEl("div", { cls: "tc-section-header", text: "Highlights & Tints" });
-  const highlightsCard = containerEl.createDiv("tc-section-body tc-feat-body tc-setting-card");
+  // ── Editor accents cluster — consolidates the old Highlights & Tints
+  //    section (Active line / Selection tint / Caret colour) into the
+  //    Workspace section. Same three colour-picker-plus-toggle rows, new
+  //    home. Pickr instances still registered for cleanup via `pickrs`.
+  const editorAccentsCluster = buildCluster(workspaceCard, "Editor accents");
 
-  pickrs.push(buildColorToggleRow(highlightsCard,
+  pickrs.push(buildColorToggleRow(editorAccentsCluster,
     "Active line", "Highlight the current cursor line in the editor",
     () => s.activeLineColour,
     v => { s.activeLineColour = v; },
@@ -802,7 +804,7 @@ export function build(
     refresh,
   ));
 
-  pickrs.push(buildColorToggleRow(highlightsCard,
+  pickrs.push(buildColorToggleRow(editorAccentsCluster,
     "Selection tint", "Colour overlay applied to selected text",
     () => s.selectionTintColour,
     v => { s.selectionTintColour = v; },
@@ -811,7 +813,7 @@ export function build(
     refresh,
   ));
 
-  pickrs.push(buildColorToggleRow(highlightsCard,
+  pickrs.push(buildColorToggleRow(editorAccentsCluster,
     "Caret colour", "Colour of the text insertion cursor",
     () => s.caretColour,
     v => { s.caretColour = v; },
