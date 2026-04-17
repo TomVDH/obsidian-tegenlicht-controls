@@ -209,6 +209,11 @@ export class TegenlichtSettingsTab extends PluginSettingTab {
     // to DEFAULT_SETTINGS. Auto-disarms after 4 seconds or on outside click.
     this.installResetAllButton(tabBar);
 
+    // ── Theme toggle (light/dark) — sits immediately right of the
+    //    reset button. Same .tc-circle-btn visual vocabulary; icon
+    //    swaps sun ⇄ moon based on the workspace's current theme.
+    this.installThemeToggleButton(tabBar);
+
     // ── Content area (never rebuilt on tab switch) ────────
     this.contentEl = containerEl.createDiv("tc-tab-content");
     this.renderContent();
@@ -328,6 +333,59 @@ export class TegenlichtSettingsTab extends PluginSettingTab {
       document.removeEventListener("keydown", escHandler);
       if (disarmTimer !== null) window.clearTimeout(disarmTimer);
     });
+  }
+
+  /** Light/dark theme toggle — sits immediately right of the reset
+   *  button. Icon swaps sun (when in dark) → moon (when in light) so
+   *  the icon represents "where you will go next", mirroring the
+   *  convention in most apps. Click flips the workspace theme via
+   *  Obsidian's internal APIs and re-syncs the icon.
+   *
+   *  All Obsidian internals are guarded — typed as any and wrapped in
+   *  try/catch so future API churn doesn't break the settings screen.
+   *  Falls back to a body-class toggle if setTheme is missing so the
+   *  visual flip at least happens even when persistence can't. */
+  private installThemeToggleButton(tabBar: HTMLElement): void {
+    const btn = tabBar.createEl("button", { cls: "tc-circle-btn tc-theme-toggle-btn" });
+    btn.setAttribute("aria-label", "Toggle light / dark theme");
+
+    const isDark = () => document.body.classList.contains("theme-dark");
+
+    const syncIcon = () => {
+      // Clear previous SVG and re-render. Lucide `sun` when in dark,
+      // `moon` when in light — icon advertises the destination.
+      btn.empty();
+      setIcon(btn, isDark() ? "sun" : "moon");
+      btn.setAttribute("title", isDark()
+        ? "Switch to light theme"
+        : "Switch to dark theme");
+    };
+    syncIcon();
+
+    btn.addEventListener("click", (e) => {
+      e.stopPropagation();
+      const nextTheme = isDark() ? "moonstone" : "obsidian";
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const app = this.plugin.app as any;
+      try {
+        app?.setTheme?.(nextTheme);
+        app?.vault?.setConfig?.("theme", nextTheme);
+        this.plugin.app.workspace.trigger("css-change");
+      } catch (err) {
+        console.warn("[tegenlicht-controls] theme toggle — API call failed, falling back to class swap", err);
+        document.body.classList.toggle("theme-dark");
+        document.body.classList.toggle("theme-light");
+      }
+      // Defer a frame so any async theme swap has settled before we
+      // re-read body classes for the icon.
+      requestAnimationFrame(syncIcon);
+    });
+
+    // Obsidian emits css-change when the user flips the theme from
+    // Appearance settings or the command palette — keep our icon in
+    // step regardless of where the swap originated.
+    const cssChangeRef = this.plugin.app.workspace.on("css-change", () => syncIcon());
+    this.disposers.push(() => this.plugin.app.workspace.offref(cssChangeRef));
   }
 
   /** Write --tc-tab-gap CSS variable so pill + segment tabs pick it up live. */

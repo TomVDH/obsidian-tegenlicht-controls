@@ -361,6 +361,17 @@
   transition: color 0.2s ease, border-color 0.2s ease, background 0.2s ease, box-shadow 0.25s ease;
   box-shadow: 0 0 0 0 transparent;
 }
+
+/* Theme toggle — sits immediately right of the reset button. Same
+   size + shape as .tc-reset-all-btn via the shared .tc-circle-btn
+   base. A small gap separates the two so they don't read as a
+   single control. Icon swaps sun ⇄ moon in JS. */
+.tc-settings .tc-theme-toggle-btn {
+  width: 34px;
+  height: 34px;
+  margin-left: 8px;
+}
+.tc-settings .tc-theme-toggle-btn svg { width: 17px; height: 17px; }
 /* Spacer between the tab cluster and the reset button — dashed
    horizontal connector spanning the FULL gap (no inset margins) so
    the line truly "wires" the last tab to the reset button. Same
@@ -507,32 +518,30 @@
 }
 
 /* ═══════════════════════════════════════════════════════════
-   MESH BLOOM — bottom-right edge wash, two accent glow centres
-   drifting slowly on different phases.
+   MESH BLOOM — upper-right header area, far subtler than before.
 
-   Moved from top-right to bottom-right (2026-04-17) so it no
-   longer competes with Obsidian's modal close-button in the
-   top-right corner of the settings pane. Hugged to the edge
-   (fixed-position at right:0 bottom:0, positioned so the
-   glow centres sit ON the border, not away from it) so it
-   reads as a soft corner glow rather than a centre wash.
-   Alphas trimmed further so it breathes in the background
-   rather than competing with UI chrome.
+   Positioned near the top of the panel, offset in from the very
+   top-right corner so Obsidian's modal close-button stays
+   visually clear. Sits around the header row in the same band
+   as the ◈ diamond — "by the diamond" in visual weight, not
+   horizontal position (diamond lives top-left). Peak alphas
+   dropped by ~60% vs the bottom-right iteration so the bloom
+   whispers rather than washes.
    ═══════════════════════════════════════════════════════════ */
-@property --mesh-a-x { syntax: "<percentage>"; inherits: true; initial-value: 88%; }
-@property --mesh-a-y { syntax: "<percentage>"; inherits: true; initial-value: 84%; }
-@property --mesh-b-x { syntax: "<percentage>"; inherits: true; initial-value: 72%; }
-@property --mesh-b-y { syntax: "<percentage>"; inherits: true; initial-value: 62%; }
+@property --mesh-a-x { syntax: "<percentage>"; inherits: true; initial-value: 82%; }
+@property --mesh-a-y { syntax: "<percentage>"; inherits: true; initial-value: 38%; }
+@property --mesh-b-x { syntax: "<percentage>"; inherits: true; initial-value: 60%; }
+@property --mesh-b-y { syntax: "<percentage>"; inherits: true; initial-value: 56%; }
 
 @keyframes tc-mesh-drift-a {
-  0%   { --mesh-a-x: 88%; --mesh-a-y: 84%; }
-  50%  { --mesh-a-x: 96%; --mesh-a-y: 72%; }
-  100% { --mesh-a-x: 88%; --mesh-a-y: 84%; }
+  0%   { --mesh-a-x: 82%; --mesh-a-y: 38%; }
+  50%  { --mesh-a-x: 92%; --mesh-a-y: 48%; }
+  100% { --mesh-a-x: 82%; --mesh-a-y: 38%; }
 }
 @keyframes tc-mesh-drift-b {
-  0%   { --mesh-b-x: 72%; --mesh-b-y: 62%; }
-  50%  { --mesh-b-x: 82%; --mesh-b-y: 78%; }
-  100% { --mesh-b-x: 72%; --mesh-b-y: 62%; }
+  0%   { --mesh-b-x: 60%; --mesh-b-y: 56%; }
+  50%  { --mesh-b-x: 70%; --mesh-b-y: 42%; }
+  100% { --mesh-b-x: 60%; --mesh-b-y: 56%; }
 }
 
 .tc-settings {
@@ -542,22 +551,25 @@
 .tc-settings::before {
   content: "";
   position: absolute;
-  right: 0;
-  bottom: 0;
-  width: 560px;
-  height: 440px;
+  /* Offset from the absolute top/right corner so Obsidian's native
+     close-X (top-right of the modal) never sits behind the glow.
+     top: 44px leaves the close button's reach zone clear. */
+  top: 44px;
+  right: 8px;
+  width: 420px;
+  height: 260px;
   background:
     radial-gradient(
-      ellipse 240px 200px at var(--mesh-a-x, 88%) var(--mesh-a-y, 84%),
-      rgba(var(--color-accent-rgb, 229, 179, 42), 0.10) 0%,
-      rgba(var(--color-accent-rgb, 229, 179, 42), 0.045) 42%,
-      transparent 72%
+      ellipse 210px 160px at var(--mesh-a-x, 82%) var(--mesh-a-y, 38%),
+      rgba(var(--color-accent-rgb, 229, 179, 42), 0.055) 0%,
+      rgba(var(--color-accent-rgb, 229, 179, 42), 0.025) 42%,
+      transparent 74%
     ),
     radial-gradient(
-      ellipse 300px 240px at var(--mesh-b-x, 72%) var(--mesh-b-y, 62%),
-      rgba(var(--color-accent-rgb, 229, 179, 42), 0.06) 0%,
-      rgba(var(--color-accent-rgb, 229, 179, 42), 0.028) 46%,
-      transparent 78%
+      ellipse 260px 200px at var(--mesh-b-x, 60%) var(--mesh-b-y, 56%),
+      rgba(var(--color-accent-rgb, 229, 179, 42), 0.032) 0%,
+      rgba(var(--color-accent-rgb, 229, 179, 42), 0.015) 46%,
+      transparent 80%
     );
   animation:
     tc-mesh-drift-a 13s ease-in-out infinite,
@@ -578,6 +590,21 @@
    accent alphas read harsh on pale backgrounds. */
 .theme-light .tc-settings::before {
   display: none;
+}
+
+/* Safety: ensure Obsidian's native modal close-button (top-right
+   X on every settings pane) never gets hidden or visually buried
+   by anything the plugin paints. Belt + braces — forces the
+   display/visibility/opacity trio AND bumps z-index above any
+   pseudo-elements inside .tc-settings. Selector targets all
+   modal containers (including `.mod-dim`) so it covers every
+   variant Obsidian uses. */
+body > div.modal-container .modal-close-button {
+  display: flex !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+  z-index: 999 !important;
+  pointer-events: auto !important;
 }
 /* Tabs sit above the ::before via the isolation context. Important
    for the switch / amber styles whose pills also need to sit above
@@ -631,10 +658,11 @@
   backdrop-filter: none !important;
   -webkit-backdrop-filter: none !important;
   color: var(--color-accent) !important;
-  text-shadow:
-    0 0 6px  rgba(var(--color-accent-rgb, 229, 179, 42), 0.55),
-    0 0 14px rgba(var(--color-accent-rgb, 229, 179, 42), 0.25) !important;
-  transition: color 0.28s ease, text-shadow 0.28s ease;
+  /* Text-shadow glow removed per user directive — the sliding
+     frosted pill carries the active surface, and accent text colour
+     alone is the reading cue. No font-glow on these strings. */
+  text-shadow: none !important;
+  transition: color 0.28s ease;
 }
 
 /* Sliding indicator — lives inside .tc-tab-inner-wrap, translates +
@@ -2323,6 +2351,30 @@ body.tc-radius-rounded .tc-settings .tc-feat-group { border-radius: 14px !import
 }
 .tc-settings .tc-feat-group--flat .tc-feat-header { background: transparent; }
 .tc-settings .tc-feat-group--flat .tc-feat-header:hover { background: var(--background-secondary); }
+
+/* Pretty accordion — repaints the accordion shell with the same
+   accent-gradient treatment as .tc-cluster. Used for the Fonts
+   accordion in Typography (experiment 2026-04-17). Applies to the
+   container AND the header so the whole card reads as a cohesive
+   pretty box, not just the inner body. Inner setting-items lose
+   their dark per-row bg (matching .tc-cluster's behaviour) so the
+   accent wash is visible beneath. */
+.tc-settings .tc-feat-group--pretty {
+  background: linear-gradient(135deg,
+    color-mix(in srgb, var(--color-accent) 8%, transparent),
+    color-mix(in srgb, var(--color-accent) 3%, transparent));
+  border: 1px solid color-mix(in srgb, var(--color-accent) 22%, transparent);
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.08);
+}
+.tc-settings .tc-feat-group--pretty .tc-feat-header,
+.tc-settings .tc-feat-group--pretty .tc-feat-header:hover {
+  background: transparent;
+}
+.tc-settings .tc-feat-group--pretty .tc-feat-body.tc-setting-card .setting-item,
+.tc-settings .tc-feat-group--pretty .tc-feat-body.tc-setting-card .setting-item:hover {
+  background: transparent !important;
+  border-top: none;
+}
 
 .tc-settings .tc-feat-row {
   display: flex;
