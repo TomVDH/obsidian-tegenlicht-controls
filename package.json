@@ -1,6 +1,6 @@
 {
   "name": "tegenlicht-controls",
-  "version": "0.7.6",
+  "version": "0.7.7",
   "description": "Polished settings UI for the Tegenlicht theme",
   "main": "main.js",
   "scripts": {

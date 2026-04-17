@@ -97,7 +97,7 @@ export class TegenlichtSettingsTab extends PluginSettingTab {
 
     // Spacer pushes the version badge to the far right of the top row
     top.createSpan({ cls: "tc-header-top-spacer" });
-    top.createSpan({ cls: "tc-header-badge", text: "v0.7.4" });
+    top.createSpan({ cls: "tc-header-badge", text: `v${this.plugin.manifest.version}` });
 
     const tagline = header.createDiv("tc-header-tagline");
     tagline.createSpan({ text: "A bespoke collection of Obsidian quality of life and appearance settings. Inspired by and forked from " });
