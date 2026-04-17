@@ -59,8 +59,10 @@
   letter-spacing: 0.18em;
   color: var(--text-muted);
   opacity: 0.8;
-  align-self: center;
-  padding-bottom: 2px;
+  /* Anchor to the bottom of the Tegenlicht wordmark (baseline-aligned
+     to the wordmark's baseline, not its midline). */
+  align-self: flex-end;
+  padding-bottom: 6px;
 }
 .tc-settings .tc-header-name-brand.tc-name-shimmer {
   animation: tc-golden-shimmer 1.6s ease forwards;
@@ -1709,7 +1711,8 @@ body.tc-radius-rounded .tc-settings .tc-feat-group { border-radius: 14px !import
   font-size: 17px;
   font-weight: 700;
   color: var(--color-accent);
-  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
   margin: 28px 0 12px 0;
   padding: 0;
 }
@@ -3558,10 +3561,10 @@ body.tc-graph-halo .workspace-leaf-content[data-type="graph"] .graph-view.color-
   font-size: 14px;
   font-weight: 700;
   color: var(--color-accent);
-  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
   margin: 0 0 10px 0;
-  padding: 0 0 6px 0;
-  border-bottom: 1px solid var(--background-modifier-border);
+  padding: 0;
 }
 .tc-settings .tc-leftrail-secdesc {
   margin: 0 0 14px 0;
