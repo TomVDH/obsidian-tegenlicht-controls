@@ -3,7 +3,10 @@ import TegenlichtControlsPlugin from "../main";
 import { DEFAULT_SETTINGS, TegenlichtSettings } from "../settings";
 import { buildFontCombobox } from "../font-combobox";
 import { buildTypographyPreview } from "../preview-sample";
-import { buildLeftRailShell, LeftRailSection } from "./_shared";
+import {
+  buildLeftRailShell, LeftRailSection,
+  buildPrettyAccordion, buildSectionPreview,
+} from "./_shared";
 
 interface SliderCfg {
   key: keyof TegenlichtSettings;
@@ -30,72 +33,9 @@ const SPACING_SLIDERS: SliderCfg[] = [
 
 // ── Font combobox replaces the old preset pills + raw input. See
 //    ../font-combobox.ts for the search/filter/keyboard behaviour.
-
-// Module-level accordion state — survives redisplay() so collapsing
-// an accordion inside a rail pane doesn't re-open on every click of
-// another rail item. Keyed by rail section id. Default: every
-// accordion starts open on first visit.
-const accordionOpen: Record<string, boolean> = {
-  fonts: true, rhythm: true, headings: true, weight: true, accents: true,
-};
-
-/** Collapsible "PREVIEW" affordance — matches the Callouts section
- *  in the Legacy tab exactly:
- *    [PREVIEW label] · [dashed connector] · [chevron circle button]
- *  Clicking the chevron fades the preview wrap open/closed via a
- *  maxHeight transition. Content is built EAGERLY into the wrap
- *  (not lazy) so the first expand lands with zero flicker — same
- *  behaviour as Callouts. */
-function buildSectionPreview(
-  pane: HTMLElement,
-  buildContent: (wrap: HTMLElement) => void,
-): void {
-  const bar = pane.createDiv("tc-section-preview-bar");
-  bar.createSpan({ cls: "tc-section-preview-label", text: "PREVIEW" });
-  bar.createDiv("tc-section-preview-dash");
-  const btn = bar.createEl("button", {
-    cls: "tc-circle-btn tc-section-preview-btn",
-    attr: { "aria-label": "Toggle preview", title: "Toggle preview" },
-  });
-  setIcon(btn, "chevron-down");
-
-  const wrap = pane.createDiv("tc-section-preview-wrap");
-  buildContent(wrap);
-
-  let open = false;
-  btn.addEventListener("click", () => {
-    open = !open;
-    if (open) {
-      wrap.style.maxHeight = wrap.scrollHeight + "px";
-      btn.addClass("tc-section-preview-btn--open");
-    } else {
-      wrap.style.maxHeight = "0px";
-      btn.removeClass("tc-section-preview-btn--open");
-    }
-  });
-}
-
-/** Foldable pretty-painted accordion living inside a rail pane. The
- *  container paints with the accent-gradient cluster treatment via
- *  `.tc-feat-group--pretty`; state persists across renders via
- *  module-level `accordionOpen`. Returns the body for content. */
-function buildPrettyAccordion(
-  container: HTMLElement,
-  key: keyof typeof accordionOpen,
-  title: string,
-): HTMLElement {
-  const accordion = container.createDiv(
-    "tc-feat-group tc-feat-group--pretty" + (accordionOpen[key] ? " tc-feat-group--open" : "")
-  );
-  const header = accordion.createDiv("tc-feat-header");
-  header.createDiv("tc-feat-title").createSpan({ text: title });
-  header.createDiv("tc-feat-meta").createSpan({ text: "▶", cls: "tc-feat-chevron" });
-  header.addEventListener("click", () => {
-    accordionOpen[key] = !accordionOpen[key];
-    accordion.toggleClass("tc-feat-group--open", accordionOpen[key]);
-  });
-  return accordion.createDiv("tc-feat-body tc-setting-card");
-}
+// buildPrettyAccordion + buildSectionPreview live in ./_shared so
+// Appearance can share the same rail-pane idiom. Keys below use a
+// `typo-` prefix to avoid collisions with other tabs.
 
 /** Font role row — Name/Desc on the left, searchable combobox + system
  *  + reset buttons on the right. Matches Appearance tab's Setting-row
@@ -232,7 +172,7 @@ function renderFonts(
   // In-section collapsible preview, same pattern as Callouts.
   buildSectionPreview(pane, buildTypographyPreview);
 
-  const card = buildPrettyAccordion(pane, "fonts", "Role mapping");
+  const card = buildPrettyAccordion(pane, "typo-fonts", "Role mapping");
 
   new Setting(card)
     .setName("Load Google Fonts")
@@ -274,7 +214,7 @@ function renderRhythm(
   // In-section collapsible preview, same pattern as Callouts.
   buildSectionPreview(pane, buildTypographyPreview);
 
-  const card = buildPrettyAccordion(pane, "rhythm", "Sliders");
+  const card = buildPrettyAccordion(pane, "typo-rhythm", "Sliders");
   card.addClass("tc-h-accordion-body");
 
   const headingGroup = card.createDiv("tc-h-group");
@@ -303,7 +243,7 @@ function renderRhythm(
  *  the accordion inside carries a generic "Not yet wired" subtitle. */
 function renderPlaceholder(
   pane: HTMLElement,
-  key: keyof typeof accordionOpen,
+  key: string,
   title: string,
   quip: string,
   hint: string,
@@ -345,15 +285,15 @@ export function build(
     // waves. Rail structure fixed now so future fills don't reshape
     // the tab.
     { id: "headings", label: "Headings",        count: 0,
-      render: pane => renderPlaceholder(pane, "headings", "Headings",
+      render: pane => renderPlaceholder(pane, "typo-headings", "Headings",
         "Per-heading colour, divider rule, decoration accents.",
         "Lands with AnuPpuccin port Wave 3 — per-H colour dropdowns, divider toggles, decoration accents.") },
     { id: "weight",   label: "Weight & leading", count: 0,
-      render: pane => renderPlaceholder(pane, "weight", "Weight & leading",
+      render: pane => renderPlaceholder(pane, "typo-weight", "Weight & leading",
         "Per-heading font / weight / line-height plus global font weights.",
         "Lands with Wave 4 — per-H font / weight / line-height plus global weight vars.") },
     { id: "accents",  label: "Accents",         count: 0,
-      render: pane => renderPlaceholder(pane, "accents", "Accents",
+      render: pane => renderPlaceholder(pane, "typo-accents", "Accents",
         "Bold / italic / highlight / link text-colour overrides.",
         "Lands with Wave 3 decoration colours — bold / italic / highlight / link overrides.") },
   ];

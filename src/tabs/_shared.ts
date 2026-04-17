@@ -1,4 +1,4 @@
-import { Setting } from "obsidian";
+import { Setting, setIcon } from "obsidian";
 import Pickr from "@simonwep/pickr";
 
 /**
@@ -254,4 +254,72 @@ export function buildHorizontalTabs(parent: HTMLElement, tabs: HorizontalTab[]):
   });
 
   renderActive();
+}
+
+// ─── Pretty accordion + section preview helpers ────────────────────
+// Shared across any tab that needs the rail-pane pattern established
+// in Typography (Fonts / Rhythm): a foldable accent-painted card
+// labelled with an all-caps subtitle, optionally preceded by a
+// Callouts-style PREVIEW strip. Module-level open-state map keyed by
+// caller-supplied id so open/collapsed state survives rail switches
+// and redisplay() rebuilds. Use a tab-prefix to avoid key collisions
+// (e.g. "typo-fonts", "app-palette").
+
+const prettyAccordionOpen: Record<string, boolean> = {};
+
+/** Foldable accent-painted accordion. `open` defaults to true on
+ *  first visit; subsequent visits honour the user's toggle state
+ *  via the module-level map. Returns the body for content. */
+export function buildPrettyAccordion(
+  container: HTMLElement,
+  key: string,
+  title: string,
+  defaultOpen = true,
+): HTMLElement {
+  if (!(key in prettyAccordionOpen)) prettyAccordionOpen[key] = defaultOpen;
+  const isOpen = prettyAccordionOpen[key];
+  const accordion = container.createDiv(
+    "tc-feat-group tc-feat-group--pretty" + (isOpen ? " tc-feat-group--open" : "")
+  );
+  const header = accordion.createDiv("tc-feat-header");
+  header.createDiv("tc-feat-title").createSpan({ text: title });
+  header.createDiv("tc-feat-meta").createSpan({ text: "▶", cls: "tc-feat-chevron" });
+  header.addEventListener("click", () => {
+    prettyAccordionOpen[key] = !prettyAccordionOpen[key];
+    accordion.toggleClass("tc-feat-group--open", prettyAccordionOpen[key]);
+  });
+  return accordion.createDiv("tc-feat-body tc-setting-card");
+}
+
+/** Collapsible PREVIEW strip matching the Callouts section in
+ *  Legacy: [PREVIEW label] · [dashed connector] · [chevron button].
+ *  Content is built eagerly into the wrap so the first expand lands
+ *  without flicker. Accent sweep on hover/open lives in styles.css. */
+export function buildSectionPreview(
+  pane: HTMLElement,
+  buildContent: (wrap: HTMLElement) => void,
+): void {
+  const bar = pane.createDiv("tc-section-preview-bar");
+  bar.createSpan({ cls: "tc-section-preview-label", text: "PREVIEW" });
+  bar.createDiv("tc-section-preview-dash");
+  const btn = bar.createEl("button", {
+    cls: "tc-circle-btn tc-section-preview-btn",
+    attr: { "aria-label": "Toggle preview", title: "Toggle preview" },
+  });
+  setIcon(btn, "chevron-down");
+
+  const wrap = pane.createDiv("tc-section-preview-wrap");
+  buildContent(wrap);
+
+  let open = false;
+  btn.addEventListener("click", () => {
+    open = !open;
+    if (open) {
+      wrap.style.maxHeight = wrap.scrollHeight + "px";
+      btn.addClass("tc-section-preview-btn--open");
+    } else {
+      wrap.style.maxHeight = "0px";
+      btn.removeClass("tc-section-preview-btn--open");
+    }
+  });
 }
