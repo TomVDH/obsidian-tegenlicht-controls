@@ -2386,12 +2386,16 @@ body.tc-radius-rounded .tc-settings .tc-feat-group { border-radius: 14px !import
    accent-gradient treatment as .tc-cluster. Used inside Typography
    rail panes so each sub-section reads as an accent-painted card.
    Inner setting-items lose their dark per-row bg so the accent
-   wash is visible beneath. */
+   wash is visible beneath.
+
+   Border strength unified with the left-rail active item + top-tab
+   pill indicator (all three at rgba(accent, 0.40)) — the three
+   accent-bordered surfaces now read at the same intensity. */
 .tc-settings .tc-feat-group--pretty {
   background: linear-gradient(135deg,
     color-mix(in srgb, var(--color-accent) 8%, transparent),
     color-mix(in srgb, var(--color-accent) 3%, transparent));
-  border: 1px solid color-mix(in srgb, var(--color-accent) 22%, transparent);
+  border: 1px solid rgba(var(--color-accent-rgb, 229, 179, 42), 0.40);
   box-shadow: 0 1px 4px rgba(0, 0, 0, 0.08);
 }
 .tc-settings .tc-feat-group--pretty .tc-feat-header,
@@ -3963,7 +3967,10 @@ body.tc-graph-halo .workspace-leaf-content[data-type="graph"] .graph-view.color-
   background: rgba(var(--color-accent-rgb, 229, 179, 42), 0.16);
   backdrop-filter: blur(10px) saturate(1.4);
   -webkit-backdrop-filter: blur(10px) saturate(1.4);
-  box-shadow: inset 0 0 0 1px rgba(var(--color-accent-rgb, 229, 179, 42), 0.48);
+  /* Border alpha 0.48 → 0.40 to match the top-tab pill indicator and
+     the pretty-cluster border — three accent-bordered surfaces now
+     read at identical intensity. */
+  box-shadow: inset 0 0 0 1px rgba(var(--color-accent-rgb, 229, 179, 42), 0.40);
 }
 
 .tc-settings .tc-leftrail-count {
