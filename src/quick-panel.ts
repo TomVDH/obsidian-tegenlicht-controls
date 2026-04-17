@@ -5,8 +5,9 @@ import { build as buildTypography } from "./tabs/typography";
 import { build as buildEditing }    from "./tabs/editing";
 import { build as buildLayout }     from "./tabs/layout";
 import { build as buildFeatures }   from "./tabs/features";
+import { build as buildLegacy }     from "./tabs/legacy";
 
-type Tab = "appearance" | "typography" | "editing" | "layout" | "features";
+type Tab = "appearance" | "typography" | "editing" | "layout" | "features" | "legacy";
 
 const TABS: { id: Tab; label: string }[] = [
   { id: "appearance", label: "Appearance" },
@@ -14,6 +15,7 @@ const TABS: { id: Tab; label: string }[] = [
   { id: "editing",    label: "Editing"    },
   { id: "layout",     label: "Layout"     },
   { id: "features",   label: "Features"   },
+  { id: "legacy",     label: "Legacy"     },
 ];
 
 /**
@@ -164,6 +166,7 @@ export class TegenlichtQuickPanel extends Modal {
       case "editing":    buildEditing(this.contentArea, this.plugin, onChange);    break;
       case "layout":     buildLayout(this.contentArea, this.plugin, onChange);     break;
       case "features":   buildFeatures(this.contentArea, this.plugin, onChange);   break;
+      case "legacy":     this.cleanup = buildLegacy(this.contentArea, this.plugin, onChange, redisplay); break;
     }
   }
 
