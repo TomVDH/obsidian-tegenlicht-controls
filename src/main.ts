@@ -78,6 +78,17 @@ export default class TegenlichtControlsPlugin extends Plugin {
     if (!VALID_TAB_STYLES.has(this.settings.tabBarStyle)) {
       this.settings.tabBarStyle = 'text';
     }
+    // One-shot migration to promote existing 'glow' saves to the new
+    // 'glow-b' default so users inherit the upgraded treatment without
+    // having to flip the picker manually. Only runs once, then respects
+    // any subsequent explicit pick (including switching back to 'glow').
+    if (!this.settings.tabActiveStyleMigratedV1) {
+      if (this.settings.tabActiveStyle === 'glow') {
+        this.settings.tabActiveStyle = 'glow-b';
+      }
+      this.settings.tabActiveStyleMigratedV1 = true;
+      await this.saveData(this.settings);
+    }
   }
 
   async saveSettings(): Promise<void> {

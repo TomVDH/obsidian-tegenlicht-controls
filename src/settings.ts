@@ -12,6 +12,11 @@ export interface TegenlichtSettings {
   //              rounded. Inactive tabs get the currentColor ring
   //              too (Pill B promoted).
   tabActiveStyle: string; // 'glow' | 'glow-b' | 'pill'
+  // One-shot migration flag. When false on load, and tabActiveStyle
+  // is the prior default ('glow'), loadSettings promotes it to
+  // 'glow-b' and flips this to true. After that the user's explicit
+  // pick is respected (so they can flip back to 'glow' if they want).
+  tabActiveStyleMigratedV1: boolean;
 
   // Appearance — Colour scheme
   darkFlavour: string;
@@ -206,6 +211,7 @@ export const DEFAULT_SETTINGS: TegenlichtSettings = {
   tabBarStyle: 'text',
   tabBarSpacing: 6,
   tabActiveStyle: 'glow-b',
+  tabActiveStyleMigratedV1: false,
 
   darkFlavour: 'tc-maneblusser',
   lightFlavour: 'tc-mechelen',
