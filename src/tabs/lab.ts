@@ -48,7 +48,7 @@ export function build(
       render: pane => renderTabStyles(pane),
     },
     {
-      id: "accordion-styles", label: "Accordion styles", count: 5,
+      id: "accordion-styles", label: "Accordion styles", count: 8,
       render: pane => renderAccordionStyles(pane),
     },
     {
@@ -318,6 +318,18 @@ function renderAccordionStyles(pane: HTMLElement): void {
     "Neutral bloc",
     "Neutral card with a stacked kicker above the title. Circular + / − disc chevron. Pure mono.",
     "SECTION");
+
+  buildMockAccordion(pane, "tc-mock-acc--slab",
+    "Slab underline",
+    "Heavy masthead title between two accent hairlines. Tinted square chevron rotates 90° and fills accent on open.");
+
+  buildMockAccordion(pane, "tc-mock-acc--ghost",
+    "Ghost bloom",
+    "Near-invisible at rest. On hover, a soft accent radial blooms behind the header, text lifts to full opacity, and the chevron fades in.");
+
+  buildMockAccordion(pane, "tc-mock-acc--ledger",
+    "Monospace ledger",
+    "Monospace small-caps title with dotted leaders filling the gap to the chevron. TOC / index feel.");
 }
 
 /** Build one foldable mock accordion inside a Lab pane. All variants

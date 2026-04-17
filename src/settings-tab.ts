@@ -119,9 +119,9 @@ export class TegenlichtSettingsTab extends PluginSettingTab {
     top.createSpan({ cls: "tc-header-top-spacer" });
     top.createSpan({ cls: "tc-header-badge", text: `v${this.plugin.manifest.version}` });
 
-    // GitHub icon-link — same SVG and styling as the one in the footer
-    // copy row, slotted right next to the version badge so the header's
-    // top row reads as wordmark · spacer · version · github.
+    // GitHub icon-link — slotted right next to the version badge so
+    // the header's top row reads as wordmark · spacer · version ·
+    // github · help.
     const ghBadgeLink = top.createEl("a", {
       cls: "tc-header-gh tc-header-gh--badge",
       href: "https://github.com/tomlinson/obsidian-tegenlicht-controls",
@@ -134,6 +134,20 @@ export class TegenlichtSettingsTab extends PluginSettingTab {
       <path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0 0 16 8c0-4.42-3.58-8-8-8z"/>
     </svg>`;
 
+    // Help button — circular ? icon pointing at the GitHub README
+    // section that covers licensing + acknowledgements. Replaces the
+    // (now-retired) footer github/license/ack trio with a single
+    // discoverable control paired to the version + github cluster.
+    const helpLink = top.createEl("a", {
+      cls: "tc-header-help",
+      href: "https://github.com/tomlinson/obsidian-tegenlicht-controls/blob/main/README.md#acknowledgements",
+    });
+    helpLink.setAttr("target", "_blank");
+    helpLink.setAttr("rel", "noopener");
+    helpLink.setAttr("aria-label", "See Licencing and Acknowledgements");
+    helpLink.setAttr("title", "See Licencing and Acknowledgements");
+    setIcon(helpLink, "help-circle");
+
     const tagline = header.createDiv("tc-header-tagline");
     tagline.createSpan({ text: "A bespoke collection of Obsidian quality of life and appearance settings. Inspired by and forked from " });
     const link = tagline.createEl("a", { text: "AnuPuccin's theme", href: "https://github.com/AnubisNekhet/AnuPuccin" });
@@ -142,27 +156,10 @@ export class TegenlichtSettingsTab extends PluginSettingTab {
     tagline.createSpan({ text: ", " });
     tagline.createSpan({ cls: "tc-header-tagline-sig", text: "spun up by Onnozelaer" });
 
-    // Footer copy row — GitHub · License · Acknowledgements. Rainbow
-    // bar relocated to the top of the Legacy left rail (per user
-    // directive); the header just hosts the copy links now.
+    // Footer copy row — License · Acknowledgements text links only.
+    // GitHub icon was retired here (now lives once in the top row,
+    // paired with the version badge + new help `?` button).
     const copy = header.createDiv("tc-header-copy");
-
-    // GitHub icon-link
-    const ghLink = copy.createEl("a", {
-      cls: "tc-header-gh",
-      href: "https://github.com/tomlinson/obsidian-tegenlicht-controls",
-    });
-    ghLink.setAttr("target", "_blank");
-    ghLink.setAttr("rel", "noopener");
-    ghLink.setAttr("aria-label", "View on GitHub");
-    ghLink.setAttr("title", "View on GitHub");
-    ghLink.innerHTML = `<svg viewBox="0 0 16 16" width="13" height="13" fill="currentColor" aria-hidden="true">
-      <path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0 0 16 8c0-4.42-3.58-8-8-8z"/>
-    </svg>`;
-
-    // Pip separator between GitHub logo and licence (TODO: confirm licence —
-    // label reflects current placeholder; will resolve to GPL-3 or MIT later)
-    copy.createSpan({ cls: "tc-header-copy-sep", text: "·" });
 
     const licenceLink = copy.createEl("a", {
       text: "GPL-3 / MIT",

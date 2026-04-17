@@ -95,7 +95,10 @@
   animation: tc-golden-shimmer 1.6s ease forwards;
 }
 
-/* GitHub link next to the version badge */
+/* GitHub link next to the version badge — margin tightened
+   (was 4px) so the version + github + ? trio reads as a single
+   cluster rather than three loose icons. The help button carries
+   its own 2px left margin for the inner micro-gap. */
 .tc-settings .tc-header-gh {
   display: inline-flex;
   align-items: center;
@@ -105,13 +108,37 @@
   padding: 4px;
   border-radius: 50%;
   transition: color 140ms ease, background 140ms ease;
-  margin-left: 4px;
+  margin-left: 8px;
 }
 .tc-settings .tc-header-gh:hover {
   color: var(--color-accent);
   background: color-mix(in srgb, var(--color-accent) 12%, transparent);
 }
 .tc-settings .tc-header-gh svg { display: block; }
+
+/* Help button (?) — same circular chrome as .tc-header-gh so the
+   two icons read as a paired trio with the version badge. Points
+   at the README section covering licensing + acknowledgements. */
+.tc-settings .tc-header-help {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-muted);
+  text-decoration: none;
+  padding: 4px;
+  border-radius: 50%;
+  transition: color 140ms ease, background 140ms ease;
+  margin-left: 2px;
+}
+.tc-settings .tc-header-help:hover {
+  color: var(--color-accent);
+  background: color-mix(in srgb, var(--color-accent) 12%, transparent);
+}
+.tc-settings .tc-header-help svg {
+  display: block;
+  width: 14px;
+  height: 14px;
+}
 .tc-settings .tc-header-name {
   font-size: 20px;
   font-weight: 700;
@@ -5837,3 +5864,156 @@ body.tc-graph-halo .workspace-leaf-content[data-type="graph"] .graph-view.color-
 .tc-settings .tc-mock-acc--bloc.tc-mock-acc--open .tc-mock-acc-chev::before {
   content: "−";
 }
+
+/* ── F · Slab underline ──────────────────────────────────────
+   No fill, no side borders — just a pair of 1px accent hairlines
+   top and bottom. Heavy masthead title. Square tinted chevron
+   rotates 90° and fills accent on open. Journalistic feel. */
+.tc-settings .tc-mock-acc--slab {
+  background: transparent;
+  border: none;
+  border-top: 1px solid rgba(var(--color-accent-rgb, 229, 179, 42), 0.32);
+  border-bottom: 1px solid rgba(var(--color-accent-rgb, 229, 179, 42), 0.32);
+  border-radius: 0;
+  margin: 18px 0;
+}
+.tc-settings .tc-mock-acc--slab .tc-mock-acc-header {
+  padding: 15px 8px 14px;
+}
+.tc-settings .tc-mock-acc--slab .tc-mock-acc-title {
+  font-size: 15px;
+  font-weight: 700;
+  letter-spacing: -0.005em;
+  color: var(--text-normal);
+}
+.tc-settings .tc-mock-acc--slab .tc-mock-acc-chev {
+  width: 22px;
+  height: 22px;
+  background: rgba(var(--mono-rgb-100, 200, 200, 200), 0.08);
+  color: var(--text-muted);
+  font-size: 10px;
+  border-radius: 3px;
+  transition: background 0.22s ease, color 0.22s ease, transform 0.22s ease;
+}
+.tc-settings .tc-mock-acc--slab .tc-mock-acc-chev::before { content: "▸"; }
+.tc-settings .tc-mock-acc--slab.tc-mock-acc--open .tc-mock-acc-chev {
+  background: rgba(var(--color-accent-rgb, 229, 179, 42), 0.18);
+  color: var(--color-accent);
+  transform: rotate(90deg);
+}
+.tc-settings .tc-mock-acc--slab .tc-mock-acc-body {
+  padding: 0 8px;
+}
+.tc-settings .tc-mock-acc--slab.tc-mock-acc--open .tc-mock-acc-body {
+  padding: 4px 8px 14px;
+}
+
+/* ── G · Ghost bloom ─────────────────────────────────────────
+   Transparent at rest. On hover (or when open) a soft accent
+   radial blooms behind the header, the muted title lifts to full
+   colour, and the chevron fades in. Ambient, spectral feel —
+   closest thing we have to an "invisible" UI state. */
+.tc-settings .tc-mock-acc--ghost {
+  background: transparent;
+  border: none;
+  border-radius: 6px;
+  position: relative;
+  overflow: visible;
+  margin: 18px 0;
+}
+.tc-settings .tc-mock-acc--ghost .tc-mock-acc-header {
+  position: relative;
+  padding: 11px 14px;
+  isolation: isolate;
+}
+.tc-settings .tc-mock-acc--ghost .tc-mock-acc-header::before {
+  content: "";
+  position: absolute;
+  inset: -10px -20px;
+  background: radial-gradient(
+    ellipse 60% 140% at 15% 50%,
+    rgba(var(--color-accent-rgb, 229, 179, 42), 0.14) 0%,
+    rgba(var(--color-accent-rgb, 229, 179, 42), 0.06) 40%,
+    transparent 80%
+  );
+  opacity: 0;
+  transition: opacity 0.5s ease;
+  pointer-events: none;
+  z-index: -1;
+  filter: blur(14px);
+  border-radius: inherit;
+}
+.tc-settings .tc-mock-acc--ghost:hover .tc-mock-acc-header::before,
+.tc-settings .tc-mock-acc--ghost.tc-mock-acc--open .tc-mock-acc-header::before {
+  opacity: 1;
+}
+.tc-settings .tc-mock-acc--ghost .tc-mock-acc-title {
+  font-size: 12px;
+  color: var(--text-faint);
+  letter-spacing: 0.02em;
+  font-weight: 500;
+  transition: color 0.28s ease;
+}
+.tc-settings .tc-mock-acc--ghost:hover .tc-mock-acc-title,
+.tc-settings .tc-mock-acc--ghost.tc-mock-acc--open .tc-mock-acc-title {
+  color: var(--text-normal);
+}
+.tc-settings .tc-mock-acc--ghost .tc-mock-acc-chev {
+  opacity: 0;
+  color: var(--text-muted);
+  transition: opacity 0.28s ease;
+  font-size: 12px;
+}
+.tc-settings .tc-mock-acc--ghost:hover .tc-mock-acc-chev,
+.tc-settings .tc-mock-acc--ghost.tc-mock-acc--open .tc-mock-acc-chev {
+  opacity: 1;
+}
+.tc-settings .tc-mock-acc--ghost .tc-mock-acc-chev::before { content: "›"; }
+.tc-settings .tc-mock-acc--ghost.tc-mock-acc--open .tc-mock-acc-chev::before { content: "⌄"; }
+
+/* ── H · Monospace ledger ────────────────────────────────────
+   Thin neutral-bordered card. Monospace small-caps title at the
+   left; the header::after paints a dotted leader line filling
+   the gap to the chevron at the right. Like a book TOC entry.
+   Uses flex `order` to place title / dotted leader / chevron in
+   sequence left-to-right (without it the ::after lands last). */
+.tc-settings .tc-mock-acc--ledger {
+  background: transparent;
+  border: 1px solid rgba(var(--mono-rgb-100, 200, 200, 200), 0.14);
+  border-radius: 4px;
+  margin: 14px 0;
+}
+.tc-settings .tc-mock-acc--ledger .tc-mock-acc-header {
+  padding: 10px 14px;
+  align-items: baseline;
+  gap: 0;
+}
+.tc-settings .tc-mock-acc--ledger .tc-mock-acc-title {
+  order: 1;
+  font-family: var(--font-monospace, "SF Mono", "Menlo", "Consolas", monospace);
+  font-size: 11px;
+  color: var(--text-normal);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  font-weight: 500;
+  white-space: nowrap;
+  flex: 0 0 auto;
+}
+.tc-settings .tc-mock-acc--ledger .tc-mock-acc-header::after {
+  content: "";
+  order: 2;
+  flex: 1;
+  border-bottom: 1px dotted rgba(var(--mono-rgb-100, 200, 200, 200), 0.30);
+  align-self: center;
+  margin: 0 10px;
+}
+.tc-settings .tc-mock-acc--ledger .tc-mock-acc-chev {
+  order: 3;
+  font-family: var(--font-monospace, "SF Mono", "Menlo", "Consolas", monospace);
+  font-size: 12px;
+  color: var(--text-muted);
+  flex: 0 0 auto;
+  line-height: 1;
+}
+.tc-settings .tc-mock-acc--ledger .tc-mock-acc-chev::before { content: ">"; }
+.tc-settings .tc-mock-acc--ledger.tc-mock-acc--open .tc-mock-acc-chev::before { content: "v"; }
