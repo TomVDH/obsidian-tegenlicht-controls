@@ -98,7 +98,14 @@
   border: 1px solid var(--background-modifier-border);
   border-radius: 100px;
   padding: 5px 14px;
-  font-family: var(--font-monospace, monospace);
+  /* Same typography vocabulary as the "Settings Companion" subtitle —
+     interface font, weight 600, uppercase, wide tracking. Drops the
+     prior monospace family so version reads as a kicker label, not a
+     code chip. */
+  font-family: inherit;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.18em;
   cursor: default;
   transition: border-color 0.24s ease, color 0.24s ease, box-shadow 0.24s ease;
 }
@@ -330,12 +337,23 @@
 
 /* Switch + Amber: pill track lives on the inner wrap. Subtle — no
    border, 3% mono bg only (down from 4% + 1px border). */
-.tc-settings.tc-tabs-switch .tc-tab-inner-wrap,
-.tc-settings.tc-tabs-switch-amber .tc-tab-inner-wrap {
-  display: inline-flex;
+/* Pill track on the OUTER .tc-tab-bar so it spans 100% of the row.
+   Tabs inside the inner-wrap stay left-aligned (default flex), the
+   reset button sits "neatly right aligned" inside the same pill via
+   the existing flex:1 spacer between the inner-wrap and the reset. */
+.tc-settings.tc-tabs-switch .tc-tab-bar,
+.tc-settings.tc-tabs-switch-amber .tc-tab-bar {
   padding: 3px;
   background: rgba(var(--mono-rgb-100, 200, 200, 200), 0.03);
   border-radius: 100px;
+  margin-bottom: 8px;
+}
+.tc-settings.tc-tabs-switch .tc-tab-inner-wrap,
+.tc-settings.tc-tabs-switch-amber .tc-tab-inner-wrap {
+  display: flex;
+  background: transparent;
+  padding: 0;
+  border-radius: 0;
   position: relative;
 }
 
