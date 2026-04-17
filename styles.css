@@ -1782,6 +1782,21 @@ body.tc-radius-rounded .tc-settings .tc-feat-group { border-radius: 14px !import
   font-weight: 500;
 }
 
+/* Inside a cluster, controls (.tc-seg track, segment-with-color wrap)
+   should let the accent-gradient cluster background show through.
+   Dropping the subtle mono tint on .tc-seg inside .tc-cluster prevents
+   that "dark inset" feel Tom flagged on the Show/Hide cluster. */
+.tc-settings .tc-cluster .tc-seg {
+  background: transparent;
+}
+.tc-settings .tc-cluster .tc-seg-btn--active,
+.tc-settings .tc-cluster .tc-seg-btn--active:hover {
+  /* Frost recipe still applies, but with the cluster's accent gradient
+     behind the active pill the contrast reads cleanly without any
+     extra mono backdrop. */
+  background: rgba(var(--mono-rgb-100, 200, 200, 200), 0.05) !important;
+}
+
 /* Advanced disclosure — integrated foldable section inside a cluster
    (used by Rainbow folders for per-mode sub-toggles). No card background
    so it reads as continuation of the parent cluster, not a nested card.
@@ -3479,12 +3494,17 @@ body.tc-graph-halo .workspace-leaf-content[data-type="graph"] .graph-view.color-
   overflow-y: auto;
 }
 
+/* Section title in the rail content pane — same typography as
+   .tc-cluster-label (small-caps uppercase muted) so the section
+   header reads as a sibling of the cluster labels nested inside,
+   not a separate visual register. Indented 2px to match clusters. */
 .tc-settings .tc-leftrail-sechead {
-  margin: 0 0 4px 0;
-  font-size: 14px;
+  margin: 0 0 6px 2px;
+  font-size: 11px;
   font-weight: 600;
-  color: var(--text-normal);
-  letter-spacing: -0.005em;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--text-muted);
 }
 
 .tc-settings .tc-leftrail-secdesc {
