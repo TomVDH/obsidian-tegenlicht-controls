@@ -6,8 +6,9 @@ import { build as buildTypography } from "./tabs/typography";
 import { build as buildEditing }    from "./tabs/editing";
 import { build as buildLayout }     from "./tabs/layout";
 import { build as buildFeatures }   from "./tabs/features";
+import { build as buildLegacy }     from "./tabs/legacy";
 
-type Tab = "appearance" | "typography" | "editing" | "layout" | "features";
+type Tab = "appearance" | "typography" | "editing" | "layout" | "features" | "legacy";
 
 const TABS: { id: Tab; label: string }[] = [
   { id: "appearance", label: "Appearance" },
@@ -15,6 +16,7 @@ const TABS: { id: Tab; label: string }[] = [
   { id: "editing",    label: "Editing"    },
   { id: "layout",     label: "Layout"     },
   { id: "features",   label: "Features"   },
+  { id: "legacy",     label: "Legacy"     },
 ];
 
 const TAB_STYLES: { id: string; label: string }[] = [
@@ -183,6 +185,7 @@ export class TegenlichtSettingsTab extends PluginSettingTab {
       case "editing":    buildEditing(this.contentEl, this.plugin, onChange);    break;
       case "layout":     buildLayout(this.contentEl, this.plugin, onChange);     break;
       case "features":   buildFeatures(this.contentEl, this.plugin, onChange);   break;
+      case "legacy":     this.cleanup = buildLegacy(this.contentEl, this.plugin, onChange, redisplay); break;
     }
 
     // Restore scroll after the new DOM has laid out

@@ -3354,3 +3354,89 @@ body.tc-graph-halo .workspace-leaf-content[data-type="graph"] .graph-view.color-
 .markdown-preview-view .markdown-embed {
   border-radius: var(--radius-l, 8px) !important;
 }
+
+/* ═══════════════════════════════════════════════════════════
+   Legacy tab — left-rail navigation shell
+   ═══════════════════════════════════════════════════════════ */
+
+.tc-settings .tc-leftrail-shell {
+  display: grid;
+  grid-template-columns: 180px 1fr;
+  gap: 0;
+  background: var(--background-primary);
+  border: 1px solid var(--background-modifier-border);
+  border-radius: var(--radius-l, 8px);
+  overflow: hidden;
+  min-height: 420px;
+}
+
+.tc-settings .tc-leftrail-rail {
+  background: var(--background-secondary);
+  border-right: 1px solid var(--background-modifier-border);
+  padding: 8px 0;
+}
+
+.tc-settings .tc-leftrail-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 7px 16px;
+  font-size: 12px;
+  color: var(--text-muted);
+  cursor: pointer;
+  border-left: 2px solid transparent;
+  transition: background 120ms ease, color 120ms ease, border-left-color 120ms ease;
+}
+
+.tc-settings .tc-leftrail-item:hover {
+  background: var(--background-modifier-hover);
+  color: var(--text-normal);
+}
+
+.tc-settings .tc-leftrail-item--active {
+  color: var(--text-normal);
+  background: rgba(var(--color-accent-rgb, 229, 179, 42), 0.04);
+  border-left-color: var(--color-accent);
+  font-weight: 600;
+}
+
+.tc-settings .tc-leftrail-count {
+  font-size: 10px;
+  color: var(--text-faint);
+  font-weight: 400;
+  font-variant-numeric: tabular-nums;
+}
+
+.tc-settings .tc-leftrail-item--active .tc-leftrail-count {
+  color: var(--text-muted);
+}
+
+.tc-settings .tc-leftrail-pane {
+  padding: 18px 20px;
+  overflow-y: auto;
+}
+
+.tc-settings .tc-leftrail-sechead {
+  margin: 0 0 4px 0;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-normal);
+  letter-spacing: -0.005em;
+}
+
+.tc-settings .tc-leftrail-secdesc {
+  margin: 0 0 16px 0;
+  font-size: 11px;
+  color: var(--text-muted);
+  line-height: 1.5;
+  max-width: 62ch;
+}
+
+/* Row dividers inside the content pane — dashboard hardening */
+.tc-settings .tc-leftrail-pane .setting-item {
+  border-top: 1px solid var(--background-modifier-border-hover);
+  padding: 9px 0;
+}
+.tc-settings .tc-leftrail-pane .setting-item:first-of-type {
+  border-top: none;
+}
