@@ -565,58 +565,58 @@ function renderOutliner(
     advanced.style.display = mode === "off" ? "none" : "";
     if (mode === "simple") {
       new Setting(advBody)
-        .setName("Recolour folder titles")
-        .setDesc("Folder name text takes the rotating hue")
+        .setName("Tint folder names")
+        .setDesc("Folder title text picks up the rotating hue. Subtle — reads as a coloured label without painting the whole row.")
         .addToggle(t => t
           .setValue(s.rainbowSimpleTitle)
           .onChange(async v => { s.rainbowSimpleTitle = v; await onChange(); })
         );
       new Setting(advBody)
-        .setName("Recolour collapse arrows")
-        .setDesc("The chevron / disclosure triangle takes the folder's hue")
+        .setName("Tint chevrons")
+        .setDesc("Obsidian's native chevrons (and AnuPpuccin's folder glyphs when Folder display is set to Folders) take the folder's hue.")
         .addToggle(t => t
           .setValue(s.rainbowSimpleCollapseIcon)
           .onChange(async v => { s.rainbowSimpleCollapseIcon = v; await onChange(); })
         );
       new Setting(advBody)
-        .setName("Recolour indent guides")
-        .setDesc("Vertical indent lines under each folder take the hue")
+        .setName("Tint indent guides")
+        .setDesc("The thin vertical lines under each folder (shown when children are expanded) inherit the parent's hue.")
         .addToggle(t => t
           .setValue(s.rainbowSimpleIndent)
           .onChange(async v => { s.rainbowSimpleIndent = v; await onChange(); })
         );
       new Setting(advBody)
-        .setName("Show file dot")
-        .setDesc("Add a small coloured circle next to each file in a coloured folder")
+        .setName("Coloured file marker")
+        .setDesc("Paint a small coloured dot next to every file living inside a coloured folder — a trace of the parent's hue on each leaf.")
         .addToggle(t => t
           .setValue(s.rainbowSimpleFileIcon)
           .onChange(async v => { s.rainbowSimpleFileIcon = v; await onChange(); })
         );
     } else if (mode === "full") {
       new Setting(advBody)
-        .setName("Recolour files")
-        .setDesc("Tint files inside coloured folders to match their parent's hue")
+        .setName("Tint files inside")
+        .setDesc("Files living in a coloured folder pick up the parent's hue on their own row — extends the tint past the folder header.")
         .addToggle(t => t
           .setValue(s.rainbowFullFileRecolor)
           .onChange(async v => { s.rainbowFullFileRecolor = v; await onChange(); })
         );
       new Setting(advBody)
-        .setName("Invert title text — light mode")
-        .setDesc("Use the regular text colour for folder titles in light themes (better contrast)")
+        .setName("Readable titles — light mode")
+        .setDesc("Swap folder-name text to the regular text colour (not the folder hue) when the workspace is in a light theme — keeps contrast legible against the pale tint.")
         .addToggle(t => t
           .setValue(s.rainbowFullInvertLight)
           .onChange(async v => { s.rainbowFullInvertLight = v; await onChange(); })
         );
       new Setting(advBody)
-        .setName("Invert title text — dark mode")
-        .setDesc("Use the regular text colour for folder titles in dark themes (better contrast)")
+        .setName("Readable titles — dark mode")
+        .setDesc("Same contrast fix for dark workspaces — folder names paint in the regular text colour rather than the (dim) hue.")
         .addToggle(t => t
           .setValue(s.rainbowFullInvertDark)
           .onChange(async v => { s.rainbowFullInvertDark = v; await onChange(); })
         );
       new Setting(advBody)
-        .setName("Folder background opacity")
-        .setDesc("How much of the folder's hue shows through (0 = transparent, 100 = solid)")
+        .setName("Tint strength")
+        .setDesc("How much of the folder's hue fills its row background. 0 = transparent (no fill), 100 = solid hue at full saturation.")
         .addSlider(sl => sl
           .setLimits(0, 100, 1)
           .setValue(s.rainbowFullBgOpacity ?? 70)

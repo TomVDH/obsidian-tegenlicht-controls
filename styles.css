@@ -436,7 +436,11 @@
   display: flex;
   align-items: center;
   padding: 12px 0;
-  border-bottom: none;
+  /* Full-width accent divider right below the tab bar — separates the
+     main-menu tab navigation from whatever pane renders beneath. Alpha
+     matches the unified 0.40 used by the pretty-cluster border, left-
+     rail active ring, and pill/glow-b active indicators. */
+  border-bottom: 1px solid rgba(var(--color-accent-rgb, 229, 179, 42), 0.40);
   margin-bottom: 0;
 }
 .tc-settings .tc-tab {
@@ -5621,46 +5625,40 @@ body.tc-graph-halo .workspace-leaf-content[data-type="graph"] .graph-view.color-
          .tc-mock-acc-row × 3
    ═══════════════════════════════════════════════════════════════════ */
 
-/* Block wrapper — simulates a pane-level section. Uniform margin
-   between blocks so the Lab pane reads as a rhythmic list. */
-.tc-settings .tc-mock-acc-block {
-  margin: 0 0 26px 0;
-  padding: 0;
-}
-.tc-settings .tc-mock-acc-block:last-child { margin-bottom: 0; }
-
-/* Section title — same visual weight as a rail-pane h3 sechead,
-   shrunk a notch so a dozen stack legibly. Flush-left with the
-   accordion below. */
-.tc-settings .tc-mock-acc-section-title {
-  font-size: 13px;
-  font-weight: 700;
-  color: var(--color-accent);
-  text-transform: uppercase;
-  letter-spacing: 0.06em;
-  margin: 0 0 4px 0;
-  padding: 0;
-}
-
-/* Section subquip — same muted reading tone as a rail-pane p secdesc. */
-.tc-settings .tc-mock-acc-section-quip {
-  margin: 0 0 10px 0;
-  padding: 0;
-  font-size: 12px;
-  color: var(--text-muted);
-  line-height: 1.55;
-  max-width: 62ch;
-}
-
+/* Accordion card — title + quip live INSIDE the header as a
+   stacked group (not above the card), so each variant reads as a
+   single integrated unit. Uniform margin between cards so the
+   Lab pane reads as a rhythmic list regardless of variant chrome. */
 .tc-settings .tc-mock-acc {
-  /* Per-variant margins reset to 0 — the block's margin-bottom
-     owns the gap between variants so the list rhythm stays
-     consistent regardless of variant chrome (some used to add
-     their own 14–18px margins, which stacked unevenly). */
-  margin: 0;
+  margin: 0 0 26px 0;
   border-radius: 6px;
   overflow: hidden;
   transition: border-color 0.22s ease, box-shadow 0.22s ease;
+}
+.tc-settings .tc-mock-acc:last-child { margin-bottom: 0; }
+
+/* Titlegroup — stacked title + quip inside the header. Grows to
+   fill the flex row so the chevron sits at the right edge. */
+.tc-settings .tc-mock-acc-titlegroup {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+.tc-settings .tc-mock-acc-quip {
+  font-size: 11px;
+  font-weight: 400;
+  color: var(--text-muted);
+  line-height: 1.45;
+  /* Font / case / tracking INHERIT from the variant's title so
+     the variant-specific styling doesn't bleed into the quip.
+     Variants override these defaults if they want a different
+     quip treatment. */
+  font-style: normal;
+  text-transform: none;
+  letter-spacing: normal;
+  font-family: inherit;
 }
 .tc-settings .tc-mock-acc-header {
   display: flex;
@@ -5884,9 +5882,13 @@ body.tc-graph-halo .workspace-leaf-content[data-type="graph"] .graph-view.color-
   font-weight: 600;
   line-height: 1;
 }
-.tc-settings .tc-mock-acc--bloc .tc-mock-acc-title {
+/* Titlegroup takes the kicker's grid slot below, stacking title + quip
+   vertically. Kicker sits above as a section marker. */
+.tc-settings .tc-mock-acc--bloc .tc-mock-acc-titlegroup {
   grid-column: 1;
   grid-row: 2;
+}
+.tc-settings .tc-mock-acc--bloc .tc-mock-acc-title {
   font-size: 14px;
   font-weight: 500;
   color: var(--text-normal);
@@ -6001,9 +6003,19 @@ body.tc-graph-halo .workspace-leaf-content[data-type="graph"] .graph-view.color-
   font-weight: 500;
   transition: color 0.28s ease;
 }
+.tc-settings .tc-mock-acc--ghost .tc-mock-acc-quip {
+  color: var(--text-faint);
+  opacity: 0.7;
+  transition: color 0.28s ease, opacity 0.28s ease;
+}
 .tc-settings .tc-mock-acc--ghost:hover .tc-mock-acc-title,
 .tc-settings .tc-mock-acc--ghost.tc-mock-acc--open .tc-mock-acc-title {
   color: var(--text-normal);
+}
+.tc-settings .tc-mock-acc--ghost:hover .tc-mock-acc-quip,
+.tc-settings .tc-mock-acc--ghost.tc-mock-acc--open .tc-mock-acc-quip {
+  color: var(--text-muted);
+  opacity: 1;
 }
 .tc-settings .tc-mock-acc--ghost .tc-mock-acc-chev {
   opacity: 0;
@@ -6305,6 +6317,15 @@ body.tc-graph-halo .workspace-leaf-content[data-type="graph"] .graph-view.color-
   padding: 0;
   gap: 0;
 }
+/* Override the default column-stacked titlegroup — tab stop wants the
+   chip on the left and the quip flowing to its right on the same row. */
+.tc-settings .tc-mock-acc--tabstop .tc-mock-acc-titlegroup {
+  flex-direction: row;
+  align-items: center;
+  gap: 0;
+  flex: 1;
+  min-width: 0;
+}
 .tc-settings .tc-mock-acc--tabstop .tc-mock-acc-title {
   flex: 0 0 auto;
   font-size: 11px;
@@ -6317,11 +6338,16 @@ body.tc-graph-halo .workspace-leaf-content[data-type="graph"] .graph-view.color-
   border-right: 1px solid rgba(var(--color-accent-rgb, 229, 179, 42), 0.30);
   border-radius: 5px 0 0 5px;
 }
+.tc-settings .tc-mock-acc--tabstop .tc-mock-acc-quip {
+  padding: 0 14px;
+  flex: 1;
+  min-width: 0;
+}
 .tc-settings .tc-mock-acc--tabstop .tc-mock-acc-chev {
   color: var(--text-muted);
-  margin-left: auto;
   padding-right: 14px;
   font-size: 12px;
+  flex: 0 0 auto;
 }
 .tc-settings .tc-mock-acc--tabstop .tc-mock-acc-chev::before { content: "▾"; }
 .tc-settings .tc-mock-acc--tabstop.tc-mock-acc--open .tc-mock-acc-chev {
@@ -6394,3 +6420,28 @@ body.tc-graph-halo .workspace-leaf-content[data-type="graph"] .graph-view.color-
 }
 .tc-settings .tc-mock-acc--subdued .tc-mock-acc-chev::before { content: "+"; }
 .tc-settings .tc-mock-acc--subdued.tc-mock-acc--open .tc-mock-acc-chev::before { content: "−"; }
+
+/* ═══════════════════════════════════════════════════════════════════
+   Rainbow folders — native chevron tinting.
+
+   The theme's `anp-simple-rainbow-collapse-icon-toggle` class only
+   recolours AnuPpuccin's folder glyphs (when Folder display is set
+   to Folders). In Chevrons mode — Obsidian's NATIVE collapse icon —
+   the chevron stays neutral regardless of the toggle.
+
+   Plugin-side fix: force the native chevron SVG to inherit currentColor
+   from the folder-title row. Since AnuPpuccin's rainbow-title rule
+   sets the row's colour to the rotating hue, `inherit`/currentColor
+   then propagates into the chevron's stroke/fill. Works in both
+   Chevrons and Folders display modes. !important needed because
+   Obsidian's native .collapse-icon rule sets an explicit colour. */
+body.anp-simple-rainbow-collapse-icon-toggle .nav-folder-title .nav-folder-collapse-indicator,
+body.anp-simple-rainbow-collapse-icon-toggle .nav-folder-title .collapse-icon {
+  color: inherit !important;
+}
+body.anp-simple-rainbow-collapse-icon-toggle .nav-folder-title .nav-folder-collapse-indicator svg,
+body.anp-simple-rainbow-collapse-icon-toggle .nav-folder-title .collapse-icon svg {
+  color: inherit !important;
+  stroke: currentColor !important;
+  fill: currentColor !important;
+}

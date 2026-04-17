@@ -305,77 +305,66 @@ function renderAccordionStyles(pane: HTMLElement): void {
     variant: "tc-mock-acc--pretty",
     title: "Pretty default",
     quip: "Accent gradient + accent border. All-caps subtitle inside the accordion, chevron right. Today's baseline for the Typography + Appearance panes.",
-    label: "Role mapping",
   });
 
   buildMockAccordion(pane, {
     variant: "tc-mock-acc--gutter",
     title: "Gutter line",
     quip: "Near-neutral card with a 3px accent gutter on the left. Small-caps title, + / − glyph chevron — quiet accent accent, mono body.",
-    label: "Role mapping",
   });
 
   buildMockAccordion(pane, {
     variant: "tc-mock-acc--slab",
     title: "Slab underline",
     quip: "Heavy 15px masthead title between two accent hairlines. Tinted square chevron rotates 90° and fills accent on open.",
-    label: "Role mapping",
   });
 
   buildMockAccordion(pane, {
     variant: "tc-mock-acc--ghost",
     title: "Ghost bloom",
     quip: "Near-invisible at rest. On hover, a soft accent radial blooms behind the header, muted text lifts to full colour, chevron fades in.",
-    label: "Role mapping",
   });
 
   buildMockAccordion(pane, {
     variant: "tc-mock-acc--twotone",
     title: "Two-tone",
     quip: "Accent-tinted header strip above a neutral body. Two surfaces stack — header carries the accent, body reads as a nested inset.",
-    label: "Role mapping",
   });
 
   buildMockAccordion(pane, {
     variant: "tc-mock-acc--bookmark",
     title: "Bookmark rail",
     quip: "Solid accent rail runs top-to-bottom down the left edge, passing through header and body. Like a coloured spine.",
-    label: "Role mapping",
   });
 
   buildMockAccordion(pane, {
     variant: "tc-mock-acc--ring",
     title: "Accent ring",
     quip: "Thick 2px accent ring around a neutral card. The ring IS the whole accent vocabulary — title and chevron stay restrained.",
-    label: "Role mapping",
   });
 
   buildMockAccordion(pane, {
     variant: "tc-mock-acc--halo",
     title: "Halo glow",
     quip: "Pretty default at rest. On hover or when open, a large soft accent halo blooms OUTSIDE the card perimeter — the whole card haloes without changing its own paint.",
-    label: "Role mapping",
   });
 
   buildMockAccordion(pane, {
     variant: "tc-mock-acc--floating",
     title: "Floating shadow",
     quip: "Subtle drop shadow with an accent tint lifts the card off the page. Slight y-offset creates a detached, hovering feel.",
-    label: "Role mapping",
   });
 
   buildMockAccordion(pane, {
     variant: "tc-mock-acc--editorial",
     title: "Editorial",
     quip: "Regular-weight serif-ish title, a thin accent pipe separator before the chevron, chevron sits inline with the title. Masthead feel.",
-    label: "Role mapping",
   });
 
   buildMockAccordion(pane, {
     variant: "tc-mock-acc--tabstop",
     title: "Tab stop",
     quip: "Small accent chip fused with the LEFT of the header — like a coloured tab marker sitting inside the card, not overhanging. Rest of the card neutral.",
-    label: "Role mapping",
   });
 
   // ── Simple clusters — neutral / mono ───────────────────────
@@ -385,21 +374,18 @@ function renderAccordionStyles(pane: HTMLElement): void {
     variant: "tc-mock-acc--filed",
     title: "Filing tab",
     quip: "Title sits in a chip protruding above the card top edge — like a file folder's tab. Neutral chrome, circular ↑ / ↓ chevron.",
-    label: "Role mapping",
   });
 
   buildMockAccordion(pane, {
     variant: "tc-mock-acc--hairline",
     title: "Hairline outline",
     quip: "Top and bottom 1px hairlines only — no side borders, no fill. Italic lowercase title, › / ⌄ text chevron. Book-outline feel.",
-    label: "Role mapping",
   });
 
   buildMockAccordion(pane, {
     variant: "tc-mock-acc--bloc",
     title: "Neutral bloc",
     quip: "Neutral card with a small-caps kicker stacked ABOVE the title. Circular + / − disc chevron. Pure mono — no accent anywhere.",
-    label: "Role mapping",
     kicker: "SECTION",
   });
 
@@ -407,46 +393,41 @@ function renderAccordionStyles(pane: HTMLElement): void {
     variant: "tc-mock-acc--ledger",
     title: "Monospace ledger",
     quip: "Monospace small-caps title with a dotted leader filling the gap to the chevron. Book TOC entry shape — very flat, very text-forward.",
-    label: "Role mapping",
   });
 
   buildMockAccordion(pane, {
     variant: "tc-mock-acc--compact",
     title: "Compact rail",
     quip: "Very tight header padding, 10px title, tiny chevron. Neutral card with a 1px mono left border. For dense settings panes.",
-    label: "Role mapping",
   });
 
   buildMockAccordion(pane, {
     variant: "tc-mock-acc--subdued",
     title: "Subdued dashed",
     quip: "Faint neutral bg with a 1px dashed mono border. Italic small title. Chevron is just a text caret — minimal affordance, deliberate quietude.",
-    label: "Role mapping",
   });
 }
 
 interface MockAccOpts {
   variant: string;
-  title: string;            // section title (outside, simulates a real pane h3)
-  quip: string;             // section subquip (outside, simulates real pane p)
-  label?: string;           // the accordion's own header label; defaults to title
-  kicker?: string;          // opt-in small-caps kicker INSIDE the accordion header
+  title: string;    // the section title, integrated INSIDE the accordion header
+  quip: string;     // subquip description, stacked below the title in the header
+  kicker?: string;  // opt-in small-caps kicker (bloc variant)
 }
 
-/** Build one foldable mock accordion inside a Lab pane. Each block
- *  simulates real production usage: a section title + subquip sit
- *  ABOVE the accordion (matching how Typography and Appearance panes
- *  render their rail sections), then the foldable accordion itself
- *  — same DOM shape across variants; per-variant CSS owns the paint. */
+/** Build one foldable mock accordion. Title + subquip live INSIDE
+ *  the accordion's header as a stacked group so they read as ONE
+ *  integrated unit with the variant chrome — no external h5/p
+ *  splitting the pair off above the card. Chevron stays right;
+ *  body is sample rows. */
 function buildMockAccordion(parent: HTMLElement, opts: MockAccOpts): void {
-  const block = parent.createDiv("tc-mock-acc-block");
-  block.createEl("h5", { cls: "tc-mock-acc-section-title", text: opts.title });
-  block.createEl("p", { cls: "tc-mock-acc-section-quip", text: opts.quip });
+  const acc = parent.createDiv("tc-mock-acc tc-mock-acc--open " + opts.variant);
 
-  const acc = block.createDiv("tc-mock-acc tc-mock-acc--open " + opts.variant);
   const header = acc.createDiv("tc-mock-acc-header");
   if (opts.kicker) header.createSpan({ cls: "tc-mock-acc-kicker", text: opts.kicker });
-  header.createSpan({ cls: "tc-mock-acc-title", text: opts.label ?? opts.title });
+  const group = header.createDiv("tc-mock-acc-titlegroup");
+  group.createSpan({ cls: "tc-mock-acc-title", text: opts.title });
+  group.createSpan({ cls: "tc-mock-acc-quip", text: opts.quip });
   header.createSpan({ cls: "tc-mock-acc-chev" });
 
   const body = acc.createDiv("tc-mock-acc-body");
