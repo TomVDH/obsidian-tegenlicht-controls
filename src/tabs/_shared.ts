@@ -290,19 +290,23 @@ const prettyAccordionOpen: Record<string, boolean> = {};
 
 /** Foldable accent-painted accordion. Accepts a `variant` name that
  *  maps directly to the Lab → Accordion styles picks (pretty, gutter,
- *  ghost, twotone, halo, filed, bloc, subdued). Production DOM carries
- *  BOTH `.tc-feat-group--{variant}` (legacy) AND `.tc-mock-acc--{variant}`
- *  (Lab's class prefix) on the container + inner header elements, so
- *  every Lab variant's CSS rule applies automatically — no CSS
- *  duplication needed. `defaultOpen` seeds the module-level map;
- *  subsequent visits respect the user's toggle state.
+ *  ghost, twotone, halo, filed, bloc, subdued).
  *
- *  Body keeps its production classes only (`.tc-feat-body
- *  .tc-setting-card`) — Lab's `.tc-mock-acc-body` uses a max-height
- *  transition capped at 280px that would clip large setting-item
- *  lists. Production's display:none/block stays. Body-specific
- *  variant rules in Lab (only Folio has any) are cosmetic-padding
- *  only, so skipping the class on body is harmless. */
+ *  Production accordions use the SAME class system as Lab mocks —
+ *  `.tc-mock-acc.tc-mock-acc--{variant}.tc-mock-acc--open?` — so every
+ *  Lab variant rule applies verbatim and production's legacy
+ *  `.tc-feat-group` base styles never compete. The ONLY production
+ *  class retained is `.tc-feat-body .tc-setting-card` on the body,
+ *  because the setting-item rendering rules (per-row padding,
+ *  transparent backgrounds, control alignment) are scoped to that
+ *  class set. Body show/hide is driven by `.tc-mock-acc--open` via
+ *  a dedicated rule in styles.css, not production's
+ *  `.tc-feat-group--open` toggle.
+ *
+ *  `defaultOpen` seeds the module-level map; subsequent visits
+ *  respect the user's toggle state. Chevron glyph comes from each
+ *  variant's `::before { content: … }` so the chevron span stays
+ *  empty — no inline character to clash with the variant's symbol. */
 export function buildPrettyAccordion(
   container: HTMLElement,
   key: string,
@@ -313,19 +317,14 @@ export function buildPrettyAccordion(
   if (!(key in prettyAccordionOpen)) prettyAccordionOpen[key] = defaultOpen;
   const isOpen = prettyAccordionOpen[key];
   const accordion = container.createDiv(
-    `tc-feat-group tc-feat-group--${variant} tc-mock-acc tc-mock-acc--${variant}` +
-    (isOpen ? " tc-feat-group--open tc-mock-acc--open" : "")
+    `tc-mock-acc tc-mock-acc--${variant}` + (isOpen ? " tc-mock-acc--open" : "")
   );
-  const header = accordion.createDiv("tc-feat-header tc-mock-acc-header");
-  header.createDiv("tc-feat-title tc-mock-acc-title").createSpan({ text: title });
-  // Chevron glyph is painted entirely via variant CSS (::before content)
-  // — no inline text, so each variant can pick its own symbol without
-  // a "▶▶" double-glyph collision against an inline character.
-  header.createDiv("tc-feat-meta").createSpan({ cls: "tc-feat-chevron tc-mock-acc-chev" });
+  const header = accordion.createDiv("tc-mock-acc-header");
+  header.createSpan({ text: title, cls: "tc-mock-acc-title" });
+  header.createSpan({ cls: "tc-mock-acc-chev" });
   header.addEventListener("click", () => {
     const next = !prettyAccordionOpen[key];
     prettyAccordionOpen[key] = next;
-    accordion.toggleClass("tc-feat-group--open", next);
     accordion.toggleClass("tc-mock-acc--open", next);
   });
   return accordion.createDiv("tc-feat-body tc-setting-card");

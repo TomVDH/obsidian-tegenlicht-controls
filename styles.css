@@ -2095,6 +2095,13 @@ body.tc-radius-rounded .tc-settings .tc-feat-group { border-radius: 14px !import
 .tc-settings .tc-feat-group--open .tc-feat-chevron { transform: rotate(90deg); }
 .tc-settings .tc-feat-body { display: none; }
 .tc-settings .tc-feat-group--open .tc-feat-body { display: block; }
+/* Pretty-accordion bodies are wrapped in `.tc-mock-acc` containers
+   (see buildPrettyAccordion in _shared.ts). They still carry
+   `.tc-feat-body.tc-setting-card` for the setting-item styling
+   cascade, but the open-state toggle flips `.tc-mock-acc--open`
+   on the container rather than `.tc-feat-group--open`, so the
+   body needs a dedicated show rule against that class. */
+.tc-settings .tc-mock-acc--open > .tc-feat-body { display: block; }
 /* Theme & Colour flat body */
 .tc-settings .tc-theme-body { padding: 0; }
 .tc-settings .tc-theme-section {
@@ -2458,37 +2465,14 @@ body.tc-radius-rounded .tc-settings .tc-feat-group { border-radius: 14px !import
 .tc-settings .tc-feat-group--flat .tc-feat-header { background: transparent; }
 .tc-settings .tc-feat-group--flat .tc-feat-header:hover { background: var(--background-secondary); }
 
-/* Production accordion NEUTRALIZER — when buildPrettyAccordion
-   dual-classes an accordion with the Lab variant system
-   (.tc-mock-acc + .tc-mock-acc--{variant}), strip production's
-   default .tc-feat-header / .tc-feat-title / .tc-feat-chevron paint
-   so Lab's variant rules (later in this file) can paint cleanly.
-   Header bg reset to transparent — variants that want a header bg
-   (e.g. Two-tone's gradient strip) supply their own via
-   .tc-mock-acc--twotone .tc-mock-acc-header and win on source order.
-   Setting-items inside the body always render transparent so the
-   accent-painted body doesn't have per-row dark Obsidian defaults
-   bleeding through. */
-.tc-settings .tc-feat-group.tc-mock-acc .tc-feat-header,
-.tc-settings .tc-feat-group.tc-mock-acc .tc-feat-header:hover {
-  background: transparent;
-  padding: 11px 14px;
-}
-.tc-settings .tc-feat-group.tc-mock-acc .tc-feat-title {
-  color: var(--text-normal);
-  font-size: 13px;
-  font-weight: 600;
-  letter-spacing: normal;
-  display: flex;
-  align-items: center;
-  gap: 0;
-}
-.tc-settings .tc-feat-group.tc-mock-acc .tc-feat-chevron {
-  font-size: 11px;
-  color: var(--text-muted);
-}
-.tc-settings .tc-feat-group.tc-mock-acc .tc-feat-body.tc-setting-card .setting-item,
-.tc-settings .tc-feat-group.tc-mock-acc .tc-feat-body.tc-setting-card .setting-item:hover {
+/* Setting-item reset inside a pretty accordion body — kills Obsidian's
+   per-row dark blob so the accent-painted body (or the neutral-painted
+   body in Simple variants) shows through without per-row bg leaking.
+   Previously this was scoped to production's `.tc-feat-group--pretty`
+   class; now scoped to any Lab-class container since buildPrettyAccordion
+   emits `.tc-mock-acc` directly (no more `.tc-feat-group`). */
+.tc-settings .tc-mock-acc .tc-feat-body.tc-setting-card .setting-item,
+.tc-settings .tc-mock-acc .tc-feat-body.tc-setting-card .setting-item:hover {
   background: transparent !important;
   border-top: none;
 }
