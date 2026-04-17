@@ -4200,7 +4200,12 @@ body.tc-graph-halo .workspace-leaf-content[data-type="graph"] .graph-view.color-
   letter-spacing: 0.18em;
   color: var(--text-muted);
   flex: 0 0 auto;
-  transition: color 0.2s ease;
+  /* Base state = muted. Delay on the colour transition so when the
+     accent state is removed (button no longer hovered + not expanded),
+     the label waits for the dash to finish un-sweeping before fading
+     back — reverse animation plays sequentially (dash un-wipes right
+     to left → label fades last). */
+  transition: color 0.22s ease 0.36s;
 }
 .tc-settings .tc-section-preview-dash {
   position: relative;
@@ -4231,15 +4236,20 @@ body.tc-graph-halo .workspace-leaf-content[data-type="graph"] .graph-view.color-
   background-repeat: repeat-x;
   transition: width 0.42s cubic-bezier(0.32, 0.72, 0, 1);
 }
-/* Sweep triggers on hover of the chevron button specifically,
-   targeted via :has(). Label lights instantly; dash follows with a
-   short delay so the accent reads as rolling out from left to right
-   across the row. */
-.tc-settings .tc-section-preview-bar:has(.tc-section-preview-btn:hover) .tc-section-preview-label {
+/* Sweep triggers on either (a) hover of the chevron button or
+   (b) expanded preview state (btn has --open class). Same effect
+   in both states so the preview row "holds" its accent lighting
+   while the preview is open, then reverses sequentially (dash un-
+   wipes right-to-left, then label fades back to muted) when it
+   collapses. Label lights first on entry (0 delay), dash follows
+   at 0.14s — left-to-right wipe forward. */
+.tc-settings .tc-section-preview-bar:has(.tc-section-preview-btn:hover) .tc-section-preview-label,
+.tc-settings .tc-section-preview-bar:has(.tc-section-preview-btn--open) .tc-section-preview-label {
   color: var(--color-accent);
   transition: color 0.18s ease 0s;
 }
-.tc-settings .tc-section-preview-bar:has(.tc-section-preview-btn:hover) .tc-section-preview-dash::after {
+.tc-settings .tc-section-preview-bar:has(.tc-section-preview-btn:hover) .tc-section-preview-dash::after,
+.tc-settings .tc-section-preview-bar:has(.tc-section-preview-btn--open) .tc-section-preview-dash::after {
   width: 100%;
   transition: width 0.42s cubic-bezier(0.32, 0.72, 0, 1) 0.14s;
 }
