@@ -233,7 +233,7 @@ export const DEFAULT_SETTINGS: TegenlichtSettings = {
 
   sidebarStyle: 'flat',
   backgroundStyle: 'solid',
-  frostDepth: 40,
+  frostDepth: 0,
 
   backgroundEffect: 'solid',
   noiseAmount: 0,

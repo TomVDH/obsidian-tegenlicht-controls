@@ -93,7 +93,11 @@ export function buildLeftRailShell(
   sections.forEach(section => {
     const item = rail.createDiv("tc-leftrail-item");
     if (section.id === activeId) item.addClass("tc-leftrail-item--active");
-    item.createSpan({ text: section.label, cls: "tc-leftrail-label" });
+    // Label wrapped in an outer span so the inner text span can marquee
+    // on hover if it overflows the narrow rail width. Outer is the
+    // overflow container; inner is the animated element.
+    const labelWrap = item.createSpan({ cls: "tc-leftrail-label" });
+    labelWrap.createSpan({ text: section.label, cls: "tc-leftrail-label-text" });
     item.createSpan({ text: String(section.count), cls: "tc-leftrail-count" });
     item.addEventListener("click", () => {
       if (section.id === activeId) return;
