@@ -115,12 +115,12 @@ function buildSegmentWithColor(
   // Auto / Mono pair.
   const autoItem = wrap.createDiv("tc-accent-item tc-accent-item--auto");
   const autoDot = autoItem.createDiv("tc-accent-dot tc-accent-dot--auto");
-  autoDot.setAttribute("title", "Auto — follows the active accent");
+  autoDot.setAttribute("title", "Auto — subtle accent (40% alpha)");
   autoItem.createSpan({ text: "auto", cls: "tc-accent-caption" });
 
   const monoItem = wrap.createDiv("tc-accent-item tc-accent-item--mono");
   const monoDot = monoItem.createDiv("tc-accent-dot tc-accent-dot--mono");
-  monoDot.setAttribute("title", "Mono — monochrome");
+  monoDot.setAttribute("title", "Mono — theme's native tint");
   monoItem.createSpan({ text: "mono", cls: "tc-accent-caption" });
 
   const setActiveDot = (which: 'auto' | 'mono') => {

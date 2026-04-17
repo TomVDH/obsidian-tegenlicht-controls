@@ -2268,7 +2268,7 @@ body.tc-radius-rounded .tc-settings .tc-feat-group { border-radius: 14px !import
   border: 1px solid color-mix(in srgb, var(--color-accent) 22%, transparent);
   border-radius: 10px;
   box-shadow: 0 1px 4px rgba(0, 0, 0, 0.08);
-  padding: 10px 14px 12px;
+  padding: 14px 14px 12px;
   margin: 14px 0 0 0;
 }
 .tc-settings .tc-feat-body.tc-setting-card > .tc-cluster:first-child {
