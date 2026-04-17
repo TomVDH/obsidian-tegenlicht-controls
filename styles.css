@@ -715,14 +715,23 @@ body > div.modal-container .modal-close-button {
   );
 }
 
-/* Active-indicator variant — PILL.
-   Lab tc-mock--pill recipe: solid 16%-accent fill + 40%-accent 1px
-   inset ring, fully rounded. Tabs themselves round to a full pill
-   (100px) in this mode so the slider and button shapes line up
-   exactly. No backdrop-filter — the paint is opaque accent tint. */
+/* Active-indicator variant — PILL (Pill B recipe).
+   Lab tc-mock--pill-b: every tab is a framed pill. Inactive tabs
+   wear a 1px inset border in currentColor (22% at rest, 36% on
+   hover) — because currentColor resolves to text-muted on inactive
+   buttons and text-normal on hover automatically. Active tab's
+   own border is suppressed (`.tc-tab--active { box-shadow: none
+   !important }` further up); the sliding indicator carries the
+   accent pill instead. Tabs round to 100px so slider + button
+   shapes line up. */
 .tc-settings.tc-tabs-active-pill .tc-tab {
   border-radius: 100px !important;
   padding: 5px 16px;
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, currentColor 22%, transparent);
+  transition: color 0.18s ease, box-shadow 0.22s ease, background 0.22s ease;
+}
+.tc-settings.tc-tabs-active-pill .tc-tab:hover {
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, currentColor 36%, transparent);
 }
 .tc-settings.tc-tabs-active-pill .tc-tab-slide-indicator {
   background: rgba(var(--color-accent-rgb, 229, 179, 42), 0.16);
