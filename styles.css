@@ -4405,6 +4405,39 @@ body.tc-graph-halo .workspace-leaf-content[data-type="graph"] .graph-view.color-
   opacity: 1;
 }
 
+/* ── 1b. Glow text B — same radial glow as Glow text, but the
+   active tab ALSO keeps the accent border ring (same 40% alpha as
+   Pill's outline). Lets the glow + the hard-edge border coexist
+   so the active tab reads as both "lit" and "framed". ── */
+.tc-settings .tc-mock--glow-b .tc-mock-tab {
+  overflow: hidden;
+  z-index: 0;
+  border-radius: 6px;
+  transition: color 0.18s ease, box-shadow 0.22s ease;
+}
+.tc-settings .tc-mock--glow-b .tc-mock-tab::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(
+    ellipse 130% 220% at var(--tc-tab-glow-x, 35%) var(--tc-tab-glow-y, 40%),
+    rgba(var(--color-accent-rgb, 229, 179, 42), 0.20) 0%,
+    rgba(var(--color-accent-rgb, 229, 179, 42), 0.08) 35%,
+    transparent 75%
+  );
+  opacity: 0;
+  transition: opacity 0.55s ease;
+  pointer-events: none;
+  z-index: -1;
+  border-radius: inherit;
+}
+.tc-settings .tc-mock--glow-b .tc-mock-tab--active::before {
+  opacity: 1;
+}
+.tc-settings .tc-mock--glow-b .tc-mock-tab--active {
+  box-shadow: inset 0 0 0 1px rgba(var(--color-accent-rgb, 229, 179, 42), 0.40);
+}
+
 /* ── 2. Underline — thin accent rule under the active tab ── */
 .tc-settings .tc-mock--underline {
   border-bottom: 1px solid rgba(var(--mono-rgb-100, 200, 200, 200), 0.10);
@@ -4427,6 +4460,25 @@ body.tc-graph-halo .workspace-leaf-content[data-type="graph"] .graph-view.color-
   transition: color 0.18s ease, background 0.22s ease;
 }
 .tc-settings .tc-mock--pill .tc-mock-tab--active {
+  background: rgba(var(--color-accent-rgb, 229, 179, 42), 0.16);
+  box-shadow: inset 0 0 0 1px rgba(var(--color-accent-rgb, 229, 179, 42), 0.40);
+}
+
+/* ── 3b. Pill B — same accent pill on the active tab, plus a
+   persistent text-colour border on INACTIVE tabs. Every tab reads
+   as a framed pill; the active one just fills in with accent.
+   Inactive border uses currentColor at 0.22 alpha so it tracks
+   text-muted when at rest and text-normal on hover automatically. ── */
+.tc-settings .tc-mock--pill-b .tc-mock-tab {
+  border-radius: 100px;
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, currentColor 22%, transparent);
+  transition: color 0.18s ease, background 0.22s ease, box-shadow 0.22s ease;
+}
+.tc-settings .tc-mock--pill-b .tc-mock-tab:hover {
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, currentColor 36%, transparent);
+}
+.tc-settings .tc-mock--pill-b .tc-mock-tab--active,
+.tc-settings .tc-mock--pill-b .tc-mock-tab--active:hover {
   background: rgba(var(--color-accent-rgb, 229, 179, 42), 0.16);
   box-shadow: inset 0 0 0 1px rgba(var(--color-accent-rgb, 229, 179, 42), 0.40);
 }

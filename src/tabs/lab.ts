@@ -263,10 +263,12 @@ function renderTabStyles(pane: HTMLElement): void {
   pane.createEl("p", { cls: "tc-leftrail-secdesc",
     text: "Visual sandbox for top-tab styling experiments. Each row is a click-through demo — try them, see which one feels right. Live tab style still configured in Appearance." });
 
-  // Existing five
+  // Existing five + B-variants experimenting with border treatments
   buildMockTabBar(pane, "Glow text",        "tc-mock--glow",       { glow: true });
+  buildMockTabBar(pane, "Glow text B",      "tc-mock--glow-b",     { glow: true });
   buildMockTabBar(pane, "Underline",        "tc-mock--underline",  {});
   buildMockTabBar(pane, "Pill",             "tc-mock--pill",       {});
+  buildMockTabBar(pane, "Pill B",           "tc-mock--pill-b",     {});
   buildMockTabBar(pane, "Segment",          "tc-mock--segment",    {});
   buildMockTabBar(pane, "Cap",              "tc-mock--cap",        {});
   // Container bloom + aura family
