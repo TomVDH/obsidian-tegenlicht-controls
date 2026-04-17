@@ -3526,21 +3526,23 @@ body.tc-graph-halo .workspace-leaf-content[data-type="graph"] .graph-view.color-
   overflow-y: auto;
 }
 
-/* Section title in the rail content pane — accented cluster-label
-   typography (small-caps uppercase) tinted to the active accent so
-   it reads as the section's primary marker. Indented 14px to align
-   with the cluster contents below (the cluster's own padding-left
-   is 14px). */
+/* Section title in the rail content pane — same vocabulary as the
+   Appearance tab's .tc-section-header (Theme & Colour, Outliner,
+   Workspace, etc): 14px / weight 700 / accent colour / 0.03em
+   letter-spacing, flush with the section body's left edge,
+   subtle bottom hairline. Aligns with the cluster's left edge
+   directly below it. */
 .tc-settings .tc-leftrail-sechead {
-  margin: 0 0 8px 14px;
-  font-size: 11px;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  color: var(--color-accent, #e5b32a);
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--color-accent);
+  letter-spacing: 0.03em;
+  margin: 0 0 10px 0;
+  padding: 0 0 6px 0;
+  border-bottom: 1px solid var(--background-modifier-border);
 }
 .tc-settings .tc-leftrail-secdesc {
-  margin: 0 0 14px 14px;
+  margin: 0 0 14px 0;
   max-width: 60ch;
 }
 
