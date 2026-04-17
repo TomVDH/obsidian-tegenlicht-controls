@@ -2244,14 +2244,21 @@ body.tc-radius-rounded .tc-settings .tc-feat-group { border-radius: 14px !import
 }
 
 /* Inset-card clusters — semantic sub-grouping inside an accordion body.
-   Each cluster has a small-caps label and a subtly-tinted rounded box so
-   related settings read as a coherent unit rather than a flat list.
-   Dense accordions (Theme & Colour, Interface, Outliner, Workspace) use
-   clusters to break 4+ heterogeneous settings into 2-3 clear semantics. */
+   Each cluster has a small-caps label and a subtly accent-tinted rounded
+   box so related settings read as a coherent unit rather than a flat list.
+   Visual language ported from the "Boxed Properties panel" feature
+   (tc-fm-boxed .metadata-container, ~line 1488): diagonal accent gradient,
+   accent-tinted hairline, soft drop shadow. Same treatment unifies the
+   plugin's own UI with the feature it ships. Dense accordions (Theme &
+   Colour, Interface, Outliner, Workspace) use clusters to break 4+
+   heterogeneous settings into 2-3 clear semantics. */
 .tc-settings .tc-cluster {
-  background: var(--background-secondary-alt);
-  border: 1px solid var(--background-modifier-border);
-  border-radius: 8px;
+  background: linear-gradient(135deg,
+    color-mix(in srgb, var(--color-accent) 8%, transparent),
+    color-mix(in srgb, var(--color-accent) 3%, transparent));
+  border: 1px solid color-mix(in srgb, var(--color-accent) 22%, transparent);
+  border-radius: 10px;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.08);
   padding: 10px 14px 12px;
   margin: 14px 0 0 0;
 }
