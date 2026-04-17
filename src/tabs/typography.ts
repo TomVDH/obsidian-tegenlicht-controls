@@ -302,7 +302,7 @@ export function build(
         s.accordionStyle) },
   ];
 
-  const shellCleanup = buildLeftRailShell(wrap, sections);
+  const shellCleanup = buildLeftRailShell(wrap, sections, "typography");
 
   // Dynamic preview now lives INSIDE each rail section (Fonts,
   // Rhythm) via buildSectionPreview — same Callouts-style PREVIEW

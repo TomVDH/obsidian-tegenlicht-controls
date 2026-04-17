@@ -129,24 +129,36 @@ export interface LeftRailSection {
 }
 
 /**
- * Left-rail navigation shell for dense-content tabs (used by Legacy).
+ * Left-rail navigation shell for dense-content tabs.
  *
- * Renders a 180px vertical rail of section labels + count badges on the
- * left, and a single content pane on the right. Clicking a rail item
- * swaps the content pane by calling that section's render() callback.
- * Only one section is visible at a time — no inner scrolling between
- * sections.
+ * Renders a vertical rail of section labels on the left and a single
+ * content pane on the right. Clicking a rail item swaps the content
+ * pane by calling that section's render() callback. Only one section
+ * is visible at a time.
  *
- * Active section state is transient (lives in closure, not saved to
- * settings). The tab always opens on the first section for a clean start.
+ * Active section state PERSISTS across redisplay() rebuilds via the
+ * module-level `leftRailActiveId` map, keyed by a caller-supplied
+ * `stateKey` (e.g. "appearance" / "typography"). Without the stateKey
+ * the shell falls back to the transient in-closure behaviour — first
+ * section active on every rebuild.
  *
- * Returns a cleanup function for any disposers registered by the content
- * pane (e.g. Pickr instances). The caller is responsible for invoking it
- * on tab teardown.
+ * Previously: flipping a setting triggered redisplay() which rebuilt
+ * the whole tab, and the rail snapped back to its first section
+ * because the active id only lived in the closure. User flow:
+ * navigate to Workspace → toggle anything → rail jumps to Theme &
+ * Colour. Fix threads the active id through the persisted map so
+ * the rail stays put.
+ *
+ * Returns a cleanup function for any disposers registered by the
+ * content pane (e.g. Pickr instances). The caller is responsible
+ * for invoking it on tab teardown.
  */
+const leftRailActiveId: Record<string, string> = {};
+
 export function buildLeftRailShell(
   container: HTMLElement,
   sections: LeftRailSection[],
+  stateKey?: string,
 ): () => void {
   const shell = container.createDiv("tc-leftrail-shell");
   const rail = shell.createDiv("tc-leftrail-rail");
@@ -155,7 +167,15 @@ export function buildLeftRailShell(
   const disposers: (() => void)[] = [];
   const railItems = new Map<string, HTMLElement>();
 
+  // Restore prior active section if the caller supplied a stateKey
+  // and the saved id still exists in the current sections list.
+  // Otherwise open on the first section (original behaviour).
   let activeId = sections[0]?.id ?? "";
+  if (stateKey) {
+    const saved = leftRailActiveId[stateKey];
+    if (saved && sections.some(s => s.id === saved)) activeId = saved;
+    leftRailActiveId[stateKey] = activeId;
+  }
 
   const renderActive = () => {
     pane.empty();
@@ -197,6 +217,7 @@ export function buildLeftRailShell(
       railItems.forEach(el => el.removeClass("tc-leftrail-item--active"));
       item.addClass("tc-leftrail-item--active");
       activeId = section.id;
+      if (stateKey) leftRailActiveId[stateKey] = activeId;
       renderActive();
     });
     railItems.set(section.id, item);

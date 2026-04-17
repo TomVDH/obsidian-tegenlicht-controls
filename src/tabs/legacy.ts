@@ -117,7 +117,7 @@ export function build(
     },
   ];
 
-  const shellCleanup = buildLeftRailShell(containerEl, sections);
+  const shellCleanup = buildLeftRailShell(containerEl, sections, "legacy");
 
   return () => {
     shellCleanup();

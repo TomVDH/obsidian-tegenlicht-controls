@@ -109,7 +109,7 @@ export function build(
     },
   ];
 
-  const shellCleanup = buildLeftRailShell(containerEl, sections);
+  const shellCleanup = buildLeftRailShell(containerEl, sections, "lab");
   return () => {
     shellCleanup();
     pickrs.forEach(p => { try { p.destroyAndRemove(); } catch (_) { /* no-op */ } });

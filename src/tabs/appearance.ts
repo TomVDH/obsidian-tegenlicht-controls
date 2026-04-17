@@ -937,7 +937,7 @@ export function build(
       render: pane => renderWorkspace(pane, s, containerEl, onChange, refresh, pickrs) },
   ];
 
-  const shellCleanup = buildLeftRailShell(wrap, sections);
+  const shellCleanup = buildLeftRailShell(wrap, sections, "appearance");
 
   return () => {
     shellCleanup();
