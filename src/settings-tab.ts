@@ -43,11 +43,15 @@ function setActiveTabGlowOrigin(btn: HTMLElement): void {
   btn.style.setProperty("--tc-tab-glow-y", off() + "%");
 }
 
-/** Slide the tab-bar indicator pill to sit behind the active tab.
- *  Writes --tc-slide-x (offset in px from inner-wrap left) and
- *  --tc-slide-w (button width in px). The first call adds the
- *  --ready modifier so the indicator fades in instead of flashing
- *  from a 0-width state at left:0. */
+/** Slide the tab-bar indicator pill to sit behind the active tab,
+ *  AND roll a fresh random origin for the radial accent gradient
+ *  painted inside it. Writes four custom props:
+ *    --tc-slide-x / --tc-slide-w → horizontal position + width
+ *    --tc-slide-glow-x / --tc-slide-glow-y → gradient origin
+ *  Each tab click picks a new off-centre point so the glow doesn't
+ *  feel mechanical across switches. First call adds the --ready
+ *  modifier so the indicator fades in instead of flashing from a
+ *  0-width state at left:0. */
 function updateTabSlideIndicator(indicator: HTMLElement, activeBtn: HTMLElement): void {
   requestAnimationFrame(() => {
     const wrap = indicator.parentElement;
@@ -57,6 +61,13 @@ function updateTabSlideIndicator(indicator: HTMLElement, activeBtn: HTMLElement)
     if (!wRect.width || !bRect.width) return;
     indicator.style.setProperty("--tc-slide-x", `${bRect.left - wRect.left}px`);
     indicator.style.setProperty("--tc-slide-w", `${bRect.width}px`);
+    // Randomise the gradient origin within a comfortable band —
+    // 25–75% keeps the glow perceptibly inside the pill rather
+    // than hugging an edge, so each click lands somewhere new
+    // without ever looking clipped.
+    const origin = () => 25 + Math.random() * 50;
+    indicator.style.setProperty("--tc-slide-glow-x", `${origin().toFixed(1)}%`);
+    indicator.style.setProperty("--tc-slide-glow-y", `${origin().toFixed(1)}%`);
     indicator.classList.add("tc-tab-slide-indicator--ready");
   });
 }
@@ -238,7 +249,7 @@ export class TegenlichtSettingsTab extends PluginSettingTab {
       case "appearance":
         this.cleanup = buildAppearance(this.contentEl, this.plugin, onChange, redisplay);
         break;
-      case "typography": buildTypography(this.contentEl, this.plugin, onChange, redisplay); break;
+      case "typography": this.cleanup = buildTypography(this.contentEl, this.plugin, onChange, redisplay); break;
       case "editing":    buildEditing(this.contentEl, this.plugin, onChange);    break;
       case "layout":     buildLayout(this.contentEl, this.plugin, onChange);     break;
       case "features":   buildFeatures(this.contentEl, this.plugin, onChange);   break;

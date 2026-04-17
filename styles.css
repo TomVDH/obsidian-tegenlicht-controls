@@ -585,12 +585,10 @@
   .tc-settings::before { animation: none; }
 }
 
-/* Light mode — bloom hidden until it gets its own alpha/colour
-   tuning (see memory: light_mode_bloom_deferred.md). Dark-mode
-   accent alphas read harsh on pale backgrounds. */
-.theme-light .tc-settings::before {
-  display: none;
-}
+/* Light mode — bloom now runs in light mode too (2026-04-17). The
+   alphas are subtle enough (0.055 / 0.032 peak) that the accent
+   reads as a whisper against pale backgrounds rather than harsh
+   tinting. Revisit only if a specific light flavour breaks it. */
 
 /* Safety: ensure Obsidian's native modal close-button (top-right
    X on every settings pane) never gets hidden or visually buried
@@ -666,10 +664,15 @@ body > div.modal-container .modal-close-button {
 }
 
 /* Sliding indicator — lives inside .tc-tab-inner-wrap, translates +
-   resizes to sit behind the active tab. Subtle mono pill (matches
-   the .tc-seg-btn--active frosted-glass vocabulary) so it reads as
-   the "selected surface". Driven by --tc-slide-x and --tc-slide-w
-   custom props written by settings-tab.ts on every tab switch. */
+   resizes to sit behind the active tab. Paint is now a radial
+   accent gradient (not the prior gray frosted pill): goes from
+   rgba(accent, 0.22) at centre through to transparent at edges,
+   so it reads as a glow rather than a tinted surface.
+
+   The gradient's ORIGIN is driven by --tc-slide-glow-x /
+   --tc-slide-glow-y custom props, randomised per tab click in
+   settings-tab.ts so the glow doesn't feel mechanical. Position
+   + size driven by --tc-slide-x / --tc-slide-w as before. */
 .tc-settings .tc-tab-inner-wrap {
   position: relative;
   isolation: isolate;
@@ -681,12 +684,13 @@ body > div.modal-container .modal-close-button {
   left: 0;
   width: var(--tc-slide-w, 0);
   transform: translateX(var(--tc-slide-x, 0));
-  background: rgba(var(--mono-rgb-100, 200, 200, 200), 0.07);
-  backdrop-filter: blur(10px) saturate(1.4);
-  -webkit-backdrop-filter: blur(10px) saturate(1.4);
-  box-shadow:
-    inset 0 0 0 1px rgba(var(--mono-rgb-100, 200, 200, 200), 0.14),
-    0 2px 8px rgba(0, 0, 0, 0.18);
+  background: radial-gradient(
+    ellipse 120% 200% at var(--tc-slide-glow-x, 50%) var(--tc-slide-glow-y, 50%),
+    rgba(var(--color-accent-rgb, 229, 179, 42), 0.22) 0%,
+    rgba(var(--color-accent-rgb, 229, 179, 42), 0.09) 38%,
+    rgba(var(--color-accent-rgb, 229, 179, 42), 0.03) 70%,
+    transparent 100%
+  );
   border-radius: var(--radius-m, 4px);
   z-index: 0;
   transition:

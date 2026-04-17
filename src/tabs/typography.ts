@@ -3,15 +3,7 @@ import TegenlichtControlsPlugin from "../main";
 import { DEFAULT_SETTINGS, TegenlichtSettings } from "../settings";
 import { buildFontCombobox } from "../font-combobox";
 import { buildTypographyPreview } from "../preview-sample";
-
-// ── Module-level accordion state — survives redisplay() like Appearance does,
-// so flipping a font or dragging a slider doesn't snap sections shut.
-// The `rhythm` accordion merges heading sizes and list spacing; they're the
-// same visual concept (vertical rhythm) separated by a hairline divider.
-// Default: only the top accordion (`fonts`) is open on first load.
-const accordionOpen: Record<string, boolean> = {
-  fonts: true, rhythm: false,
-};
+import { buildLeftRailShell, LeftRailSection } from "./_shared";
 
 interface SliderCfg {
   key: keyof TegenlichtSettings;
@@ -38,25 +30,6 @@ const SPACING_SLIDERS: SliderCfg[] = [
 
 // ── Font combobox replaces the old preset pills + raw input. See
 //    ../font-combobox.ts for the search/filter/keyboard behaviour.
-
-/** Build a collapsible accordion matching the Appearance tab's shell. */
-function buildAccordion(
-  container: HTMLElement,
-  key: keyof typeof accordionOpen,
-  title: string,
-): HTMLElement {
-  const accordion = container.createDiv(
-    "tc-feat-group" + (accordionOpen[key] ? " tc-feat-group--open" : "")
-  );
-  const header = accordion.createDiv("tc-feat-header");
-  header.createDiv("tc-feat-title").createSpan({ text: title });
-  header.createDiv("tc-feat-meta").createSpan({ text: "▶", cls: "tc-feat-chevron" });
-  header.addEventListener("click", () => {
-    accordionOpen[key] = !accordionOpen[key];
-    accordion.toggleClass("tc-feat-group--open", accordionOpen[key]);
-  });
-  return accordion.createDiv("tc-feat-body tc-setting-card");
-}
 
 /** Font role row — Name/Desc on the left, searchable combobox + system
  *  + reset buttons on the right. Matches Appearance tab's Setting-row
@@ -169,12 +142,105 @@ function buildSliderRow(
   });
 }
 
+// ── Rail-section renderers ──────────────────────────────────────────
+// Each renderer paints its section's content into the given pane.
+// Content is wrapped in a `.tc-cluster` so the pane picks up the
+// accent-gradient pretty paint — replaces the prior per-section
+// accordion chrome. Layout/spacing of internal rows is unchanged.
+
+function renderFonts(
+  pane: HTMLElement,
+  s: TegenlichtSettings,
+  onChange: () => Promise<void>,
+  refresh: () => Promise<void>,
+): void {
+  pane.createEl("h3", { cls: "tc-leftrail-sechead", text: "Fonts" });
+  pane.createEl("p", { cls: "tc-leftrail-secdesc",
+    text: "Role-based mapping for Interface / Editor / Source. Load optional families from Google Fonts; fall back to system when disabled." });
+
+  const card = pane.createDiv("tc-cluster");
+
+  new Setting(card)
+    .setName("Load Google Fonts")
+    .setDesc(
+      s.googleFontsEnabled !== false
+        ? "Fetches family files from fonts.google.com on pick"
+        : "System fonts only — no network requests"
+    )
+    .addToggle(t => t
+      .setValue(s.googleFontsEnabled !== false)
+      .onChange(async v => { s.googleFontsEnabled = v; await refresh(); })
+    );
+
+  const gfOn = s.googleFontsEnabled !== false;
+
+  buildFontRoleSetting(card, "Interface",
+    "Sidebar, tabs, ribbon — the UI chrome",
+    gfOn, s.fontInterface ?? "", DEFAULT_SETTINGS.fontInterface,
+    async v => { s.fontInterface = v; await onChange(); });
+  buildFontRoleSetting(card, "Editor",
+    "Body text and rendered headings in the document",
+    gfOn, s.fontEditor ?? "", DEFAULT_SETTINGS.fontEditor,
+    async v => { s.fontEditor = v; await onChange(); });
+  buildFontRoleSetting(card, "Source",
+    "Code blocks and source-mode editor",
+    gfOn, s.fontSource ?? "", DEFAULT_SETTINGS.fontSource,
+    async v => { s.fontSource = v; await onChange(); });
+}
+
+function renderRhythm(
+  pane: HTMLElement,
+  s: TegenlichtSettings,
+  onChange: () => Promise<void>,
+): void {
+  pane.createEl("h3", { cls: "tc-leftrail-sechead", text: "Rhythm" });
+  pane.createEl("p", { cls: "tc-leftrail-secdesc",
+    text: "Vertical rhythm of the document — heading sizes in ems, plus list indent and item spacing." });
+
+  const card = pane.createDiv("tc-cluster tc-h-accordion-body");
+
+  const headingGroup = card.createDiv("tc-h-group");
+  HEADING_SLIDERS.forEach(cfg => {
+    buildSliderRow(
+      headingGroup, cfg, s[cfg.key] as number,
+      async (v) => { (s as unknown as Record<string, unknown>)[cfg.key as string] = v; await onChange(); },
+      async () => { (s as unknown as Record<string, unknown>)[cfg.key as string] = DEFAULT_SETTINGS[cfg.key]; await onChange(); },
+    );
+  });
+
+  card.createDiv("tc-rhythm-divider");
+
+  const spacingGroup = card.createDiv("tc-h-group");
+  SPACING_SLIDERS.forEach(cfg => {
+    buildSliderRow(
+      spacingGroup, cfg, s[cfg.key] as number,
+      async (v) => { (s as unknown as Record<string, unknown>)[cfg.key as string] = v; await onChange(); },
+      async () => { (s as unknown as Record<string, unknown>)[cfg.key as string] = DEFAULT_SETTINGS[cfg.key]; await onChange(); },
+    );
+  });
+}
+
+/** Scaffolded section — placeholder until its AnuPpuccin port wave
+ *  lands. Renders the section header + a muted hint so the rail
+ *  structure is set and the content just fills in later. */
+function renderPlaceholder(
+  pane: HTMLElement,
+  title: string,
+  description: string,
+  hint: string,
+): void {
+  pane.createEl("h3", { cls: "tc-leftrail-sechead", text: title });
+  pane.createEl("p", { cls: "tc-leftrail-secdesc", text: description });
+  const card = pane.createDiv("tc-cluster");
+  card.createEl("p", { cls: "tc-empty-hint", text: hint });
+}
+
 export function build(
   containerEl: HTMLElement,
   plugin: TegenlichtControlsPlugin,
   onChange: () => Promise<void>,
   redisplay?: () => void,
-): void {
+): () => void {
   const s = plugin.settings;
 
   /** Change handlers that need the tab re-rendered (to refresh preset
@@ -185,106 +251,48 @@ export function build(
     redisplay?.();
   };
 
-  // ── Accent-coloured divider bar (matches Appearance tab's top bar,
-  //    but solid accent instead of the rainbow gradient) ──────────────
+  // Accent-coloured divider bar at the very top, same as before.
   containerEl.createDiv("tc-color-bar tc-color-bar--accent");
 
+  // Left-rail shell wraps the controls; preview lives outside the
+  // shell so it stays visible across section switches.
   const wrap = containerEl.createDiv("tc-typo-wrap");
 
-  // ── Controls (top, as accordion stack) ────────────────────────────
-  const controls = wrap.createDiv("tc-typo-controls");
+  const sections: LeftRailSection[] = [
+    { id: "fonts",    label: "Fonts",           count: 4,
+      render: pane => renderFonts(pane, s, onChange, refresh) },
+    { id: "rhythm",   label: "Rhythm",          count: 8,
+      render: pane => renderRhythm(pane, s, onChange) },
+    // Placeholder sections — content lands with the AnuPpuccin port
+    // waves. Rail structure fixed now so future fills don't reshape
+    // the tab.
+    { id: "headings", label: "Headings",        count: 0,
+      render: pane => renderPlaceholder(pane,
+        "Headings",
+        "Per-heading colour, divider rule, accent text.",
+        "Lands with AnuPpuccin port Wave 3 — per-H colour dropdowns, divider toggles, decoration accents.") },
+    { id: "weight",   label: "Weight & leading", count: 0,
+      render: pane => renderPlaceholder(pane,
+        "Weight & leading",
+        "Per-heading font / weight / line-height, plus global font weights.",
+        "Lands with Wave 4 — ~20 var writes behind an Advanced disclosure inside the Headings rail pane (planned move).") },
+    { id: "accents",  label: "Accents",         count: 0,
+      render: pane => renderPlaceholder(pane,
+        "Accents",
+        "Bold / italic / highlight / link text-colour overrides.",
+        "Lands with Wave 3 decoration colours — three dropdowns wiring AnuPpuccin's anp-{bold,italic,highlight}-color-* classes.") },
+  ];
 
-  // ── Fonts accordion ───────────────────────────────────────────────
-  // Experiment (2026-04-17 v2): the accordion itself picks up the
-  // pretty-cluster paint (linear-gradient accent bg, accent border,
-  // soft drop shadow) via the `tc-feat-group--pretty` modifier class.
-  // No inner `.tc-cluster` wrap — the accordion container IS the
-  // cluster visually. Row layout / spacing inside stays identical.
-  const fontsBody = buildAccordion(controls, "fonts", "Fonts");
-  fontsBody.parentElement?.addClass("tc-feat-group--pretty");
+  const shellCleanup = buildLeftRailShell(wrap, sections);
 
-  // Google Fonts master toggle — native Setting row for consistency.
-  // Toggling requires a redisplay so the font-role pills update their
-  // preset list (empty list when Google Fonts are disabled).
-  new Setting(fontsBody)
-    .setName("Load Google Fonts")
-    .setDesc(
-      s.googleFontsEnabled !== false
-        ? "Fetches family files from fonts.google.com on pick"
-        : "System fonts only — no network requests"
-    )
-    .addToggle(t => t
-      .setValue(s.googleFontsEnabled !== false)
-      .onChange(async v => {
-        s.googleFontsEnabled = v;
-        await refresh();
-      })
-    );
-
-  const gfOn = s.googleFontsEnabled !== false;
-
-  buildFontRoleSetting(
-    fontsBody,
-    "Interface",
-    "Sidebar, tabs, ribbon — the UI chrome",
-    gfOn,
-    s.fontInterface ?? "",
-    DEFAULT_SETTINGS.fontInterface,
-    async v => { s.fontInterface = v; await onChange(); },
-  );
-  buildFontRoleSetting(
-    fontsBody,
-    "Editor",
-    "Body text and rendered headings in the document",
-    gfOn,
-    s.fontEditor ?? "",
-    DEFAULT_SETTINGS.fontEditor,
-    async v => { s.fontEditor = v; await onChange(); },
-  );
-  buildFontRoleSetting(
-    fontsBody,
-    "Source",
-    "Code blocks and source-mode editor",
-    gfOn,
-    s.fontSource ?? "",
-    DEFAULT_SETTINGS.fontSource,
-    async v => { s.fontSource = v; await onChange(); },
-  );
-
-  // ── Rhythm accordion — merged Heading sizes + List spacing ───────
-  // Same conceptual family (vertical rhythm of the document), separated
-  // by a single hairline so the two groups are still legible at a glance.
-  const rhythmBody = buildAccordion(controls, "rhythm", "Rhythm");
-  rhythmBody.addClass("tc-h-accordion-body");
-
-  const headingGroup = rhythmBody.createDiv("tc-h-group");
-  HEADING_SLIDERS.forEach(cfg => {
-    buildSliderRow(
-      headingGroup, cfg, s[cfg.key] as number,
-      async (v) => { (s as unknown as Record<string, unknown>)[cfg.key as string] = v; await onChange(); },
-      async () => { (s as unknown as Record<string, unknown>)[cfg.key as string] = DEFAULT_SETTINGS[cfg.key]; await onChange(); },
-    );
-  });
-
-  // Hairline divider + subtle section label between headings and spacing
-  rhythmBody.createDiv("tc-rhythm-divider");
-
-  const spacingGroup = rhythmBody.createDiv("tc-h-group");
-  SPACING_SLIDERS.forEach(cfg => {
-    buildSliderRow(
-      spacingGroup, cfg, s[cfg.key] as number,
-      async (v) => { (s as unknown as Record<string, unknown>)[cfg.key as string] = v; await onChange(); },
-      async () => { (s as unknown as Record<string, unknown>)[cfg.key as string] = DEFAULT_SETTINGS[cfg.key]; await onChange(); },
-    );
-  });
-
-  // ── Dynamic Preview header + preview (bottom, full width) ────────
-  // Canonical Lorem-Ipsum preview lives in preview-sample.ts so other
-  // surfaces of the plugin (Flavour switcher, onboarding, theme compare)
-  // can reuse the same content without drift.
+  // Dynamic preview — stays outside the rail so it's visible
+  // regardless of which section is active. Reads live slider drags
+  // via --hN-size vars on body.
   const previewHeader = wrap.createDiv("tc-typo-preview-header");
   previewHeader.createSpan({ text: "Dynamic Preview", cls: "tc-typo-preview-title" });
   previewHeader.createSpan({ text: "Live Obsidian mock — reads your sliders as you drag", cls: "tc-typo-preview-desc" });
 
   buildTypographyPreview(wrap);
+
+  return shellCleanup;
 }
