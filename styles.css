@@ -3575,7 +3575,11 @@ body.tc-graph-halo .workspace-leaf-content[data-type="graph"] .graph-view.color-
 }
 
 .tc-settings .tc-leftrail-pane {
-  padding: 18px 20px;
+  /* Right padding dropped — pane content extends to the shell's right
+     edge, which itself sits flush against the settings-modal interior
+     edge. Settings inside the pane carry their own right padding via
+     Obsidian's native .setting-item styling. */
+  padding: 18px 0 18px 20px;
   overflow-y: auto;
 }
 
@@ -3690,12 +3694,11 @@ body.tc-graph-halo .workspace-leaf-content[data-type="graph"] .graph-view.color-
 
 /* Live preview wrap inside a left-rail content pane — bare wrap, no
    box. The preview is its own surface; wrapping it in another card
-   would steal screen real estate per user directive. Negative right
-   margin counteracts the .tc-leftrail-pane's 20px right padding so
-   the preview's right edge sits flush with the reset button (and the
-   settings dialog's right edge above). */
+   would steal screen real estate per user directive. Right edge sits
+   flush with the rail pane's right edge (which has zero right padding
+   now, so flush with the shell + settings modal interior). */
 .tc-settings .tc-leftrail-preview {
-  margin: 22px -20px 0 0;
+  margin: 22px 0 0;
   padding: 0;
   background: none;
   border: none;
