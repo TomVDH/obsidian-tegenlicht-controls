@@ -3462,7 +3462,7 @@ body.tc-graph-halo .workspace-leaf-content[data-type="graph"] .graph-view.color-
 
 .tc-settings .tc-leftrail-shell {
   display: grid;
-  grid-template-columns: 140px 1fr;
+  grid-template-columns: 116px 1fr;
   gap: 0;
   background: transparent;
   /* Subtle outer border — reintroduced per user directive. Low-alpha
@@ -3481,15 +3481,18 @@ body.tc-graph-halo .workspace-leaf-content[data-type="graph"] .graph-view.color-
      instead of a structural border. */
   border-right: 1px dashed rgba(var(--mono-rgb-100, 200, 200, 200), 0.10);
   /* Symmetric padding so the active highlight has equal breathing
-     room on the rail's outer-left edge and the divider on the right. */
+     room on the rail's outer-left edge and the divider on the right.
+     Flex column + gap so rail items breathe vertically too. */
   padding: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
 }
 
 .tc-settings .tc-leftrail-item {
   display: flex;
-  justify-content: space-between;
   align-items: center;
-  padding: 7px 12px 7px 14px;
+  padding: 7px 10px;
   font-size: 12px;
   color: var(--text-muted);
   cursor: pointer;
