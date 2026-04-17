@@ -764,20 +764,18 @@ export function build(
       })
     );
 
-  // TRIAL — mock grain-style sub-dropdown. Inert; remove once we decide
-  // whether to keep it and wire a real `grainStyle` setting. Conditional
-  // visibility (only shown when grain > 0) matches the Frost depth pattern.
+  // Grain style sub-dropdown — visible only when noiseAmount > 0.
   grainStyleSetting = new Setting(surfaceCluster)
     .setName("Grain style")
     .setDesc("Texture of the film-grain overlay");
   grainStyleSetting.settingEl.style.display = (s.noiseAmount ?? 0) > 0 ? "" : "none";
   grainStyleSetting.addDropdown(dd => {
-    dd.addOption("film",     "Film");
-    dd.addOption("paper",    "Paper");
-    dd.addOption("halftone", "Halftone");
-    dd.addOption("static",   "Static");
-    dd.setValue("film");
-    dd.onChange(async _v => { /* mock — no persistence */ });
+    dd.addOption("film",     "Film — fine gaussian");
+    dd.addOption("paper",    "Paper — coarse, warm");
+    dd.addOption("halftone", "Halftone — dot matrix");
+    dd.addOption("static",   "Static — high-contrast");
+    dd.setValue(s.grainStyle ?? 'film');
+    dd.onChange(async v => { s.grainStyle = v; await onChange(); });
   });
 
   // ── Accent application cluster — where the accent paints beyond

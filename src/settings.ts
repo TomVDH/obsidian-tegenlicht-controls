@@ -59,6 +59,7 @@ export interface TegenlichtSettings {
   // Appearance — Background effects
   backgroundEffect: string; // 'solid' | 'frosted' | 'glass'
   noiseAmount: number;      // 0–100 (film-grain intensity)
+  grainStyle: string;       // 'film' | 'paper' | 'halftone' | 'static'
 
   // Appearance — Highlights & Tints
   activeLineColour: string;
@@ -192,6 +193,7 @@ export const DEFAULT_SETTINGS: TegenlichtSettings = {
 
   backgroundEffect: 'solid',
   noiseAmount: 0,
+  grainStyle: 'film',
 
   activeLineColour: '#e5b32a',
   selectionTint: false,

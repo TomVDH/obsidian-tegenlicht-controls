@@ -78,6 +78,9 @@ const ALL_GRAPH_MODE_CLASSES  = [
   'tc-graph-colour-mode-accent',
   'tc-graph-colour-mode-folders',
 ];
+const ALL_GRAIN_CLASSES = [
+  'tc-grain-film', 'tc-grain-paper', 'tc-grain-halftone', 'tc-grain-static',
+];
 
 // AnuPuccin rainbow folders — three mutually-exclusive style classes
 // (None / Full / Simple) plus an orthogonal "subfolder inherit" modifier.
@@ -433,12 +436,12 @@ ${s.caretColourEnabled ? `.cm-cursor { border-left-color: ${caretClr} !important
   // up in the clean default state regardless of stored settings.
   ALL_BG_EFFECT_CLASSES.forEach(c => document.body.classList.remove(c));
 
-  // Film-grain noise — toggle a single body class. The grain itself is a
-  // CSS pseudo-element on .workspace so it never bleeds into modals, the
-  // settings dialog, or any floating overlay. Opacity is driven by the
-  // --tc-noise-opacity custom prop written in the main CSS block above.
+  // Film-grain noise — tc-has-noise gates the overlay presence; tc-grain-{style}
+  // picks which texture pattern renders. The --tc-noise-opacity var still
+  // drives intensity for all four variants.
   document.body.classList.toggle('tc-has-noise', (s.noiseAmount ?? 0) > 0);
-  // Clean up any stray overlay from earlier builds that appended to body
+  ALL_GRAIN_CLASSES.forEach(c => document.body.classList.remove(c));
+  document.body.classList.add(`tc-grain-${s.grainStyle || 'film'}`);
   document.getElementById('tc-noise-overlay')?.remove();
 
   // No-ops: metadataMods, itsCallouts, kanban, calendar, cardsMinimal
@@ -471,6 +474,7 @@ export function remove(): void {
   ALL_GRAPH_MODE_CLASSES.forEach(c => document.body.classList.remove(c));
   document.body.classList.remove('tc-graph-halo');
   document.body.classList.remove('tc-has-noise');
+  ALL_GRAIN_CLASSES.forEach(c => document.body.classList.remove(c));
   document.getElementById('tc-noise-overlay')?.remove();
   ALL_RAINBOW_CLASSES.forEach(c => document.body.classList.remove(c));
   document.body.classList.remove(
