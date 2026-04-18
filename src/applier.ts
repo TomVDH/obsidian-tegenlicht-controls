@@ -332,6 +332,17 @@ export function apply(s: TegenlichtSettings): void {
      frame opacity (only effective when colorful-frame toggle is on). */
   ${s.listMarkerColour ? `--list-marker-color: ${s.listMarkerColour};` : ''}
   --anp-colorful-frame-opacity: ${(s.colorfulFrameOpacity ?? 1).toFixed(2)};
+  /* Wave 6.5 — deferred scalars + selects. */
+  --anp-card-layout-padding: ${s.cardLayoutPadding ?? 10}px;
+  --anp-card-header-left-padding: ${s.cardHeaderLeftPadding ?? 20}px;
+  --anp-stacked-header-width: ${s.stackedHeaderWidth ?? 40}px;
+  --anp-tab-stacked-pane-width: ${s.tabStackedPaneWidth ?? 1};
+  --anp-file-label-align: ${s.fileLabelAlign === '1' ? '1' : '0'};
+  --list-numbered-style: ${s.orderedListStyle || 'decimal'};
+  /* Colorful frame custom colour — AnuPpuccin expects an
+     R, G, B triplet (format: rgb-values), wrapped in rgb()
+     at paint time. Empty string = theme default paints. */
+  ${s.colorfulFrameColour ? `--anp-colorful-frame-color: ${hexToRgbTriplet(s.colorfulFrameColour)};` : ''}
   /* Legacy — Callouts */
   --callout-radius: ${s.calloutRadius ?? 8}px;
   --callout-title-padding: ${s.calloutTitlePaddingX ?? 12}px;
@@ -497,6 +508,17 @@ ${s.caretColourEnabled ? `.cm-cursor { border-left-color: ${caretClr} !important
   cls('anp-bg-fix',                 s.bgFix);
   cls('anp-hide-borders',           s.hideBorders);
   cls('anp-card-shadows',           s.cardShadows);
+  // Wave 6.5 — colorful frame invert + card layout micro toggles.
+  cls('anp-colorful-frame-icon-toggle-light', s.colorfulFrameInvertLight);
+  cls('anp-colorful-frame-icon-toggle-dark',  s.colorfulFrameInvertDark);
+  cls('anp-card-layout-actions',    s.cardLayoutActions);
+  cls('anp-card-layout-filebrowser', s.cardLayoutFilebrowser);
+  // Wave 6.5 — status bar class-select (mutually exclusive classes).
+  ['anp-floating-status-bar', 'anp-fixed-status-bar'].forEach(c =>
+    document.body.classList.remove(c));
+  if (s.statusBarStyle && s.statusBarStyle !== 'none') {
+    document.body.classList.add(s.statusBarStyle);
+  }
   // Wave 3 — heading master toggles + per-H divider toggles.
   cls('anp-header-color-toggle',         s.headingColorsEnabled);
   cls('anp-header-margin-toggle',        s.headingMarginsEnabled);
@@ -703,6 +725,11 @@ export function remove(): void {
    'anp-decoration-toggle', 'anp-toggle-preview',
    'anp-canvas-dark-bg', 'anp-bg-fix', 'anp-hide-borders',
    'anp-card-shadows',
+   // Wave 6.5 — colorful frame invert + card layout + status bar
+   'anp-colorful-frame-icon-toggle-light',
+   'anp-colorful-frame-icon-toggle-dark',
+   'anp-card-layout-actions', 'anp-card-layout-filebrowser',
+   'anp-floating-status-bar', 'anp-fixed-status-bar',
    // Wave 3 master toggles + per-H divider classes
    'anp-header-color-toggle', 'anp-header-margin-toggle',
    'anp-header-divider-color-toggle',

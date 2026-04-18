@@ -64,8 +64,8 @@ export function build(
     {
       id: "accents",
       label: "Accents",
-      count: 1,
-      render: (pane) => renderLegacyAccents(pane, s, onChange),
+      count: 2,
+      render: (pane) => renderLegacyAccents(pane, s, onChange, pickrs),
     },
     // Temporary mock — verifies the rail label marquee on hover.
     // Label is intentionally longer than the 116px rail can fit, so
@@ -349,6 +349,7 @@ function renderLegacyAccents(
   pane: HTMLElement,
   s: import("../settings").TegenlichtSettings,
   onChange: () => Promise<void>,
+  pickrs: Pickr[],
 ): void {
   pane.createEl("h3", { cls: "tc-leftrail-sechead", text: "Accents" });
   pane.createEl("p", { cls: "tc-leftrail-secdesc",
@@ -374,6 +375,18 @@ function renderLegacyAccents(
       dd.setValue(s.lightAccentColour || "auto");
       dd.onChange(async v => { s.lightAccentColour = v; await onChange(); });
     });
+
+  // Colorful frame custom colour — AnuPpuccin's --anp-colorful-frame-
+  // color var, written as an R, G, B triplet so the theme can wrap it
+  // in rgb()/rgba() per its existing selectors. Clear = theme default.
+  // Pickr handles hex; applier converts to triplet.
+  pickrs.push(buildColourVarRow(pane,
+    "Colorful frame colour",
+    "Override the colorful-frame accent colour. Clear = theme default.",
+    () => s.colorfulFrameColour,
+    v => { s.colorfulFrameColour = v; },
+    onChange,
+  ));
 }
 
 function renderShowHide(

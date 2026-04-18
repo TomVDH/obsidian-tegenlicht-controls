@@ -27,6 +27,12 @@ const CARDS_BORDERS: LayoutCfg[] = [
   // Wave 6 — colorful frame opacity. Unit is the fractional 0–1 range
   // AnuPpuccin's var expects; slider uses the same range.
   { key: "colorfulFrameOpacity", label: "Colorful frame opacity", min: 0, max: 1, step: 0.05, unit: "", defaultVal: 1.0 },
+  // Wave 6.5 — card layout + stacked tab micros. Only effective when
+  // the relevant sidebarStyle / tab setting is active.
+  { key: "cardLayoutPadding",     label: "Card padding",         min: 0, max: 32, step: 1,    unit: "px", defaultVal: 10 },
+  { key: "cardHeaderLeftPadding", label: "Card header padding",  min: 0, max: 40, step: 1,    unit: "px", defaultVal: 20 },
+  { key: "stackedHeaderWidth",    label: "Stacked tab header",   min: 20, max: 120, step: 1,  unit: "px", defaultVal: 40 },
+  { key: "tabStackedPaneWidth",   label: "Stacked pane multiplier", min: 0.5, max: 3, step: 0.1, unit: "×",  defaultVal: 1 },
 ];
 
 const TABLES: LayoutCfg[] = [

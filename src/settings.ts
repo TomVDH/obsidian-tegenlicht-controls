@@ -256,6 +256,31 @@ export interface TegenlichtSettings {
   cardShadows: boolean;
   colorfulFrameOpacity: number;
 
+  // AnuPpuccin port Wave 6.5 — deferred items from Wave 6's "not
+  // worth the size" list. Grouped functionally:
+  //   Colorful frame micro: two invert toggles + custom colour var
+  //     (written as "r, g, b" triplet per theme's rgb-values format).
+  //   Card layout micro: padding + header-padding vars + two card-
+  //     format toggles (actions / filebrowser).
+  //   Stacked tabs micro: header width + pane-width multiplier vars.
+  //   File label alignment: variable-select "0" (left) | "1" (right).
+  //   Status bar style: class-select none | anp-floating-status-bar
+  //     | anp-fixed-status-bar.
+  //   Ordered list style: variable-select (17 CSS list-style-type
+  //     values, e.g. decimal / lower-roman / hiragana / etc.)
+  colorfulFrameInvertLight: boolean;
+  colorfulFrameInvertDark: boolean;
+  colorfulFrameColour: string;
+  cardLayoutPadding: number;
+  cardHeaderLeftPadding: number;
+  cardLayoutActions: boolean;
+  cardLayoutFilebrowser: boolean;
+  stackedHeaderWidth: number;
+  tabStackedPaneWidth: number;
+  fileLabelAlign: string;
+  statusBarStyle: string;
+  orderedListStyle: string;
+
   // Editing — Properties panel styling
   // Toggles an accent-gradient card wrapper around Obsidian's Properties
   // panel (.metadata-container). Same visual as the frontmatter-beauty.css
@@ -483,6 +508,20 @@ export const DEFAULT_SETTINGS: TegenlichtSettings = {
   hideBorders: false,
   cardShadows: false,
   colorfulFrameOpacity: 1.0,
+
+  // Wave 6.5 defaults — match AnuPpuccin's own YAML.
+  colorfulFrameInvertLight: false,
+  colorfulFrameInvertDark: false,
+  colorfulFrameColour: '',
+  cardLayoutPadding: 10,
+  cardHeaderLeftPadding: 20,
+  cardLayoutActions: false,
+  cardLayoutFilebrowser: false,
+  stackedHeaderWidth: 40,
+  tabStackedPaneWidth: 1,
+  fileLabelAlign: '0',
+  statusBarStyle: 'none',
+  orderedListStyle: 'decimal',
 
   propertiesBoxed: false,
 

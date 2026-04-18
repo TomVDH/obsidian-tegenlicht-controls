@@ -99,6 +99,33 @@ export function build(
       .onChange(async v => { s.listToggle = v; await onChange(); })
     );
 
+  // Ordered list numbering style — 17 CSS list-style-type values
+  // (decimal / roman / hiragana / etc.). Dropdown keeps the long
+  // option set from overflowing the row.
+  new Setting(readingBody)
+    .setName("Ordered list style")
+    .setDesc("Numbering glyph for ordered lists — writes --list-numbered-style")
+    .addDropdown(dd => dd
+      .addOption("decimal",              "Decimal (1, 2, 3…)")
+      .addOption("decimal-leading-zero", "Decimal, zero-padded")
+      .addOption("lower-alpha",          "Lowercase alphabetical")
+      .addOption("upper-alpha",          "Uppercase alphabetical")
+      .addOption("lower-roman",          "Lowercase Roman")
+      .addOption("upper-roman",          "Uppercase Roman")
+      .addOption("lower-latin",          "Lowercase Latin")
+      .addOption("upper-latin",          "Uppercase Latin")
+      .addOption("lower-greek",          "Lowercase Greek")
+      .addOption("upper-greek",          "Uppercase Greek")
+      .addOption("hiragana",             "Hiragana")
+      .addOption("hiragana-iroha",       "Hiragana Iroha")
+      .addOption("katakana-iroha",       "Katakana Iroha")
+      .addOption("armenian",             "Armenian")
+      .addOption("cjk-ideographic",      "CJK Ideographic")
+      .addOption("hebrew",               "Hebrew")
+      .setValue(s.orderedListStyle || "decimal")
+      .onChange(async v => { s.orderedListStyle = v; await onChange(); })
+    );
+
   // Wave 6 — custom preview margins toggle. Gates AnuPpuccin's
   // reading-view margin vars (anp-toggle-preview body class).
   new Setting(readingBody)

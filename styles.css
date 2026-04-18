@@ -4786,6 +4786,14 @@ body.tc-graph-halo .workspace-leaf-content[data-type="graph"] .graph-view.color-
 .tc-settings .tc-appearance2-section:last-child {
   margin-bottom: 0;
 }
+/* Subtle dashed separator above every section except the first —
+   stacked layout otherwise reads as one long scroll with no
+   landmarks. Same dashed vocabulary as the rail divider + the
+   tab-bar spacer, so the visual language is consistent. */
+.tc-settings .tc-appearance2-section:not(:first-child) {
+  border-top: 1px dashed rgba(var(--mono-rgb-100, 200, 200, 200), 0.15);
+  padding-top: 24px;
+}
 .tc-settings .tc-mock-tab-label {
   display: block;
   font-size: 10px;
