@@ -61,6 +61,12 @@ export function build(
       count: 9,
       render: (pane) => renderTabsDeep(pane, s, onChange, refresh),
     },
+    {
+      id: "accents",
+      label: "Accents",
+      count: 1,
+      render: (pane) => renderLegacyAccents(pane, s, onChange),
+    },
     // Temporary mock — verifies the rail label marquee on hover.
     // Label is intentionally longer than the 116px rail can fit, so
     // the .tc-leftrail-label-text translateX animation has something
@@ -333,6 +339,41 @@ function renderCodeblocks(
     v => { s.latexColour = v; },
     onChange,
   ));
+}
+
+/** Legacy → Accents — one-off dropdown that's too niche for the
+ *  Appearance palette row (stashed here per 2026-04-18 directive).
+ *  Keeps the light-mode accent override discoverable without bloating
+ *  Appearance's already-busy accent pips. */
+function renderLegacyAccents(
+  pane: HTMLElement,
+  s: import("../settings").TegenlichtSettings,
+  onChange: () => Promise<void>,
+): void {
+  pane.createEl("h3", { cls: "tc-leftrail-sechead", text: "Accents" });
+  pane.createEl("p", { cls: "tc-leftrail-secdesc",
+    text: "Per-mode accent overrides. Main accent picker lives in Appearance → Theme & Colour; this section carries the light-mode override only." });
+
+  // Flat UI India preset list — duplicated from appearance.ts (5 items
+  // don't warrant a shared export). If the Appearance list grows,
+  // consider lifting to a shared constant.
+  const LIGHT_PRESETS = [
+    { label: "Yriel Yellow",       hex: "#eab543" },
+    { label: "Rosy Highlight",     hex: "#fd7272" },
+    { label: "Clear Chill",        hex: "#1b9cfc" },
+    { label: "Keppel",             hex: "#58b19f" },
+    { label: "Circumorbital Ring", hex: "#82589f" },
+  ];
+
+  new Setting(pane)
+    .setName("Light mode accent")
+    .setDesc("Override the accent when Obsidian is in light mode (auto = match the main Appearance pick)")
+    .addDropdown(dd => {
+      dd.addOption("auto", "Auto (match main accent)");
+      LIGHT_PRESETS.forEach(p => dd.addOption(p.hex, p.label));
+      dd.setValue(s.lightAccentColour || "auto");
+      dd.onChange(async v => { s.lightAccentColour = v; await onChange(); });
+    });
 }
 
 function renderShowHide(

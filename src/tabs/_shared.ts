@@ -359,19 +359,20 @@ export function buildPrettyAccordion(
   defaultOpen = true,
   variant: string = "pretty",
 ): HTMLElement {
-  if (!(key in prettyAccordionOpen)) prettyAccordionOpen[key] = defaultOpen;
-  const isOpen = prettyAccordionOpen[key];
+  // Collapsible behaviour paused 2026-04-18 — accordions render as
+  // always-open framed cards. Chevron element retained for layout
+  // weight but hidden via styles.css (`.tc-mock-acc--no-fold
+  // .tc-mock-acc-chev { display: none }`) so the title and body
+  // keep their positions. The `defaultOpen` + module-level map are
+  // left in place so re-enabling collapse is one-line (drop
+  // `tc-mock-acc--no-fold` + re-attach the click handler below).
+  void defaultOpen; void prettyAccordionOpen[key];
   const accordion = container.createDiv(
-    `tc-mock-acc tc-mock-acc--${variant}` + (isOpen ? " tc-mock-acc--open" : "")
+    `tc-mock-acc tc-mock-acc--${variant} tc-mock-acc--open tc-mock-acc--no-fold`,
   );
   const header = accordion.createDiv("tc-mock-acc-header");
   header.createSpan({ text: title, cls: "tc-mock-acc-title" });
   header.createSpan({ cls: "tc-mock-acc-chev" });
-  header.addEventListener("click", () => {
-    const next = !prettyAccordionOpen[key];
-    prettyAccordionOpen[key] = next;
-    accordion.toggleClass("tc-mock-acc--open", next);
-  });
   return accordion.createDiv("tc-feat-body tc-setting-card");
 }
 

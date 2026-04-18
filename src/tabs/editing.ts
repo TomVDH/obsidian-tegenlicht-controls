@@ -11,22 +11,23 @@ const accordionOpen: Record<string, boolean> = {
 };
 
 /** Build an accordion shell matching the Appearance tab's `tc-feat-group`
- *  pattern. Title gets accent tint via the global `.tc-feat-title` rule. */
+ *  pattern. Title gets accent tint via the global `.tc-feat-title` rule.
+ *
+ *  Collapsible behaviour paused 2026-04-18 — accordions always render
+ *  open, the chevron hides via styles.css. Original click-toggle +
+ *  state map left in place (commented) for easy re-enable. */
 function buildAccordion(
   container: HTMLElement,
   key: keyof typeof accordionOpen,
   title: string,
 ): HTMLElement {
+  void accordionOpen[key]; // kept live for a future re-enable
   const accordion = container.createDiv(
-    "tc-feat-group" + (accordionOpen[key] ? " tc-feat-group--open" : "")
+    "tc-feat-group tc-feat-group--open tc-feat-group--no-fold",
   );
   const header = accordion.createDiv("tc-feat-header");
   header.createDiv("tc-feat-title").createSpan({ text: title });
   header.createDiv("tc-feat-meta").createSpan({ text: "▶", cls: "tc-feat-chevron" });
-  header.addEventListener("click", () => {
-    accordionOpen[key] = !accordionOpen[key];
-    accordion.toggleClass("tc-feat-group--open", accordionOpen[key]);
-  });
   return accordion.createDiv("tc-feat-body tc-setting-card");
 }
 

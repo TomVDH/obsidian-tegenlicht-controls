@@ -2098,6 +2098,17 @@ body.tc-radius-rounded .tc-settings .tc-feat-group { border-radius: 14px !import
 .tc-settings .tc-feat-group--open .tc-feat-chevron { transform: rotate(90deg); }
 .tc-settings .tc-feat-body { display: none; }
 .tc-settings .tc-feat-group--open .tc-feat-body { display: block; }
+/* Non-collapsible variants — chevron hidden, header not clickable.
+   Set via `tc-feat-group--no-fold` / `tc-mock-acc--no-fold` on the
+   builder so one modifier turns the whole fold system off. */
+.tc-settings .tc-feat-group--no-fold .tc-feat-chevron,
+.tc-settings .tc-mock-acc--no-fold .tc-mock-acc-chev {
+  display: none !important;
+}
+.tc-settings .tc-feat-group--no-fold .tc-feat-header,
+.tc-settings .tc-mock-acc--no-fold .tc-mock-acc-header {
+  cursor: default;
+}
 /* Pretty-accordion bodies are wrapped in `.tc-mock-acc` containers
    (see buildPrettyAccordion in _shared.ts). They still carry
    `.tc-feat-body.tc-setting-card` for the setting-item styling
@@ -4385,6 +4396,18 @@ body.tc-graph-halo .workspace-leaf-content[data-type="graph"] .graph-view.color-
    ═══════════════════════════════════════════════════════════ */
 .tc-settings .tc-mock-tab-demo {
   margin: 18px 0 24px;
+}
+/* Lab → Previews — stacked mini-Obsidian preview slots. Each slot is
+   a labelled wrapper around one preview build function; the labels
+   reuse .tc-mock-tab-label for the uppercase kicker look. */
+.tc-settings .tc-mock-preview-slot {
+  margin: 18px 0 28px;
+}
+.tc-settings .tc-mock-preview-wrap {
+  /* The preview elements carry their own grid / chrome styling; this
+     wrapper just owns the surrounding margin. No internal padding
+     added — preview should fill the slot edge-to-edge. */
+  width: 100%;
 }
 .tc-settings .tc-mock-tab-label {
   display: block;

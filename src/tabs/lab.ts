@@ -9,6 +9,11 @@ import {
   buildSegmentSetting,
   buildColorToggleRow,
 } from "./_shared";
+import {
+  buildTypographyPreview,
+  buildCalloutPreview,
+  buildEditingPreview,
+} from "../preview-sample";
 
 /**
  * Lab tab — sandbox for experimenting with two-axis navigation.
@@ -43,6 +48,10 @@ export function build(
   const pickrs: Pickr[] = [];
 
   const sections: LeftRailSection[] = [
+    {
+      id: "previews", label: "Previews", count: 3,
+      render: pane => renderPreviews(pane),
+    },
     {
       id: "tab-styles", label: "Tab styles", count: 12,
       render: pane => renderTabStyles(pane),
@@ -262,6 +271,28 @@ function dummyControlsClustered(
 //   - Segment    → all-tabs-in-track, active is filled
 //   - Cap        → small accent indicator above the active tab
 // ─────────────────────────────────────────────────────────────────────
+/** Lab → Previews — stack of every mini-Obsidian preview the plugin
+ *  renders elsewhere (Typography, Callouts, Editing). Quick reference
+ *  surface to compare them side-by-side and smoke-test new ones
+ *  without hunting them down across tabs. */
+function renderPreviews(pane: HTMLElement): void {
+  pane.createEl("h3", { cls: "tc-leftrail-sechead", text: "Previews" });
+  pane.createEl("p", { cls: "tc-leftrail-secdesc",
+    text: "Every mini-Obsidian preview the plugin ships, stacked for comparison. Re-uses the live build helpers — so changes to the preview content land here too." });
+
+  const specs: { label: string; build: (p: HTMLElement) => void }[] = [
+    { label: "Typography", build: buildTypographyPreview },
+    { label: "Callouts",   build: buildCalloutPreview   },
+    { label: "Editing",    build: buildEditingPreview   },
+  ];
+  specs.forEach(spec => {
+    const slot = pane.createDiv("tc-mock-preview-slot");
+    slot.createSpan({ cls: "tc-mock-tab-label", text: spec.label });
+    const wrap = slot.createDiv("tc-mock-preview-wrap");
+    spec.build(wrap);
+  });
+}
+
 function renderTabStyles(pane: HTMLElement): void {
   pane.createEl("h3", { cls: "tc-leftrail-sechead", text: "Tab styles" });
   pane.createEl("p", { cls: "tc-leftrail-secdesc",
