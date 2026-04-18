@@ -704,19 +704,20 @@ function buildFrontmatterDom(parent: HTMLElement): HTMLElement {
   return fm;
 }
 
-/** Focused preview of the frontmatter / Properties panel in its
- *  PRETTY boxed treatment — no mini-Obsidian chrome, just the
- *  accent-gradient card with its row chips + accent chevron.
+/** Focused preview of the frontmatter / Properties panel in its PRETTY
+ *  boxed treatment.
  *
  *  Wrapped in `.tc-fm-preview-forced` so the plugin's boxed CSS rules
- *  (originally scoped to `body.tc-fm-boxed`, now extended to also
- *  match this wrapper via `:is(body.tc-fm-boxed, .tc-fm-preview-forced)`)
- *  paint the preview regardless of the user's `propertiesBoxed`
- *  setting. This is the "pretty" frontmatter visual Tom knew — now
- *  surfaced in Lab directly rather than hidden behind the global
- *  toggle. */
+ *  — originally scoped to `body.tc-fm-boxed`, extended via
+ *  `:is(body.tc-fm-boxed, .tc-fm-preview-forced)` — cascade in. No
+ *  `tc-mini-obsidian` class here: that scope adds its own compacting
+ *  rules (smaller font, tighter row heights, shrunken pills) that were
+ *  making the preview diverge visually from the live panel. The live
+ *  panel's only styling comes from the boxed-fm rules, so the preview
+ *  carries the SAME single class and renders identically to what the
+ *  user sees in a real note. */
 export function buildFrontmatterPreview(parent: HTMLElement): HTMLElement {
-  const wrap = parent.createDiv("tc-fm-preview-forced tc-mini-obsidian");
+  const wrap = parent.createDiv("tc-fm-preview-forced");
   buildFrontmatterDom(wrap);
   return wrap;
 }
