@@ -104,20 +104,24 @@ function buildDropdownSetting(
 // ─── Rail-section renderers ─────────────────────────────────────────
 
 /** Appends an outlined "+" swatch at the end of an inline swatch grid.
- *  Extracted from the Palette renderer so the closure over state/refresh
- *  is explicit. */
+ *  Extracted from the Palette renderer so the closure over state is
+ *  explicit. Returns the swatch element + its parent item so the
+ *  caller can update both imperatively on toggle (active class for
+ *  the rotated-x look, title attribute for the accessibility label)
+ *  without tearing the whole pane down via redisplay(). */
 function appendPlusSwatch(
   inlineWrap: HTMLElement,
   isOpen: boolean,
   onToggle: () => Promise<void>,
-): void {
+): { item: HTMLElement, sw: HTMLElement } | null {
   const grid = inlineWrap.querySelector<HTMLElement>(".tc-swatch-grid");
-  if (!grid) return;
+  if (!grid) return null;
   const item = grid.createDiv("tc-swatch-item tc-swatch-item--plus");
   item.setAttribute("title", isOpen ? "Hide extended flavours" : "Show extended flavours");
   const sw = item.createDiv("tc-swatch tc-swatch-plus" + (isOpen ? " tc-swatch-plus--active" : ""));
   sw.createSpan({ text: "+", cls: "tc-swatch-plus-icon" });
   item.addEventListener("click", async () => { await onToggle(); });
+  return { item, sw };
 }
 
 function renderTheme(
@@ -145,15 +149,26 @@ function renderTheme(
     .setDesc("Drives the highlight colour across the interface");
   const accentRow = accentSetting.controlEl.createDiv("tc-accent-row");
 
+  // Track all accent dots so we can update active state imperatively
+  // on click — no redisplay() needed, which means the preview and
+  // other open elements in the pane stay put when accent changes.
+  const accentDots: HTMLElement[] = [];
+  const setActiveAccentDot = (target: HTMLElement) => {
+    accentDots.forEach(d => d.removeClass("tc-accent-dot--active"));
+    target.addClass("tc-accent-dot--active");
+  };
+
   ACCENT_PRESETS.forEach(({ label, hex }) => {
     const item = accentRow.createDiv("tc-accent-item");
     const dot  = item.createDiv("tc-accent-dot");
     dot.style.background = hex;
     if (s.accentColour === hex) dot.addClass("tc-accent-dot--active");
     dot.setAttribute("title", label); // tooltip only — no visible caption
+    accentDots.push(dot);
     dot.addEventListener("click", async () => {
       s.accentColour = hex;
-      await refresh();
+      setActiveAccentDot(dot);
+      await onChange();
     });
   });
   accentRow.createDiv("tc-accent-sep");
@@ -163,9 +178,11 @@ function renderTheme(
   const autoDot  = autoItem.createDiv("tc-accent-dot tc-accent-dot--auto");
   if (s.accentColour === 'auto') autoDot.addClass("tc-accent-dot--active");
   autoDot.setAttribute("title", "Use flavour's default accent");
+  accentDots.push(autoDot);
   autoDot.addEventListener("click", async () => {
     s.accentColour = 'auto';
-    await refresh();
+    setActiveAccentDot(autoDot);
+    await onChange();
   });
   autoItem.createSpan({ text: "auto", cls: "tc-accent-caption" });
 
@@ -234,18 +251,20 @@ function renderTheme(
   // Shared flavour-pick handler — assigns the chosen class AND resets any
   // per-flavour overrides (currently just iconColour) so picking a theme
   // always lands at that theme's defaults. Tom can re-tint after switching.
+  // Flavour pick — writes the chosen class + resets per-flavour overrides
+  // (iconColour / borderColour currently have no UI surface in this pane,
+  // so resetting them doesn't require a redisplay). The swatch grids
+  // manage their own active-swatch class imperatively on click, so all
+  // we need is applier re-run via onChange().
   const pickFlavour = async (kind: 'dark' | 'light', cls: string) => {
     if (kind === 'dark') s.darkFlavour = cls;
     else                 s.lightFlavour = cls;
     s.iconColour   = '';
     s.borderColour = '';
-    await refresh();
+    await onChange();
   };
 
-  // ── Light Flavours (light first now, per user preference) ────
-  // "licht" kicker sits directly in the Setting's name slot (not as a
-  // separate row) so it's always anchored to the Light flavour heading
-  // rather than drifting between settings.
+  // ── Light Flavours ────────────────────────────────────────────
   const lightSetting = new Setting(paletteCluster)
     .setName("Light flavour")
     .setDesc("Applied when Obsidian is in light mode");
@@ -254,21 +273,24 @@ function renderTheme(
   );
   const lightInlineWrap = lightSetting.controlEl.createDiv("tc-swatch-grid-inline");
   buildSwatchGrid(lightInlineWrap, LIGHT_BASE, s.lightFlavour, cls => pickFlavour('light', cls));
-  appendPlusSwatch(lightInlineWrap, s.showExtendedLight, async () => {
+  // Extended light wrap ALWAYS rendered; display toggled imperatively
+  // so expanding/collapsing doesn't need a pane rebuild.
+  const lightExtWrap = paletteCluster.createDiv("tc-swatch-grid-wrap tc-swatch-grouped");
+  lightExtWrap.createSpan({ text: "Tegenlicht", cls: "tc-swatch-group-label" });
+  buildSwatchGrid(lightExtWrap, LIGHT_EXTENDED_TC, s.lightFlavour, cls => pickFlavour('light', cls));
+  lightExtWrap.createSpan({ text: "AnuPuccin", cls: "tc-swatch-group-label" });
+  buildSwatchGrid(lightExtWrap, LIGHT_EXTENDED_ANP, s.lightFlavour, cls => pickFlavour('light', cls));
+  lightExtWrap.style.display = s.showExtendedLight ? "" : "none";
+  const lightPlus = appendPlusSwatch(lightInlineWrap, s.showExtendedLight, async () => {
     s.showExtendedLight = !s.showExtendedLight;
-    await refresh();
+    lightExtWrap.style.display = s.showExtendedLight ? "" : "none";
+    lightPlus?.sw.classList.toggle("tc-swatch-plus--active", s.showExtendedLight);
+    lightPlus?.item.setAttribute("title",
+      s.showExtendedLight ? "Hide extended flavours" : "Show extended flavours");
+    await onChange();
   });
-  if (s.showExtendedLight) {
-    const lightExtWrap = paletteCluster.createDiv("tc-swatch-grid-wrap tc-swatch-grouped");
-    lightExtWrap.createSpan({ text: "Tegenlicht", cls: "tc-swatch-group-label" });
-    buildSwatchGrid(lightExtWrap, LIGHT_EXTENDED_TC, s.lightFlavour, cls => pickFlavour('light', cls));
-    lightExtWrap.createSpan({ text: "AnuPuccin", cls: "tc-swatch-group-label" });
-    buildSwatchGrid(lightExtWrap, LIGHT_EXTENDED_ANP, s.lightFlavour, cls => pickFlavour('light', cls));
-  }
 
   // ── Dark Flavours ─────────────────────────────────────────────
-  // "tegenlicht" kicker anchored to the Dark flavour name slot — same
-  // pattern as the Light flavour kicker above.
   const darkSetting = new Setting(paletteCluster)
     .setName("Dark flavour")
     .setDesc("Applied when Obsidian is in dark mode");
@@ -277,17 +299,20 @@ function renderTheme(
   );
   const darkInlineWrap = darkSetting.controlEl.createDiv("tc-swatch-grid-inline");
   buildSwatchGrid(darkInlineWrap, DARK_BASE, s.darkFlavour, cls => pickFlavour('dark', cls));
-  appendPlusSwatch(darkInlineWrap, s.showExtendedDark, async () => {
+  const darkExtWrap = paletteCluster.createDiv("tc-swatch-grid-wrap tc-swatch-grouped");
+  darkExtWrap.createSpan({ text: "Tegenlicht", cls: "tc-swatch-group-label" });
+  buildSwatchGrid(darkExtWrap, DARK_EXTENDED_TC, s.darkFlavour, cls => pickFlavour('dark', cls));
+  darkExtWrap.createSpan({ text: "AnuPuccin", cls: "tc-swatch-group-label" });
+  buildSwatchGrid(darkExtWrap, DARK_EXTENDED_ANP, s.darkFlavour, cls => pickFlavour('dark', cls));
+  darkExtWrap.style.display = s.showExtendedDark ? "" : "none";
+  const darkPlus = appendPlusSwatch(darkInlineWrap, s.showExtendedDark, async () => {
     s.showExtendedDark = !s.showExtendedDark;
-    await refresh();
+    darkExtWrap.style.display = s.showExtendedDark ? "" : "none";
+    darkPlus?.sw.classList.toggle("tc-swatch-plus--active", s.showExtendedDark);
+    darkPlus?.item.setAttribute("title",
+      s.showExtendedDark ? "Hide extended flavours" : "Show extended flavours");
+    await onChange();
   });
-  if (s.showExtendedDark) {
-    const darkExtWrap = paletteCluster.createDiv("tc-swatch-grid-wrap tc-swatch-grouped");
-    darkExtWrap.createSpan({ text: "Tegenlicht", cls: "tc-swatch-group-label" });
-    buildSwatchGrid(darkExtWrap, DARK_EXTENDED_TC, s.darkFlavour, cls => pickFlavour('dark', cls));
-    darkExtWrap.createSpan({ text: "AnuPuccin", cls: "tc-swatch-group-label" });
-    buildSwatchGrid(darkExtWrap, DARK_EXTENDED_ANP, s.darkFlavour, cls => pickFlavour('dark', cls));
-  }
 
   // Palette preview moved out of the cluster — now a section-level
   // PREVIEW strip rendered at the top of the pane (see buildSectionPreview
@@ -325,7 +350,7 @@ function renderTheme(
       { label: "Rounded", value: "rounded" },
     ],
     s.cornerRadius,
-    async v => { s.cornerRadius = v; await refresh(); },
+    async v => { s.cornerRadius = v; await onChange(); },
   );
 
   buildSegmentSetting(shapeCluster,
@@ -336,7 +361,7 @@ function renderTheme(
       { label: "Spacious",    value: "spacious" },
     ],
     s.uiDensity,
-    async v => { s.uiDensity = v; await refresh(); },
+    async v => { s.uiDensity = v; await onChange(); },
   );
 
   // ── Weight cluster — line weight of icons and borders ─
@@ -355,7 +380,7 @@ function renderTheme(
       { label: "Bold",    value: "bold" },
     ],
     s.iconStroke,
-    async v => { s.iconStroke = v; await refresh(); },
+    async v => { s.iconStroke = v; await onChange(); },
   );
 
   buildSegmentSetting(weightCluster,
@@ -367,7 +392,7 @@ function renderTheme(
       { label: "Ligne claire", value: "ligne-claire" },
     ],
     s.borderIntensity,
-    async v => { s.borderIntensity = v; await refresh(); },
+    async v => { s.borderIntensity = v; await onChange(); },
   );
 
 }
@@ -568,7 +593,7 @@ function renderGraph(
       { label: "Folders", value: "folders" },
     ],
     s.graphColourMode,
-    async v => { s.graphColourMode = v; await refresh(); },
+    async v => { s.graphColourMode = v; await onChange(); },
   );
 
   // ── Style cluster ─────────────────────────────────────
@@ -622,7 +647,7 @@ function renderWorkspace(
     "Sidebar style", "Visual treatment of the left and right sidebars",
     [{ label: "Flat", value: "flat" }, { label: "Bordered", value: "bordered" }, { label: "Cards", value: "cards" }],
     s.sidebarStyle,
-    async v => { s.sidebarStyle = v; await refresh(); },
+    async v => { s.sidebarStyle = v; await onChange(); },
   );
 
   // ── Canvas cluster — editor surface treatment ─────────
@@ -636,7 +661,7 @@ function renderWorkspace(
     async v => {
       s.backgroundStyle = v;
       if (frostSetting) frostSetting.settingEl.style.display = v === "frosted" ? "" : "none";
-      await refresh();
+      await onChange();
     },
   );
 
@@ -649,7 +674,7 @@ function renderWorkspace(
     .setLimits(0, 100, 1)
     .setValue(s.frostDepth)
     .setDynamicTooltip()
-    .onChange(async v => { s.frostDepth = v; await refresh(); })
+    .onChange(async v => { s.frostDepth = v; await onChange(); })
   );
 
   // ── Surface cluster — grain texture knobs ─────────────
@@ -752,7 +777,7 @@ function renderWorkspace(
       { label: "Ghost",     value: "ghost"        },
     ],
     s.tabBarStyle,
-    async v => { s.tabBarStyle = v; await refresh(); },
+    async v => { s.tabBarStyle = v; await onChange(); },
   );
 
   // Active-tab indicator paint — Glow (radial accent gradient only),
@@ -775,8 +800,8 @@ function renderWorkspace(
   // Accordion paint — applies to every foldable accordion rendered
   // via `buildPrettyAccordion` (Typography panes + Appearance
   // clusters). Dropdown (not segment) because 8 options don't fit
-  // a pill row. Change triggers refresh() so the rail panes rebuild
-  // with the new variant class on every accordion.
+  // a pill row. The body-class change cascades to every accordion
+  // via CSS; no redisplay needed.
   buildDropdownSetting(interfaceCluster,
     "Accordion style",
     "Paint applied to every foldable cluster across Typography + Appearance",
@@ -791,7 +816,7 @@ function renderWorkspace(
       { label: "Dashed",    value: "subdued"  },
     ],
     s.accordionStyle,
-    async v => { s.accordionStyle = v; await refresh(); },
+    async v => { s.accordionStyle = v; await onChange(); },
   );
 
   new Setting(interfaceCluster)
@@ -801,7 +826,7 @@ function renderWorkspace(
       .setLimits(0, 16, 1)
       .setValue(s.tabBarSpacing ?? 6)
       .setDynamicTooltip()
-      .onChange(async v => { s.tabBarSpacing = v; await refresh(); })
+      .onChange(async v => { s.tabBarSpacing = v; await onChange(); })
     );
 }
 

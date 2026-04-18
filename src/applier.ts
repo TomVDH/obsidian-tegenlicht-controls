@@ -266,6 +266,10 @@ export function apply(s: TegenlichtSettings): void {
   --tc-noise-opacity: ${((s.noiseAmount ?? 0) * 0.007).toFixed(4)};
   --tc-graph-node-scale: ${s.graphNodeScale ?? 1.0};
   --tc-graph-link-thickness: ${s.graphLinkThickness ?? 1.0};
+  /* Wave 2 — tag pill shape + embed ceiling */
+  --tag-border-width: ${s.tagBorderWidth ?? 0}px;
+  --tag-radius: ${(s.tagRadius ?? 2).toFixed(2)}em;
+  --embed-max-height: ${s.embedMaxHeight ?? 200}px;
   /* Legacy — Callouts */
   --callout-radius: ${s.calloutRadius ?? 8}px;
   --callout-title-padding: ${s.calloutTitlePaddingX ?? 12}px;
@@ -417,6 +421,10 @@ ${s.caretColourEnabled ? `.cm-cursor { border-left-color: ${caretClr} !important
   cls('anp-codeblock-numbers',      s.codeblockLineNumbers);
   cls('anp-floating-header',        s.floatingTitle);
   cls('tc-fm-boxed',                s.propertiesBoxed);
+  // Wave 2 — simple class-toggles from AnuPpuccin @settings.
+  cls('anp-speech-bubble',          s.speechBubbles);
+  cls('anp-list-toggle',            s.listToggle);
+  cls('anp-print',                  s.printStyling);
 
   // Inverted toggles (class present = hidden)
   cls('anp-toggle-scrollbars', !s.showScrollbars);
@@ -593,6 +601,8 @@ export function remove(): void {
    'anp-button-metadata-toggle', 'anp-codeblock-numbers', 'anp-floating-header',
    'anp-toggle-scrollbars', 'anp-hide-status-bar', 'tc-fm-boxed',
    'tc-tags-classic', 'tc-tags-ghost', 'tc-tags-solid',
+   // Wave 2 additions
+   'anp-speech-bubble', 'anp-list-toggle', 'anp-print',
   ].forEach(c => document.body.classList.remove(c));
   // Legacy — Callouts + Tables cleanup
   ALL_CALLOUT_STYLE_CLASSES.forEach(c => document.body.classList.remove(c));

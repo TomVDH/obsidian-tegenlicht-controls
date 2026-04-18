@@ -88,6 +88,16 @@ export function build(
       .onChange(async v => { s.rainbowTags = v; await onChange(); })
     );
 
+  // AnuPpuccin's nested-bullet shape cascade — different glyph per
+  // nesting depth. Lands in Reading view since it's a reading concern.
+  new Setting(readingBody)
+    .setName("List styling")
+    .setDesc("Differentiate nested bullets with per-depth glyphs")
+    .addToggle(t => t
+      .setValue(s.listToggle)
+      .onChange(async v => { s.listToggle = v; await onChange(); })
+    );
+
   // ── Coding accordion — editor affordances for source work ────────
   const codingBody = buildAccordion(wrap, "coding", "Coding & source");
 
@@ -153,6 +163,30 @@ export function build(
     s.tagStyle || "classic",
     async v => { s.tagStyle = v; await onChange(); },
   );
+
+  // Tag border width + radius — native AnuPpuccin CSS vars. Scalars,
+  // so sliders; changes take effect without redisplay (applier writes
+  // the var on every save). Range + step match the theme's YAML.
+  new Setting(propertiesBody)
+    .setName("Tag border width")
+    .setDesc("Outline thickness on every tag pill, 0–4 px")
+    .addSlider(sl => sl
+      .setLimits(0, 4, 1)
+      .setValue(s.tagBorderWidth ?? 0)
+      .setDynamicTooltip()
+      .onChange(async v => { s.tagBorderWidth = v; await onChange(); })
+    );
+
+  new Setting(propertiesBody)
+    .setName("Tag radius")
+    .setDesc("Corner rounding on every tag pill, 0–2 em")
+    .addSlider(sl => sl
+      .setLimits(0, 2, 0.1)
+      .setValue(s.tagRadius ?? 2)
+      .setDynamicTooltip()
+      .onChange(async v => { s.tagRadius = v; await onChange(); })
+    );
+
 
   // Forward-looking note for pretty-properties integration.
   const propHint = propertiesBody.createDiv("tc-empty-hint");

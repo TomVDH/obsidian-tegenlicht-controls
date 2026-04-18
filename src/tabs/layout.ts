@@ -15,6 +15,9 @@ const READING_VIEW: LayoutCfg[] = [
   { key: "fileLineWidth",   label: "Line width",    min: 400, max: 1200, step: 10, unit: "px", defaultVal: 700 },
   { key: "fileMargins",     label: "Margins",       min: 0,   max: 120,  step: 1,  unit: "px", defaultVal: 40  },
   { key: "previewWidthPct", label: "Preview width", min: 40,  max: 100,  step: 1,  unit: "%",  defaultVal: 88  },
+  // AnuPpuccin's --embed-max-height: caps the height of embedded
+  // notes / transclusions so long embeds don't blow up the layout.
+  { key: "embedMaxHeight",  label: "Embed max height", min: 120, max: 1200, step: 10, unit: "px", defaultVal: 200 },
 ];
 
 const CARDS_BORDERS: LayoutCfg[] = [

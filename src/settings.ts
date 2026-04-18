@@ -155,6 +155,21 @@ export interface TegenlichtSettings {
   kanban: boolean;
   calendar: boolean;
 
+  // AnuPpuccin port Wave 2 — single-class toggles + scalar vars.
+  // speechBubbles: task-list items become speech-bubble-styled blocks
+  //   (anp-speech-bubble body class).
+  // listToggle: anp-list-toggle body class; gates nested-bullet styling.
+  // tagBorderWidth: --tag-border-width px (0–4).
+  // tagRadius: --tag-radius em (0–2, step 0.1).
+  // embedMaxHeight: --embed-max-height px (120–1200).
+  // printStyling: anp-print body class; scopes print-only rendering.
+  speechBubbles: boolean;
+  listToggle: boolean;
+  tagBorderWidth: number;
+  tagRadius: number;
+  embedMaxHeight: number;
+  printStyling: boolean;
+
   // Editing — Properties panel styling
   // Toggles an accent-gradient card wrapper around Obsidian's Properties
   // panel (.metadata-container). Same visual as the frontmatter-beauty.css
@@ -324,6 +339,15 @@ export const DEFAULT_SETTINGS: TegenlichtSettings = {
   itsCallouts: true,
   kanban: false,
   calendar: false,
+
+  // Wave 2 defaults — match AnuPpuccin's own defaults so first-load
+  // behaviour is identical to the theme's defaults.
+  speechBubbles: false,
+  listToggle: false,
+  tagBorderWidth: 0,
+  tagRadius: 2,
+  embedMaxHeight: 200,
+  printStyling: false,
 
   propertiesBoxed: false,
 

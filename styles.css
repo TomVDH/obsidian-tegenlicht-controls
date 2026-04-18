@@ -223,7 +223,9 @@
   color: var(--text-muted);
   line-height: 1.6;
   max-width: 60%;
-  margin-bottom: 18px;
+  /* Bottom margin equals the copy-row top padding below — symmetric
+     breathing room around the accent divider that sits between. */
+  margin-bottom: 14px;
 }
 .tc-settings .tc-header-tagline a {
   color: var(--color-accent, #e5b32a);
@@ -240,13 +242,14 @@
   gap: 6px;
   font-size: 10px;
   color: var(--text-faint);
-  /* Accent divider sits on the top edge of this row — separates the
-     tagline quip above from the copy links below. Alpha 0.40 matches
-     the unified accent-border family (pretty cluster / rail-active /
-     pill / glow-b). Relocated from the tab-bar's border-bottom per
-     user directive. */
-  border-top: 1px solid rgba(var(--color-accent-rgb, 229, 179, 42), 0.40);
-  padding: 12px 0 14px;
+  /* Accent divider on the top edge — separates the tagline quip
+     above from the copy links below. Bumped to 2px for a bit more
+     presence. Alpha 0.40 matches the unified accent-border family
+     (pretty cluster / rail-active / pill / glow-b). Padding-top is
+     14px to match the tagline's 14px margin-bottom below the
+     divider — symmetric breathing room either side. */
+  border-top: 2px solid rgba(var(--color-accent-rgb, 229, 179, 42), 0.40);
+  padding: 14px 0 14px;
 }
 /* Inline-row + .tc-color-bar--header rules retired — rainbow bar
    relocated to the top of the Legacy left rail. Header now hosts the
@@ -3981,10 +3984,11 @@ body.tc-graph-halo .workspace-leaf-content[data-type="graph"] .graph-view.color-
      it replaces, reads as a soft separator between rail and pane
      instead of a structural border. */
   border-right: 1px dashed rgba(var(--mono-rgb-100, 200, 200, 200), 0.10);
-  /* Symmetric padding so the active highlight has equal breathing
-     room on the rail's outer-left edge and the divider on the right.
-     Flex column + gap so rail items breathe vertically too. */
-  padding: 8px;
+  /* Left padding dropped to 0 so the rail items' left edge lines up
+     vertically with the leftmost top-level tab (both sit flush to
+     the settings container's left edge). Right padding keeps the 8px
+     breathing room between items and the dashed divider. */
+  padding: 8px 8px 8px 0;
   display: flex;
   flex-direction: column;
   gap: 4px;

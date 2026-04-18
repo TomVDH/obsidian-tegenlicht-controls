@@ -50,6 +50,8 @@ const GROUPS: FeatureGroup[] = [
       { key: "rainbowTags",      label: "Rainbow tags" },
       { key: "metadataButton",   label: "Metadata button" },
       { key: "metadataMods",     label: "Metadata mods",     desc: "Frontmatter display tweaks" },
+      { key: "speechBubbles",    label: "Speech bubbles",    desc: "Render task-list items as bubble-styled blocks" },
+      { key: "printStyling",     label: "Print styling",     desc: "Apply dedicated formatting for print / export" },
     ],
   },
   {
