@@ -205,6 +205,24 @@ function cls(c: string, active: boolean): void {
   document.body.classList.toggle(c, active);
 }
 
+/** The 14 Catppuccin colour names AnuPpuccin exposes for H1–H6 + bold
+ *  + italic + highlight class-selects. Shared so the applier + the UI
+ *  (Wave 3) pull from one list. Order matches the YAML. */
+export const CATPPUCCIN_COLOURS = [
+  "rosewater", "flamingo", "pink", "mauve", "red", "maroon", "peach",
+  "yellow", "green", "teal", "sky", "sapphire", "blue", "lavender",
+] as const;
+
+/** For one of the class-select settings whose classes all share a prefix
+ *  (e.g. `anp-h1-`, `anp-bold-`): clear every possible colour class,
+ *  then add the single chosen one if non-empty. */
+function applyColourClassSelect(prefix: string, chosen: string): void {
+  CATPPUCCIN_COLOURS.forEach(name => {
+    document.body.classList.remove(`${prefix}${name}`);
+  });
+  if (chosen) document.body.classList.add(`${prefix}${chosen}`);
+}
+
 export function apply(s: TegenlichtSettings): void {
   const el = getOrCreateStyleEl();
 
@@ -270,6 +288,10 @@ export function apply(s: TegenlichtSettings): void {
   --tag-border-width: ${s.tagBorderWidth ?? 0}px;
   --tag-radius: ${(s.tagRadius ?? 2).toFixed(2)}em;
   --embed-max-height: ${s.embedMaxHeight ?? 200}px;
+  /* Wave 3 — heading margin scalar (only effective when the master
+     heading-margin toggle is on; value still written so flipping the
+     master picks up the chosen value immediately). */
+  --anp-header-margin-value: ${s.headingMargin ?? 15}px;
   /* Legacy — Callouts */
   --callout-radius: ${s.calloutRadius ?? 8}px;
   --callout-title-padding: ${s.calloutTitlePaddingX ?? 12}px;
@@ -425,6 +447,28 @@ ${s.caretColourEnabled ? `.cm-cursor { border-left-color: ${caretClr} !important
   cls('anp-speech-bubble',          s.speechBubbles);
   cls('anp-list-toggle',            s.listToggle);
   cls('anp-print',                  s.printStyling);
+  // Wave 3 — heading master toggles + per-H divider toggles.
+  cls('anp-header-color-toggle',         s.headingColorsEnabled);
+  cls('anp-header-margin-toggle',        s.headingMarginsEnabled);
+  cls('anp-header-divider-color-toggle', s.headingDividerInherit);
+  cls('anp-h1-divider', s.h1Divider);
+  cls('anp-h2-divider', s.h2Divider);
+  cls('anp-h3-divider', s.h3Divider);
+  cls('anp-h4-divider', s.h4Divider);
+  cls('anp-h5-divider', s.h5Divider);
+  cls('anp-h6-divider', s.h6Divider);
+  // Wave 3 — per-H colour class-select. One of 14 Catppuccin colour
+  // classes or none (theme default). Clear all first, then add the
+  // chosen one if set.
+  applyColourClassSelect('anp-h1-', s.h1Color);
+  applyColourClassSelect('anp-h2-', s.h2Color);
+  applyColourClassSelect('anp-h3-', s.h3Color);
+  applyColourClassSelect('anp-h4-', s.h4Color);
+  applyColourClassSelect('anp-h5-', s.h5Color);
+  applyColourClassSelect('anp-h6-', s.h6Color);
+  applyColourClassSelect('anp-bold-',      s.boldColor);
+  applyColourClassSelect('anp-italic-',    s.italicColor);
+  applyColourClassSelect('anp-highlight-', s.highlightColor);
 
   // Inverted toggles (class present = hidden)
   cls('anp-toggle-scrollbars', !s.showScrollbars);
@@ -603,7 +647,20 @@ export function remove(): void {
    'tc-tags-classic', 'tc-tags-ghost', 'tc-tags-solid',
    // Wave 2 additions
    'anp-speech-bubble', 'anp-list-toggle', 'anp-print',
+   // Wave 3 master toggles + per-H divider classes
+   'anp-header-color-toggle', 'anp-header-margin-toggle',
+   'anp-header-divider-color-toggle',
+   'anp-h1-divider', 'anp-h2-divider', 'anp-h3-divider',
+   'anp-h4-divider', 'anp-h5-divider', 'anp-h6-divider',
   ].forEach(c => document.body.classList.remove(c));
+  // Wave 3 — per-H + decoration colour class-selects (14 colours × 9
+  // prefixes = 126 possible classes). Nuke all so nothing leaks.
+  ['anp-h1-', 'anp-h2-', 'anp-h3-', 'anp-h4-', 'anp-h5-', 'anp-h6-',
+   'anp-bold-', 'anp-italic-', 'anp-highlight-'].forEach(prefix => {
+    CATPPUCCIN_COLOURS.forEach(name => {
+      document.body.classList.remove(`${prefix}${name}`);
+    });
+  });
   // Legacy — Callouts + Tables cleanup
   ALL_CALLOUT_STYLE_CLASSES.forEach(c => document.body.classList.remove(c));
   document.body.classList.remove('anp-callout-color-toggle');

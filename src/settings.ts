@@ -170,6 +170,31 @@ export interface TegenlichtSettings {
   embedMaxHeight: number;
   printStyling: boolean;
 
+  // AnuPpuccin port Wave 3 — heading colours, dividers, decoration.
+  // Master toggles gate everything below; without these on, the theme
+  // paints headings in its default colour. When a master toggle is on,
+  // the per-H colour / divider settings take effect.
+  //   headingColorsEnabled → anp-header-color-toggle
+  //   headingMarginsEnabled → anp-header-margin-toggle
+  //   headingDividerInherit → anp-header-divider-color-toggle
+  //   headingMargin → --anp-header-margin-value (0–30 px, step 2)
+  // Per-H colour values are one of the 14 Catppuccin colour names
+  // ('' = theme default), written to body as `anp-h{N}-{name}`.
+  // h{N}Divider → anp-h{N}-divider body class.
+  // Decoration settings mirror the heading colour pattern for bold,
+  // italic, and highlighted runs.
+  headingColorsEnabled: boolean;
+  headingMarginsEnabled: boolean;
+  headingDividerInherit: boolean;
+  headingMargin: number;
+  h1Color: string; h2Color: string; h3Color: string;
+  h4Color: string; h5Color: string; h6Color: string;
+  h1Divider: boolean; h2Divider: boolean; h3Divider: boolean;
+  h4Divider: boolean; h5Divider: boolean; h6Divider: boolean;
+  boldColor: string;
+  italicColor: string;
+  highlightColor: string;
+
   // Editing — Properties panel styling
   // Toggles an accent-gradient card wrapper around Obsidian's Properties
   // panel (.metadata-container). Same visual as the frontmatter-beauty.css
@@ -348,6 +373,21 @@ export const DEFAULT_SETTINGS: TegenlichtSettings = {
   tagRadius: 2,
   embedMaxHeight: 200,
   printStyling: false,
+
+  // Wave 3 defaults — all master toggles off = theme's own defaults
+  // remain in force until user opts in. Per-H / decoration colours
+  // default to '' (auto / theme default).
+  headingColorsEnabled: false,
+  headingMarginsEnabled: false,
+  headingDividerInherit: false,
+  headingMargin: 15,
+  h1Color: '', h2Color: '', h3Color: '',
+  h4Color: '', h5Color: '', h6Color: '',
+  h1Divider: false, h2Divider: false, h3Divider: false,
+  h4Divider: false, h5Divider: false, h6Divider: false,
+  boldColor: '',
+  italicColor: '',
+  highlightColor: '',
 
   propertiesBoxed: false,
 

@@ -3,6 +3,7 @@ import TegenlichtControlsPlugin from "../main";
 import { DEFAULT_SETTINGS, TegenlichtSettings } from "../settings";
 import { buildFontCombobox } from "../font-combobox";
 import { buildTypographyPreview } from "../preview-sample";
+import { CATPPUCCIN_COLOURS } from "../applier";
 import {
   buildLeftRailShell, LeftRailSection,
   buildPrettyAccordion, buildSectionPreview,
@@ -238,6 +239,138 @@ function renderRhythm(
   });
 }
 
+/** Wave 3 — per-H colour + divider toggles + master heading toggles +
+ *  heading margin value slider. Two accordions: "Master" (enables +
+ *  margin slider) and "Per heading" (six colour dropdowns + six
+ *  divider toggles). Plus a preview strip at the top so picking a
+ *  colour / divider updates the live preview.
+ *
+ *  Colour dropdowns write one of 14 Catppuccin classes to body via
+ *  the applier's `applyColourClassSelect` — "Theme default" clears
+ *  all 14 classes for that prefix. Master toggles (anp-header-color-
+ *  toggle / margin / divider-color-toggle) gate whether the chosen
+ *  colours actually paint. */
+function renderHeadings(
+  pane: HTMLElement,
+  s: TegenlichtSettings,
+  onChange: () => Promise<void>,
+): void {
+  pane.createEl("h3", { cls: "tc-leftrail-sechead", text: "Headings" });
+  pane.createEl("p", { cls: "tc-leftrail-secdesc",
+    text: "Per-heading colour, divider rule, heading margin. Master toggles gate whether picks actually paint — off means theme defaults hold." });
+
+  buildSectionPreview(pane, "typo-headings-preview", buildTypographyPreview);
+
+  // ── Master toggles + margin slider ─────────────────────────────
+  const master = buildPrettyAccordion(pane, "typo-headings-master",
+    "Master toggles", true, s.accordionStyle);
+  master.addClass("tc-h-accordion-body");
+
+  new Setting(master)
+    .setName("Custom heading colours")
+    .setDesc("Master enable — without this, the per-H dropdowns below don't paint")
+    .addToggle(t => t
+      .setValue(s.headingColorsEnabled)
+      .onChange(async v => { s.headingColorsEnabled = v; await onChange(); }));
+
+  new Setting(master)
+    .setName("Custom heading margins")
+    .setDesc("Enables the margin slider below for spacing around every H")
+    .addToggle(t => t
+      .setValue(s.headingMarginsEnabled)
+      .onChange(async v => { s.headingMarginsEnabled = v; await onChange(); }));
+
+  new Setting(master)
+    .setName("Divider inherits heading colour")
+    .setDesc("When on, each H divider borrows its H's colour instead of a neutral line")
+    .addToggle(t => t
+      .setValue(s.headingDividerInherit)
+      .onChange(async v => { s.headingDividerInherit = v; await onChange(); }));
+
+  new Setting(master)
+    .setName("Heading margin")
+    .setDesc("Space around every heading, 0–30 px (only effective when Custom heading margins is on)")
+    .addSlider(sl => sl
+      .setLimits(0, 30, 2)
+      .setValue(s.headingMargin ?? 15)
+      .setDynamicTooltip()
+      .onChange(async v => { s.headingMargin = v; await onChange(); }));
+
+  // ── Per-heading colour + divider ───────────────────────────────
+  const perH = buildPrettyAccordion(pane, "typo-headings-perh",
+    "Per heading", true, s.accordionStyle);
+  perH.addClass("tc-h-accordion-body");
+
+  const perHDef = [
+    { label: "H1", colKey: "h1Color" as const, divKey: "h1Divider" as const },
+    { label: "H2", colKey: "h2Color" as const, divKey: "h2Divider" as const },
+    { label: "H3", colKey: "h3Color" as const, divKey: "h3Divider" as const },
+    { label: "H4", colKey: "h4Color" as const, divKey: "h4Divider" as const },
+    { label: "H5", colKey: "h5Color" as const, divKey: "h5Divider" as const },
+    { label: "H6", colKey: "h6Color" as const, divKey: "h6Divider" as const },
+  ];
+  perHDef.forEach(row => {
+    const setting = new Setting(perH).setName(row.label);
+    setting.addDropdown(dd => {
+      dd.addOption("", "Theme default");
+      CATPPUCCIN_COLOURS.forEach(name =>
+        dd.addOption(name, name.charAt(0).toUpperCase() + name.slice(1)));
+      dd.setValue((s as unknown as Record<string, string>)[row.colKey] ?? "");
+      dd.onChange(async v => {
+        (s as unknown as Record<string, string>)[row.colKey] = v;
+        await onChange();
+      });
+    });
+    setting.addToggle(t => t
+      .setTooltip("Divider under heading")
+      .setValue((s as unknown as Record<string, boolean>)[row.divKey])
+      .onChange(async v => {
+        (s as unknown as Record<string, boolean>)[row.divKey] = v;
+        await onChange();
+      }));
+  });
+}
+
+/** Wave 3 — bold / italic / highlight decoration colours. Same
+ *  class-select shape as the per-H dropdowns; writes the chosen
+ *  Catppuccin colour class to body. */
+function renderAccents(
+  pane: HTMLElement,
+  s: TegenlichtSettings,
+  onChange: () => Promise<void>,
+): void {
+  pane.createEl("h3", { cls: "tc-leftrail-sechead", text: "Accents" });
+  pane.createEl("p", { cls: "tc-leftrail-secdesc",
+    text: "Bold / italic / highlight runs take a named Catppuccin colour instead of the theme's default text tone." });
+
+  buildSectionPreview(pane, "typo-accents-preview", buildTypographyPreview);
+
+  const card = buildPrettyAccordion(pane, "typo-accents-card",
+    "Decoration accents", true, s.accordionStyle);
+  card.addClass("tc-h-accordion-body");
+
+  const rows = [
+    { label: "Bold",      key: "boldColor"      as const },
+    { label: "Italic",    key: "italicColor"    as const },
+    { label: "Highlight", key: "highlightColor" as const },
+  ];
+  rows.forEach(row => {
+    new Setting(card)
+      .setName(row.label)
+      .setDesc(`Colour for ${row.label.toLowerCase()} runs in the body text`)
+      .addDropdown(dd => {
+        dd.addOption("", "Theme default");
+        CATPPUCCIN_COLOURS.forEach(name =>
+          dd.addOption(name, name.charAt(0).toUpperCase() + name.slice(1)));
+        dd.setValue((s as unknown as Record<string, string>)[row.key] ?? "");
+        dd.onChange(async v => {
+          (s as unknown as Record<string, string>)[row.key] = v;
+          await onChange();
+        });
+      });
+  });
+}
+
 /** Scaffolded section — placeholder until its AnuPpuccin port wave
  *  lands. Section title + quip sit outside, same Callouts pattern;
  *  the accordion inside carries a generic "Not yet wired" subtitle. */
@@ -285,21 +418,15 @@ export function build(
     // Placeholder sections — content lands with the AnuPpuccin port
     // waves. Rail structure fixed now so future fills don't reshape
     // the tab.
-    { id: "headings", label: "Headings",        count: 0,
-      render: pane => renderPlaceholder(pane, "typo-headings", "Headings",
-        "Per-heading colour, divider rule, decoration accents.",
-        "Lands with AnuPpuccin port Wave 3 — per-H colour dropdowns, divider toggles, decoration accents.",
-        s.accordionStyle) },
+    { id: "headings", label: "Headings",        count: 16,
+      render: pane => renderHeadings(pane, s, onChange) },
     { id: "weight",   label: "Weight & leading", count: 0,
       render: pane => renderPlaceholder(pane, "typo-weight", "Weight & leading",
         "Per-heading font / weight / line-height plus global font weights.",
         "Lands with Wave 4 — per-H font / weight / line-height plus global weight vars.",
         s.accordionStyle) },
-    { id: "accents",  label: "Accents",         count: 0,
-      render: pane => renderPlaceholder(pane, "typo-accents", "Accents",
-        "Bold / italic / highlight / link text-colour overrides.",
-        "Lands with Wave 3 decoration colours — bold / italic / highlight / link overrides.",
-        s.accordionStyle) },
+    { id: "accents",  label: "Accents",         count: 3,
+      render: pane => renderAccents(pane, s, onChange) },
   ];
 
   const shellCleanup = buildLeftRailShell(wrap, sections, "typography");
