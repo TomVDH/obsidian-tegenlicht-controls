@@ -4741,6 +4741,42 @@ body.tc-graph-halo .workspace-leaf-content[data-type="graph"] .graph-view.color-
    renderers run in one scrolling column; a generous bottom gap
    between sections keeps them legibly separated.
    ═══════════════════════════════════════════════════════════ */
+/* ═══════════════════════════════════════════════════════════
+   DEV REFERENCE NUMBERING — every .setting-item inside a visible
+   pane gets a small muted "#N" suffix on its name so we can point
+   at specific settings in conversation ("the #4 in Appearance →
+   Theme"). CSS counters only, no per-setting JS — automatically
+   renumbers as settings are added / removed / reordered.
+
+   Counter scope:
+   - tc-tab-content (flat tabs: Editing, Layout, Features)
+   - tc-leftrail-pane (rail tabs: Appearance, Typography, Legacy,
+     Lab — only the currently-visible pane counts)
+   - tc-appearance2-section (Appearance 2 stacks all sections
+     in one pane; each section gets its own counter)
+
+   To hide the numbers later (ship-mode): remove the ::after rule
+   at the bottom of this block OR gate on a body class toggle. */
+.tc-settings .tc-tab-content,
+.tc-settings .tc-leftrail-pane,
+.tc-settings .tc-appearance2-section {
+  counter-reset: tc-setting;
+}
+.tc-settings .setting-item {
+  counter-increment: tc-setting;
+}
+.tc-settings .setting-item .setting-item-name::after {
+  content: "  #" counter(tc-setting);
+  font-family: var(--font-monospace, monospace);
+  font-size: 9px;
+  font-weight: 400;
+  color: var(--text-faint);
+  opacity: 0.55;
+  letter-spacing: 0;
+  margin-left: 6px;
+  vertical-align: middle;
+}
+
 .tc-settings .tc-appearance2-wrap {
   padding: 12px 0 40px;
 }
