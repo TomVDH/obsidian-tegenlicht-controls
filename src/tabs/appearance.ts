@@ -124,7 +124,7 @@ function appendPlusSwatch(
   return { item, sw };
 }
 
-function renderTheme(
+export function renderTheme(
   pane: HTMLElement,
   s: TegenlichtSettings,
   containerEl: HTMLElement,
@@ -132,7 +132,7 @@ function renderTheme(
   refresh: () => Promise<void>,
   pickrs: Pickr[],
 ): void {
-  pane.createEl("h3", { cls: "tc-leftrail-sechead", text: "Theme & Colour" });
+  pane.createEl("h3", { cls: "tc-leftrail-sechead", text: "Theme" });
   pane.createEl("p", { cls: "tc-leftrail-secdesc",
     text: "Accent pick, light + dark flavour swatches, corner radius, density, icon + border intensity. The PREVIEW below reads every change live." });
 
@@ -380,6 +380,7 @@ function renderTheme(
   buildSegmentSetting(weightCluster,
     "Icon intensity", "Stroke weight of every Lucide icon in the chrome",
     [
+      { label: "Hair",    value: "hair" },
       { label: "Thin",    value: "thin" },
       { label: "Regular", value: "regular" },
       { label: "Bold",    value: "bold" },
@@ -402,7 +403,7 @@ function renderTheme(
 
 }
 
-function renderOutliner(
+export function renderOutliner(
   pane: HTMLElement,
   s: TegenlichtSettings,
   onChange: () => Promise<void>,
@@ -577,7 +578,7 @@ function renderOutliner(
 
 }
 
-function renderGraph(
+export function renderGraph(
   pane: HTMLElement,
   s: TegenlichtSettings,
   onChange: () => Promise<void>,
@@ -634,7 +635,7 @@ function renderGraph(
 
 }
 
-function renderWorkspace(
+export function renderWorkspace(
   pane: HTMLElement,
   s: TegenlichtSettings,
   containerEl: HTMLElement,
@@ -854,7 +855,7 @@ export function build(
   const wrap = containerEl.createDiv("tc-appearance-wrap");
 
   const sections: LeftRailSection[] = [
-    { id: "theme",     label: "Theme & Colour", count: 3,
+    { id: "theme",     label: "Theme",          count: 3,
       render: pane => renderTheme(pane, s, containerEl, onChange, refresh, pickrs) },
     { id: "outliner",  label: "Outliner",       count: 2,
       render: pane => renderOutliner(pane, s, onChange) },

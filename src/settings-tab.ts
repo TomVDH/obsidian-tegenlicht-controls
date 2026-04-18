@@ -1,24 +1,26 @@
 import { App, PluginSettingTab, Notice, setIcon } from "obsidian";
 import TegenlichtControlsPlugin from "./main";
 import { DEFAULT_SETTINGS } from "./settings";
-import { build as buildAppearance } from "./tabs/appearance";
-import { build as buildTypography } from "./tabs/typography";
-import { build as buildEditing }    from "./tabs/editing";
-import { build as buildLayout }     from "./tabs/layout";
-import { build as buildFeatures }   from "./tabs/features";
-import { build as buildLegacy }     from "./tabs/legacy";
-import { build as buildLab }        from "./tabs/lab";
+import { build as buildAppearance }  from "./tabs/appearance";
+import { build as buildAppearance2 } from "./tabs/appearance2";
+import { build as buildTypography }  from "./tabs/typography";
+import { build as buildEditing }     from "./tabs/editing";
+import { build as buildLayout }      from "./tabs/layout";
+import { build as buildFeatures }    from "./tabs/features";
+import { build as buildLegacy }      from "./tabs/legacy";
+import { build as buildLab }         from "./tabs/lab";
 
-type Tab = "appearance" | "typography" | "editing" | "layout" | "features" | "legacy" | "lab";
+type Tab = "appearance" | "appearance2" | "typography" | "editing" | "layout" | "features" | "legacy" | "lab";
 
 const TABS: { id: Tab; label: string }[] = [
-  { id: "appearance", label: "Appearance" },
-  { id: "typography", label: "Typography" },
-  { id: "editing",    label: "Editing"    },
-  { id: "layout",     label: "Layout"     },
-  { id: "features",   label: "Features"   },
-  { id: "legacy",     label: "Legacy"     },
-  { id: "lab",        label: "Lab"        },
+  { id: "appearance",  label: "Appearance"   },
+  { id: "appearance2", label: "Appearance 2" },
+  { id: "typography",  label: "Typography"   },
+  { id: "editing",     label: "Editing"      },
+  { id: "layout",      label: "Layout"       },
+  { id: "features",    label: "Features"     },
+  { id: "legacy",      label: "Legacy"       },
+  { id: "lab",         label: "Lab"          },
 ];
 
 const TAB_STYLES: { id: string; label: string }[] = [
@@ -245,6 +247,9 @@ export class TegenlichtSettingsTab extends PluginSettingTab {
     switch (this.activeTab) {
       case "appearance":
         this.cleanup = buildAppearance(this.contentEl, this.plugin, onChange, redisplay);
+        break;
+      case "appearance2":
+        this.cleanup = buildAppearance2(this.contentEl, this.plugin, onChange, redisplay);
         break;
       case "typography": this.cleanup = buildTypography(this.contentEl, this.plugin, onChange, redisplay); break;
       case "editing":    buildEditing(this.contentEl, this.plugin, onChange);    break;

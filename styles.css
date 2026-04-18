@@ -2639,6 +2639,7 @@ body.tc-density-spacious {
 
 /* Icon stroke weight — affects every Lucide icon in the chrome. Exposed
    to users as "Icon intensity" in the Appearance tab. */
+body.tc-icon-stroke-hair    { --icon-stroke: 0.6px;  --icon-stroke-width: 0.6px; }
 body.tc-icon-stroke-thin    { --icon-stroke: 1px;    --icon-stroke-width: 1px; }
 body.tc-icon-stroke-regular { --icon-stroke: 1.75px; --icon-stroke-width: 1.75px; }
 body.tc-icon-stroke-bold    { --icon-stroke: 2.5px;  --icon-stroke-width: 2.5px; }
@@ -3998,8 +3999,11 @@ body.tc-graph-halo .workspace-leaf-content[data-type="graph"] .graph-view.color-
   /* Left padding dropped to 0 so the rail items' left edge lines up
      vertically with the leftmost top-level tab (both sit flush to
      the settings container's left edge). Right padding keeps the 8px
-     breathing room between items and the dashed divider. */
-  padding: 8px 8px 8px 0;
+     breathing room between items and the dashed divider. Top padding
+     bumped to 12px so the first rail item's vertical midline aligns
+     with the right pane's h3 title midline (pane padding-top 18 +
+     h3 half-height 9 = 27px; rail 12 + item half-height 15 = 27px). */
+  padding: 12px 8px 8px 0;
   display: flex;
   flex-direction: column;
   gap: 4px;
@@ -4415,6 +4419,21 @@ body.tc-graph-halo .workspace-leaf-content[data-type="graph"] .graph-view.color-
    via `:is(body.tc-fm-boxed, .tc-fm-preview-forced)`. Nothing more
    to declare here — every pretty-boxed rule cascades onto the
    preview automatically. One modifier, same paint. */
+
+/* ═══════════════════════════════════════════════════════════
+   Appearance 2 — stacked / no-rail variant. All four section
+   renderers run in one scrolling column; a generous bottom gap
+   between sections keeps them legibly separated.
+   ═══════════════════════════════════════════════════════════ */
+.tc-settings .tc-appearance2-wrap {
+  padding: 12px 0 40px;
+}
+.tc-settings .tc-appearance2-section {
+  margin-bottom: 36px;
+}
+.tc-settings .tc-appearance2-section:last-child {
+  margin-bottom: 0;
+}
 .tc-settings .tc-mock-tab-label {
   display: block;
   font-size: 10px;
