@@ -468,6 +468,15 @@ function renderAccents(
     "Decoration accents", true, s.accordionStyle);
   card.addClass("tc-h-accordion-body");
 
+  // Master toggle — without this on, the three dropdowns below don't
+  // paint (AnuPpuccin rules are scoped to body.anp-decoration-toggle).
+  new Setting(card)
+    .setName("Enable decoration colours")
+    .setDesc("Master switch — paints the Bold / Italic / Highlight choices below")
+    .addToggle(t => t
+      .setValue(s.decorationsEnabled)
+      .onChange(async v => { s.decorationsEnabled = v; await onChange(); }));
+
   const rows = [
     { label: "Bold",      key: "boldColor"      as const },
     { label: "Italic",    key: "italicColor"    as const },

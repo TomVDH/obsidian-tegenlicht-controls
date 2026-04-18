@@ -54,6 +54,11 @@ const GROUPS: FeatureGroup[] = [
       { key: "printStyling",     label: "Print styling",     desc: "Apply dedicated formatting for print / export" },
       { key: "pdfBlendLight",    label: "PDF blend (light)", desc: "Blend PDF viewer background with the editor in light mode" },
       { key: "pdfBlendDark",     label: "PDF blend (dark)",  desc: "Blend PDF viewer background with the editor in dark mode" },
+      // Wave 6 — workspace toggles.
+      { key: "canvasDarkBg",     label: "Darker canvas backdrop", desc: "Use a darker background for Obsidian canvases" },
+      { key: "bgFix",            label: "Workspace bg fix",  desc: "Repaint fix for translucent / colourful backdrops" },
+      { key: "hideBorders",      label: "Hide pane borders", desc: "Remove Obsidian's internal pane-frame borders" },
+      { key: "cardShadows",      label: "Card shadows",      desc: "Drop shadow on card tiles (requires Cards layout)" },
     ],
   },
   {

@@ -328,6 +328,10 @@ export function apply(s: TegenlichtSettings): void {
   --anp-font-editor-wt: ${s.sourceWeight ?? 400};
   /* Wave 5 — LaTeX text colour (empty = theme default). */
   ${s.latexColour ? `--anp-latex-color: ${s.latexColour};` : ''}
+  /* Wave 6 — list marker colour (empty = theme default) + colorful
+     frame opacity (only effective when colorful-frame toggle is on). */
+  ${s.listMarkerColour ? `--list-marker-color: ${s.listMarkerColour};` : ''}
+  --anp-colorful-frame-opacity: ${(s.colorfulFrameOpacity ?? 1).toFixed(2)};
   /* Legacy — Callouts */
   --callout-radius: ${s.calloutRadius ?? 8}px;
   --callout-title-padding: ${s.calloutTitlePaddingX ?? 12}px;
@@ -486,6 +490,13 @@ ${s.caretColourEnabled ? `.cm-cursor { border-left-color: ${caretClr} !important
   // Wave 5 — PDF blend toggles (per theme mode).
   cls('anp-pdf-blend-toggle-light', s.pdfBlendLight);
   cls('anp-pdf-blend-toggle-dark',  s.pdfBlendDark);
+  // Wave 6 — workspace mop-up class-toggles.
+  cls('anp-decoration-toggle',      s.decorationsEnabled);
+  cls('anp-toggle-preview',         s.customPreviewMargins);
+  cls('anp-canvas-dark-bg',         s.canvasDarkBg);
+  cls('anp-bg-fix',                 s.bgFix);
+  cls('anp-hide-borders',           s.hideBorders);
+  cls('anp-card-shadows',           s.cardShadows);
   // Wave 3 — heading master toggles + per-H divider toggles.
   cls('anp-header-color-toggle',         s.headingColorsEnabled);
   cls('anp-header-margin-toggle',        s.headingMarginsEnabled);
@@ -688,6 +699,10 @@ export function remove(): void {
    'anp-speech-bubble', 'anp-list-toggle', 'anp-print',
    // Wave 5 additions — PDF blend toggles
    'anp-pdf-blend-toggle-light', 'anp-pdf-blend-toggle-dark',
+   // Wave 6 additions — workspace mop-up
+   'anp-decoration-toggle', 'anp-toggle-preview',
+   'anp-canvas-dark-bg', 'anp-bg-fix', 'anp-hide-borders',
+   'anp-card-shadows',
    // Wave 3 master toggles + per-H divider classes
    'anp-header-color-toggle', 'anp-header-margin-toggle',
    'anp-header-divider-color-toggle',

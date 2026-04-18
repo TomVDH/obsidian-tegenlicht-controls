@@ -1,7 +1,10 @@
 import { Setting, setIcon } from "obsidian";
 import Pickr from "@simonwep/pickr";
 import TegenlichtControlsPlugin from "../main";
-import { buildLeftRailShell, LeftRailSection, buildSegmentSetting, buildCluster } from "./_shared";
+import {
+  buildLeftRailShell, LeftRailSection, buildSegmentSetting,
+  buildCluster, buildColourVarRow,
+} from "./_shared";
 import { buildTypographyPreview, buildCalloutPreview } from "../preview-sample";
 
 /**
@@ -13,49 +16,6 @@ import { buildTypographyPreview, buildCalloutPreview } from "../preview-sample";
  * Ship-push 2 (future): Headings + Lists & Tags + Workspace details
  * Skipped: Palette overrides, Integrations (Kanban / MAKE.md / Minimal Cards)
  */
-
-/** Single-use Pickr row for Codeblocks — colour picker with no toggle.
- *  Empty-string value means "no override" (removes the CSS var so the
- *  theme paints). The Clear button in Pickr resets to empty. Returns
- *  the Pickr instance so the caller can include it in its disposer set. */
-function buildColourVarRow(
-  container: HTMLElement,
-  name: string,
-  desc: string,
-  getValue: () => string,
-  setValue: (v: string) => void,
-  onChange: () => Promise<void>,
-): Pickr {
-  const setting = new Setting(container).setName(name).setDesc(desc);
-  const pickerEl = setting.controlEl.createDiv("pickr");
-  const pickr = Pickr.create({
-    el: pickerEl,
-    container: container.closest('.modal-content') as HTMLElement ?? document.body,
-    theme: 'nano',
-    default: getValue() || '#000000',
-    lockOpacity: true,
-    position: 'left-middle',
-    components: {
-      preview: true,
-      hue: true,
-      opacity: false,
-      interaction: { hex: true, input: true, clear: true, save: true, cancel: true },
-    },
-  });
-  pickr.on('save', (color: Pickr.HSVaColor | null, instance: Pickr) => {
-    if (!color) return;
-    setValue(color.toHEXA().toString().slice(0, 7));
-    instance.hide();
-    onChange();
-  });
-  pickr.on('clear', (instance: Pickr) => {
-    setValue('');
-    instance.hide();
-    onChange();
-  });
-  pickr.on('cancel', (instance: Pickr) => instance.hide());
-  return pickr;
-}
 
 export function build(
   containerEl: HTMLElement,

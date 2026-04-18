@@ -1,7 +1,7 @@
 import { Setting } from "obsidian";
 import TegenlichtControlsPlugin from "../main";
 import { buildEditingPreview } from "../preview-sample";
-import { buildSegmentSetting } from "./_shared";
+import { buildSegmentSetting, buildColourVarRow } from "./_shared";
 
 // Session-scoped accordion state — same pattern as the Appearance and
 // Typography tabs so flipping a toggle doesn't snap sections shut.
@@ -97,6 +97,29 @@ export function build(
       .setValue(s.listToggle)
       .onChange(async v => { s.listToggle = v; await onChange(); })
     );
+
+  // Wave 6 — custom preview margins toggle. Gates AnuPpuccin's
+  // reading-view margin vars (anp-toggle-preview body class).
+  new Setting(readingBody)
+    .setName("Custom preview margins")
+    .setDesc("Apply AnuPpuccin's reading-view margin scheme to preview mode")
+    .addToggle(t => t
+      .setValue(s.customPreviewMargins)
+      .onChange(async v => { s.customPreviewMargins = v; await onChange(); })
+    );
+
+  // Wave 6 — unordered list bullet colour (themed hex). Empty = theme
+  // default; any hex overrides --list-marker-color. Pickr instance
+  // leaks DOM if not destroyed — but this tab doesn't carry a disposer
+  // lifecycle yet. TODO: thread a cleanup once Editing grows more
+  // Pickrs; for now the single instance is acceptable transient DOM.
+  buildColourVarRow(readingBody,
+    "List bullet colour",
+    "Colour for unordered list bullets (clear = theme default)",
+    () => s.listMarkerColour,
+    v => { s.listMarkerColour = v; },
+    onChange,
+  );
 
   // ── Coding accordion — editor affordances for source work ────────
   const codingBody = buildAccordion(wrap, "coding", "Coding & source");

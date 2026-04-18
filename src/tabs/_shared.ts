@@ -11,6 +11,51 @@ import Pickr from "@simonwep/pickr";
  * Lifted out of appearance.ts so the Lab tab (and any future surface)
  * can build the same row without duplicating Pickr boilerplate.
  */
+/**
+ * Colour-picker row WITHOUT a toggle — a Pickr swatch on its own.
+ * Clear button reverts to empty string (= CSS var not written, so
+ * the theme default paints). Returns the Pickr instance for the
+ * caller's disposer set.
+ */
+export function buildColourVarRow(
+  container: HTMLElement,
+  name: string,
+  desc: string,
+  getValue: () => string,
+  setValue: (v: string) => void,
+  onChange: () => Promise<void>,
+): Pickr {
+  const setting = new Setting(container).setName(name).setDesc(desc);
+  const pickerEl = setting.controlEl.createDiv("pickr");
+  const pickr = Pickr.create({
+    el: pickerEl,
+    container: container.closest('.modal-content') as HTMLElement ?? document.body,
+    theme: 'nano',
+    default: getValue() || '#000000',
+    lockOpacity: true,
+    position: 'left-middle',
+    components: {
+      preview: true,
+      hue: true,
+      opacity: false,
+      interaction: { hex: true, input: true, clear: true, save: true, cancel: true },
+    },
+  });
+  pickr.on('save', (color: Pickr.HSVaColor | null, instance: Pickr) => {
+    if (!color) return;
+    setValue(color.toHEXA().toString().slice(0, 7));
+    instance.hide();
+    onChange();
+  });
+  pickr.on('clear', (instance: Pickr) => {
+    setValue('');
+    instance.hide();
+    onChange();
+  });
+  pickr.on('cancel', (instance: Pickr) => instance.hide());
+  return pickr;
+}
+
 export function buildColorToggleRow(
   container: HTMLElement,
   name: string,

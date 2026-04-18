@@ -24,6 +24,9 @@ const CARDS_BORDERS: LayoutCfg[] = [
   { key: "cardRadius",    label: "Card radius",    min: 0, max: 24, step: 1, unit: "px", defaultVal: 8 },
   { key: "borderRadius",  label: "Border radius",  min: 0, max: 20, step: 1, unit: "px", defaultVal: 6 },
   { key: "borderPadding", label: "Border padding", min: 0, max: 20, step: 1, unit: "px", defaultVal: 4 },
+  // Wave 6 — colorful frame opacity. Unit is the fractional 0–1 range
+  // AnuPpuccin's var expects; slider uses the same range.
+  { key: "colorfulFrameOpacity", label: "Colorful frame opacity", min: 0, max: 1, step: 0.05, unit: "", defaultVal: 1.0 },
 ];
 
 const TABLES: LayoutCfg[] = [

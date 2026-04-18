@@ -230,6 +230,32 @@ export interface TegenlichtSettings {
   pdfBlendLight: boolean;
   pdfBlendDark: boolean;
 
+  // AnuPpuccin port Wave 6 — workspace mop-up (highest-value subset).
+  // Prioritised picks from the inventory's ◯ Not yet column that are
+  // one-line class toggles, simple scalars, or natural masters for
+  // the Wave 3 colour work.
+  //   decorationsEnabled → anp-decoration-toggle; master that gates
+  //     whether the bold/italic/highlight colour picks actually paint.
+  //   listMarkerColour → --list-marker-color (themed hex; empty = theme).
+  //   customPreviewMargins → anp-toggle-preview; enables the
+  //     reading-view margin vars.
+  //   canvasDarkBg → anp-canvas-dark-bg; darker canvas backdrop.
+  //   bgFix → anp-bg-fix; workspace bg paint fix.
+  //   hideBorders → anp-hide-borders; kills the Obsidian internal
+  //     pane-frame borders.
+  //   cardShadows → anp-card-shadows (only effective with sidebarStyle
+  //     === 'cards'); drops shadow on card tiles.
+  //   colorfulFrameOpacity → --anp-colorful-frame-opacity (0–1, step
+  //     0.05); pairs with the existing `colorfulFrame` toggle.
+  decorationsEnabled: boolean;
+  listMarkerColour: string;
+  customPreviewMargins: boolean;
+  canvasDarkBg: boolean;
+  bgFix: boolean;
+  hideBorders: boolean;
+  cardShadows: boolean;
+  colorfulFrameOpacity: number;
+
   // Editing — Properties panel styling
   // Toggles an accent-gradient card wrapper around Obsidian's Properties
   // panel (.metadata-container). Same visual as the frontmatter-beauty.css
@@ -445,6 +471,18 @@ export const DEFAULT_SETTINGS: TegenlichtSettings = {
   latexColour: '',
   pdfBlendLight: false,
   pdfBlendDark: false,
+
+  // Wave 6 defaults — all toggles off (theme defaults hold),
+  // listMarkerColour empty (theme paints), colorfulFrameOpacity 1.0
+  // (AnuPpuccin's own default when the colorful frame is on).
+  decorationsEnabled: false,
+  listMarkerColour: '',
+  customPreviewMargins: false,
+  canvasDarkBg: false,
+  bgFix: false,
+  hideBorders: false,
+  cardShadows: false,
+  colorfulFrameOpacity: 1.0,
 
   propertiesBoxed: false,
 
