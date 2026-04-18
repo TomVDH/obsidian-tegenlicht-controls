@@ -1455,6 +1455,24 @@ body.tc-tabs-active-pill .tc-settings .tc-tab-slide-indicator {
   padding-top: 0 !important;
   padding-bottom: 0 !important;
 }
+/* Key column interior — icon + label sit tight against each other
+   by default in Obsidian's base CSS (inline with no gap). Force a
+   flex row with a 6px gap so the Lucide glyph + property name
+   breathe. */
+:is(body.tc-fm-boxed, .tc-fm-preview-forced) .metadata-property-key {
+  display: flex !important;
+  align-items: center !important;
+  gap: 6px !important;
+}
+/* Pills — shrink to match label text height so the value column
+   doesn't dominate the row's vertical footprint. Without this, a
+   tags/aliases row reads visibly taller than a plain-text row and
+   pills look out of proportion next to their label. */
+:is(body.tc-fm-boxed, .tc-fm-preview-forced) .multi-select-pill {
+  min-height: 0 !important;
+  padding: 0 4px 0 8px !important;
+  line-height: 1.5 !important;
+}
 :is(body.tc-fm-boxed, .tc-fm-preview-forced) .metadata-property:hover {
   background: color-mix(in srgb, var(--color-accent) 7%, transparent) !important;
 }
