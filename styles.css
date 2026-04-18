@@ -4461,6 +4461,103 @@ body.tc-graph-halo .workspace-leaf-content[data-type="graph"] .graph-view.color-
 }
 
 /* ═══════════════════════════════════════════════════════════
+   Frontmatter-focused preview — compact row density.
+   Lab surface has no note body competing for vertical space, so
+   the preview was reading as WAY too airy compared to the live
+   Properties panel. Overrides below tighten:
+   - container padding / margin
+   - row padding + min-height + flex alignment
+   - key column width
+   - pill size
+   - heading height
+   so the preview matches the compact feel of the live panel.
+   Scoped strictly to .tc-fm-preview-forced so the Editing-tab
+   preview (which nests alongside note-body content) keeps its
+   breathier rhythm. */
+.tc-fm-preview-forced.mini-fm,
+.tc-fm-preview-forced .mini-fm {
+  font-size: 12px !important;
+  padding: 2px 0 !important;
+  margin: 0 !important;
+}
+.tc-fm-preview-forced .metadata-container {
+  font-size: 12px !important;
+  margin: 0 !important;
+  padding: 8px 12px !important;
+}
+.tc-fm-preview-forced .metadata-properties-heading {
+  min-height: 0 !important;
+  padding: 0 4px 6px !important;
+  margin-bottom: 6px !important;
+}
+.tc-fm-preview-forced .metadata-property {
+  min-height: 0 !important;
+  padding: 1px 4px !important;
+  margin: 0 !important;
+  display: flex !important;
+  align-items: center !important;
+  gap: 8px;
+}
+.tc-fm-preview-forced .metadata-property-key {
+  min-width: 0 !important;
+  max-width: none !important;
+  width: 128px !important;
+  flex: 0 0 128px !important;
+  min-height: 0 !important;
+  padding: 0 !important;
+  display: inline-flex !important;
+  align-items: center;
+  gap: 6px;
+}
+.tc-fm-preview-forced .metadata-property-icon {
+  width: 14px !important;
+  height: 14px !important;
+  flex: 0 0 14px !important;
+}
+.tc-fm-preview-forced .metadata-property-icon svg {
+  width: 14px !important;
+  height: 14px !important;
+}
+.tc-fm-preview-forced .metadata-property-value {
+  min-height: 0 !important;
+  padding: 0 !important;
+  flex: 1 1 auto;
+  line-height: 1.5;
+}
+.tc-fm-preview-forced .multi-select-pill {
+  min-height: 0 !important;
+  padding: 0 4px 0 8px !important;
+  font-size: 11px !important;
+  line-height: 1.5;
+}
+.tc-fm-preview-forced .multi-select-pill-content {
+  padding-right: 2px !important;
+}
+.tc-fm-preview-forced .multi-select-pill-remove-button svg {
+  width: 11px !important;
+  height: 11px !important;
+}
+.tc-fm-preview-forced .metadata-add-button {
+  min-height: 0 !important;
+  padding: 6px 4px 0 !important;
+  font-size: 11px !important;
+  color: var(--text-faint);
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+.tc-fm-preview-forced .metadata-add-button svg {
+  width: 12px !important;
+  height: 12px !important;
+}
+.tc-fm-preview-forced .metadata-input-longtext {
+  line-height: 1.5;
+}
+.tc-fm-preview-forced .metadata-input-checkbox {
+  margin: 0 !important;
+}
+
+/* ═══════════════════════════════════════════════════════════
    Appearance 2 — stacked / no-rail variant. All four section
    renderers run in one scrolling column; a generous bottom gap
    between sections keeps them legibly separated.
