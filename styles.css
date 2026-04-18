@@ -1431,10 +1431,29 @@ body.tc-tabs-active-pill .tc-settings .tc-tab-slide-indicator {
    structured table rather than a tight stack. Hover lifts each row
    subtly, matching Obsidian's native interactivity. */
 :is(body.tc-fm-boxed, .tc-fm-preview-forced) .metadata-property {
-  margin: 2px 0 !important;
-  padding: 2px 4px !important;
+  /* Flex row with vertical centre alignment so the key (icon + label)
+     and value (text / pills / checkbox) sit on the same midline,
+     regardless of value height. Gap 10px between key column and
+     value column. */
+  display: flex !important;
+  align-items: center !important;
+  gap: 10px !important;
+  /* Tighter vertical rhythm — rows no longer feel airy. 0 margin
+     between rows, minimal vertical padding inside each row. The
+     border-radius stays for the hover highlight (rule below). */
+  margin: 0 !important;
+  padding: 1px 4px !important;
+  min-height: 0 !important;
   border-radius: 4px !important;
   transition: background 0.1s ease;
+}
+/* Key + value column: zero their own vertical padding + min-height
+   so the parent's `align-items: center` has nothing to fight. */
+:is(body.tc-fm-boxed, .tc-fm-preview-forced) .metadata-property-key,
+:is(body.tc-fm-boxed, .tc-fm-preview-forced) .metadata-property-value {
+  min-height: 0 !important;
+  padding-top: 0 !important;
+  padding-bottom: 0 !important;
 }
 :is(body.tc-fm-boxed, .tc-fm-preview-forced) .metadata-property:hover {
   background: color-mix(in srgb, var(--color-accent) 7%, transparent) !important;
