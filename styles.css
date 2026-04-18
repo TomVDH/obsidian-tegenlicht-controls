@@ -1478,8 +1478,17 @@ body.tc-tabs-active-pill .tc-settings .tc-tab-slide-indicator {
 }
 
 /* Keys — muted, slight letter-spacing for the labelled feel of the
-   frontmatter-beauty snippet, without going full uppercase. */
+   frontmatter-beauty snippet, without going full uppercase.
+   Fixed flex slot so every row's value column starts at the same
+   X coord — otherwise content-sized keys shift each value row's
+   left edge, and 3/2026-04-14/draft/pills land at visibly different
+   columns. 140px is tight against the longest key ("priority",
+   "created") without wasting horizontal space. */
 :is(body.tc-fm-boxed, .tc-fm-preview-forced) .metadata-property-key {
+  flex: 0 0 140px !important;
+  width: 140px !important;
+  min-width: 140px !important;
+  max-width: 140px !important;
   color: var(--text-muted) !important;
   font-weight: 500 !important;
   letter-spacing: 0.01em !important;
