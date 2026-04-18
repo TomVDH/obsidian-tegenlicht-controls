@@ -1,7 +1,6 @@
 import { Modal, setIcon } from "obsidian";
 import TegenlichtControlsPlugin from "./main";
 import { build as buildAppearance }  from "./tabs/appearance";
-import { build as buildAppearance2 } from "./tabs/appearance2";
 import { build as buildTypography }  from "./tabs/typography";
 import { build as buildEditing }     from "./tabs/editing";
 import { build as buildLayout }      from "./tabs/layout";
@@ -9,11 +8,10 @@ import { build as buildFeatures }    from "./tabs/features";
 import { build as buildLegacy }      from "./tabs/legacy";
 import { build as buildLab }         from "./tabs/lab";
 
-type Tab = "appearance" | "appearance2" | "typography" | "editing" | "layout" | "features" | "legacy" | "lab";
+type Tab = "appearance" | "typography" | "editing" | "layout" | "features" | "legacy" | "lab";
 
 const TABS: { id: Tab; label: string }[] = [
   { id: "appearance",  label: "Appearance"   },
-  { id: "appearance2", label: "Appearance 2" },
   { id: "typography",  label: "Typography"   },
   { id: "editing",     label: "Editing"      },
   { id: "layout",      label: "Layout"       },
@@ -165,9 +163,6 @@ export class TegenlichtQuickPanel extends Modal {
     switch (this.activeTab) {
       case "appearance":
         this.cleanup = buildAppearance(this.contentArea, this.plugin, onChange, redisplay);
-        break;
-      case "appearance2":
-        this.cleanup = buildAppearance2(this.contentArea, this.plugin, onChange, redisplay);
         break;
       case "typography": buildTypography(this.contentArea, this.plugin, onChange, redisplay); break;
       case "editing":    buildEditing(this.contentArea, this.plugin, onChange);    break;

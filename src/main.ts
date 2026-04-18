@@ -92,7 +92,14 @@ export default class TegenlichtControlsPlugin extends Plugin {
   }
 
   async saveSettings(): Promise<void> {
-    await this.saveData(this.settings);
+    // Apply FIRST so UI updates are instant; persist SECOND so the
+    // iCloud-backed vault's slow disk write doesn't stall the visible
+    // feedback. Every caller that writes a setting + calls this
+    // expects the visual to update live (accent preset dots, custom
+    // Pickr drags, flavour swaps, slider drags, etc.). The await on
+    // saveData stays so callers that chain on the promise still know
+    // when the disk write finished.
     apply(this.settings);
+    await this.saveData(this.settings);
   }
 }

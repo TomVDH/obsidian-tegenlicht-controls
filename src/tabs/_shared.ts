@@ -207,10 +207,20 @@ export function buildLeftRailShell(
 ): () => void {
   const shell = container.createDiv("tc-leftrail-shell");
   const rail = shell.createDiv("tc-leftrail-rail");
-  const pane = shell.createDiv("tc-leftrail-pane");
+  // Pane-stack holds ONE `.tc-leftrail-pane` per section — all rendered
+  // at mount so the tab-level setting counter sees every .setting-item
+  // across sub-tabs (giving continuous A-1..A-N numbering). Only the
+  // active pane is displayed; the rest sit in the DOM with a
+  // `--hidden` modifier that takes them out of view via `display:none`
+  // while preserving their contribution to CSS counters. If counters
+  // mis-behave on display:none in some engines, swap to visibility:
+  // hidden + position:absolute off-screen — keeping the pane in the
+  // layout tree.
+  const paneStack = shell.createDiv("tc-leftrail-pane-stack");
 
   const disposers: (() => void)[] = [];
   const railItems = new Map<string, HTMLElement>();
+  const panes = new Map<string, HTMLElement>();
 
   // Restore prior active section if the caller supplied a stateKey
   // and the saved id still exists in the current sections list.
@@ -222,11 +232,19 @@ export function buildLeftRailShell(
     leftRailActiveId[stateKey] = activeId;
   }
 
+  // Render every pane up-front so the counter sees them all. Visibility
+  // is toggled via class on swap, no render work happens.
+  sections.forEach(section => {
+    const paneEl = paneStack.createDiv("tc-leftrail-pane");
+    if (section.id !== activeId) paneEl.addClass("tc-leftrail-pane--hidden");
+    section.render(paneEl);
+    panes.set(section.id, paneEl);
+  });
+
   const renderActive = () => {
-    pane.empty();
-    const active = sections.find(s => s.id === activeId);
-    if (!active) return;
-    active.render(pane);
+    panes.forEach((el, id) => {
+      el.toggleClass("tc-leftrail-pane--hidden", id !== activeId);
+    });
   };
 
   // Rainbow flourish retired (2026-04-17) — the accent divider below
@@ -332,6 +350,39 @@ export function buildHorizontalTabs(parent: HTMLElement, tabs: HorizontalTab[]):
 // (e.g. "typo-fonts", "app-palette").
 
 const prettyAccordionOpen: Record<string, boolean> = {};
+
+/** Known accordion variants. Single source of truth for both the
+ *  `buildPrettyAccordion` rendering path and the imperative
+ *  `swapAccordionVariant` class-flip used when the style picker
+ *  changes live. */
+export const ACCORDION_VARIANTS = [
+  "pretty", "gutter", "ghost", "twotone", "halo", "filed", "bloc", "subdued",
+];
+
+/** Live-swap the variant class on every accordion already in the DOM.
+ *  Avoids a full settings-panel rebuild when the user picks a new
+ *  accordion style: each `.tc-mock-acc` gets its old variant class
+ *  stripped and the new one added. Scope defaults to document so the
+ *  Typography pane's accordions update alongside Appearance's. */
+export function swapAccordionVariant(newVariant: string, scope: ParentNode = document): void {
+  scope.querySelectorAll<HTMLElement>(".tc-mock-acc").forEach(el => {
+    ACCORDION_VARIANTS.forEach(v => el.classList.remove(`tc-mock-acc--${v}`));
+    el.classList.add(`tc-mock-acc--${newVariant}`);
+  });
+}
+
+/** Append a small "↻" pip to a Setting's name signalling that the
+ *  change only takes effect after a plugin reload. Use for settings
+ *  whose effect is baked into the DOM at render time and can't be
+ *  live-swapped cheaply. The pip has a title tooltip explaining the
+ *  requirement. */
+export function markReloadRequired(setting: Setting, reason = "Requires plugin reload to apply"): void {
+  setting.nameEl.createSpan({
+    cls: "tc-reload-pip",
+    text: "↻",
+    attr: { title: reason, "aria-label": reason },
+  });
+}
 
 /** Foldable accent-painted accordion. Accepts a `variant` name that
  *  maps directly to the Lab → Accordion styles picks (pretty, gutter,

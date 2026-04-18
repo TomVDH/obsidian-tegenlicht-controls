@@ -117,8 +117,9 @@
 .tc-settings .tc-header-gh svg { display: block; }
 
 /* Help button (?) — same circular chrome as .tc-header-gh so the
-   two icons read as a paired trio with the version badge. Points
-   at the README section covering licensing + acknowledgements. */
+   two icons read as a paired trio with the version badge. Opens
+   the in-app Acknowledgements modal. Button defaults zeroed so a
+   <button> renders identically to what used to be an <a>. */
 .tc-settings .tc-header-help {
   display: inline-flex;
   align-items: center;
@@ -129,6 +130,10 @@
   border-radius: 50%;
   transition: color 140ms ease, background 140ms ease;
   margin-left: 2px;
+  background: none;
+  border: 0;
+  cursor: pointer;
+  box-shadow: none;
 }
 .tc-settings .tc-header-help:hover {
   color: var(--color-accent);
@@ -4122,15 +4127,29 @@ body.tc-graph-halo .workspace-leaf-content[data-type="graph"] .graph-view.color-
   color: var(--text-muted);
 }
 
+/* Pane stack — every rail section's pane is rendered into this
+   container so the tab-level CSS counter sees all .setting-item
+   descendants (yielding continuous A-1..A-N numbering across
+   sub-tabs). The active pane displays normally; inactive panes
+   carry --hidden which positions them off-screen so they stay
+   in the layout tree (and in the counter) while being invisible. */
+.tc-settings .tc-leftrail-pane-stack {
+  position: relative;
+  flex: 1;
+  min-width: 0;
+}
 .tc-settings .tc-leftrail-pane {
-  /* Left padding = 2× the rail's right padding (8 × 2 = 16px) so the
-     gap from the divider to the pane content reads as a comfortable
-     gutter — twice the rail's inner padding rather than a perfect
-     mirror. Right padding stays 0 — pane content reaches the shell's
-     (and the modal's) right edge. Settings inside the pane carry
-     their own padding via Obsidian's native .setting-item styling. */
   padding: 18px 0 18px 16px;
   overflow-y: auto;
+}
+.tc-settings .tc-leftrail-pane--hidden {
+  position: absolute;
+  left: -99999px;
+  top: 0;
+  width: 0;
+  height: 0;
+  overflow: hidden;
+  pointer-events: none;
 }
 
 /* Section title in the rail content pane — same vocabulary as the
@@ -4752,19 +4771,27 @@ body.tc-graph-halo .workspace-leaf-content[data-type="graph"] .graph-view.color-
    - tc-tab-content (flat tabs: Editing, Layout, Features)
    - tc-leftrail-pane (rail tabs: Appearance, Typography, Legacy,
      Lab — only the currently-visible pane counts)
-   - tc-appearance2-section (Appearance 2 stacks all sections
-     in one pane; each section gets its own counter)
 
-   To hide the numbers later (ship-mode): remove the ::after rule
-   at the bottom of this block OR gate on a body class toggle. */
-.tc-settings .tc-tab-content,
-.tc-settings .tc-leftrail-pane,
-.tc-settings .tc-appearance2-section {
+   Tab prefix comes from .tc-content-{slug} class set on the content
+   element by settings-tab.ts::renderContent. To hide the numbers
+   later (ship-mode): remove the per-tab ::after rules OR gate on
+   a body-class toggle. */
+/* Counter scope intentionally lives ONLY at tab-content level — NOT
+   on .tc-leftrail-pane — so numbering flows continuously across rail
+   sub-tabs (A-1 → … → A-N across Theme + Outliner + Graph + Workspace
+   + Interface), instead of restarting at 1 on every rail switch.
+   Inactive panes stay in the DOM via .tc-leftrail-pane--hidden
+   (off-screen positioning) so their .setting-item descendants keep
+   contributing to the counter. */
+.tc-settings .tc-tab-content {
   counter-reset: tc-setting;
 }
 .tc-settings .setting-item {
   counter-increment: tc-setting;
 }
+/* Per-tab prefix — A for Appearance, B for Typography, … so settings
+   read as "A-1", "B-3", etc. Fallback (no tc-content-* class) renders
+   just "#N". */
 .tc-settings .setting-item .setting-item-name::after {
   content: "  #" counter(tc-setting);
   font-family: var(--font-monospace, monospace);
@@ -4776,24 +4803,39 @@ body.tc-graph-halo .workspace-leaf-content[data-type="graph"] .graph-view.color-
   margin-left: 6px;
   vertical-align: middle;
 }
+.tc-settings .tc-content-appearance .setting-item .setting-item-name::after { content: "  A-" counter(tc-setting); }
+.tc-settings .tc-content-typography .setting-item .setting-item-name::after { content: "  B-" counter(tc-setting); }
+.tc-settings .tc-content-editing    .setting-item .setting-item-name::after { content: "  C-" counter(tc-setting); }
+.tc-settings .tc-content-layout     .setting-item .setting-item-name::after { content: "  D-" counter(tc-setting); }
+.tc-settings .tc-content-features   .setting-item .setting-item-name::after { content: "  E-" counter(tc-setting); }
+.tc-settings .tc-content-legacy     .setting-item .setting-item-name::after { content: "  F-" counter(tc-setting); }
+.tc-settings .tc-content-lab        .setting-item .setting-item-name::after { content: "  L-" counter(tc-setting); }
 
-.tc-settings .tc-appearance2-wrap {
-  padding: 12px 0 40px;
+/* ── Reload-required pip ─────────────────────────────────────────────
+   Small "↻" marker appended to a Setting's name via markReloadRequired()
+   for controls whose effect is baked into the DOM at render time and
+   can't be live-swapped. Sits inline after the name text, before the
+   dev-counter "#N" suffix. Muted by default, brightens on hover. */
+.tc-settings .tc-reload-pip {
+  display: inline-block;
+  margin-left: 8px;
+  padding: 0 6px;
+  font-size: 10px;
+  line-height: 15px;
+  color: var(--text-muted);
+  background: var(--background-modifier-border);
+  border-radius: 8px;
+  opacity: 0.6;
+  cursor: help;
+  vertical-align: 1px;
+  user-select: none;
+  transition: opacity 0.15s ease;
 }
-.tc-settings .tc-appearance2-section {
-  margin-bottom: 36px;
+.tc-settings .tc-reload-pip:hover {
+  opacity: 1;
+  color: var(--interactive-accent);
 }
-.tc-settings .tc-appearance2-section:last-child {
-  margin-bottom: 0;
-}
-/* Subtle dashed separator above every section except the first —
-   stacked layout otherwise reads as one long scroll with no
-   landmarks. Same dashed vocabulary as the rail divider + the
-   tab-bar spacer, so the visual language is consistent. */
-.tc-settings .tc-appearance2-section:not(:first-child) {
-  border-top: 1px dashed rgba(var(--mono-rgb-100, 200, 200, 200), 0.15);
-  padding-top: 24px;
-}
+
 .tc-settings .tc-mock-tab-label {
   display: block;
   font-size: 10px;
@@ -6005,7 +6047,7 @@ body.tc-graph-halo .workspace-leaf-content[data-type="graph"] .graph-view.color-
    the Lab pane reads as a rhythmic list with comfortable breathing,
    regardless of variant chrome. */
 .tc-settings .tc-mock-acc {
-  margin: 0 0 32px 0;
+  margin: 0 0 20px 0;
   border-radius: 6px;
   overflow: hidden;
   transition: border-color 0.22s ease, box-shadow 0.22s ease;
@@ -6480,4 +6522,89 @@ body.anp-simple-rainbow-collapse-icon-toggle .nav-folder-title .collapse-icon sv
   color: inherit !important;
   stroke: currentColor !important;
   fill: currentColor !important;
+}
+
+/* ─────────────────────────────────────────────────────────────────────
+   Acknowledgements modal — opened by the ? help button and the footer
+   Acknowledgements link in the settings header. Rough/honest layout:
+   title, intro blurb, stacked sections (heading + optional blurb +
+   list of linked credits), licence note, and a footer with GitHub +
+   close. Scoped under .tc-ack-modal so nothing leaks into other modals.
+   ───────────────────────────────────────────────────────────────────── */
+.tc-ack-modal .tc-ack-head { margin-bottom: 8px; }
+.tc-ack-modal .tc-ack-title {
+  margin: 0 0 4px 0;
+  font-size: 20px;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+}
+.tc-ack-modal .tc-ack-intro {
+  margin: 0 0 12px 0;
+  color: var(--text-muted);
+  font-size: 13px;
+  line-height: 1.5;
+}
+.tc-ack-modal .tc-ack-section {
+  margin: 14px 0;
+  padding-top: 12px;
+  border-top: 1px solid var(--background-modifier-border);
+}
+.tc-ack-modal .tc-ack-section:first-of-type {
+  border-top: 0;
+  padding-top: 0;
+}
+.tc-ack-modal .tc-ack-section-heading {
+  margin: 0 0 6px 0;
+  font-size: 13px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--text-muted);
+}
+.tc-ack-modal .tc-ack-section-blurb {
+  margin: 0 0 8px 0;
+  color: var(--text-muted);
+  font-size: 12px;
+  line-height: 1.5;
+}
+.tc-ack-modal .tc-ack-list {
+  margin: 0;
+  padding-left: 18px;
+  font-size: 13px;
+  line-height: 1.55;
+}
+.tc-ack-modal .tc-ack-list li { margin: 3px 0; }
+.tc-ack-modal .tc-ack-list a {
+  font-weight: 600;
+  color: var(--text-normal);
+  text-decoration: none;
+  border-bottom: 1px solid var(--background-modifier-border);
+}
+.tc-ack-modal .tc-ack-list a:hover {
+  color: var(--color-accent);
+  border-bottom-color: var(--color-accent);
+}
+.tc-ack-modal .tc-ack-note { color: var(--text-muted); }
+
+.tc-ack-modal .tc-ack-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  margin-top: 18px;
+  padding-top: 12px;
+  border-top: 1px solid var(--background-modifier-border);
+}
+.tc-ack-modal .tc-ack-gh {
+  color: var(--text-muted);
+  font-size: 12px;
+  text-decoration: none;
+}
+.tc-ack-modal .tc-ack-gh:hover {
+  color: var(--color-accent);
+}
+.tc-ack-modal .tc-ack-close {
+  padding: 6px 14px;
+  border-radius: 6px;
+  cursor: pointer;
 }

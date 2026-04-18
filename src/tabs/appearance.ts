@@ -11,6 +11,7 @@ import {
   buildSegmentSetting, buildColorToggleRow,
   buildLeftRailShell, LeftRailSection,
   buildPrettyAccordion, buildSectionPreview,
+  swapAccordionVariant,
 } from "./_shared";
 import { buildTypographyPreview } from "../preview-sample";
 
@@ -764,16 +765,25 @@ export function renderWorkspace(
     refresh,
   ));
 
-  // ── Interface cluster — surface tab nav style + spacing controls.
-  //    tabBarStyle accepts: 'switch' (default, monochrome knob),
-  //    'switch-amber' (accent knob), 'underline' (no track), 'ghost'
-  //    (1px outline). Retired legacy values migrate to 'switch' in
-  //    loadSettings. Until Task 5 ships the matching CSS, the picker
-  //    renders but the visual effect on the tab bar only lands with
-  //    that later commit.
-  const interfaceCluster = buildPrettyAccordion(pane, "app-interface", "Interface", true, s.accordionStyle);
+}
 
-  buildSegmentSetting(interfaceCluster,
+/** Interface rail section — plugin-chrome controls (settings-panel
+ *  tab-bar style + spacing + active indicator, plus the accordion
+ *  paint that cascades across Typography + Appearance). Wrapped in
+ *  a single "Tegenlicht UI" accordion so future chrome-level
+ *  controls can slot alongside. */
+export function renderInterface(
+  pane: HTMLElement,
+  s: TegenlichtSettings,
+  onChange: () => Promise<void>,
+): void {
+  pane.createEl("h3", { cls: "tc-leftrail-sechead", text: "Interface" });
+  pane.createEl("p", { cls: "tc-leftrail-secdesc",
+    text: "Chrome controls that live on the plugin's own UI — settings-panel tab bar, accordion paint, and spacing. These re-style Tegenlicht itself." });
+
+  const tegenlichtUI = buildPrettyAccordion(pane, "app-tegenlicht-ui", "Tegenlicht UI", true, s.accordionStyle);
+
+  buildSegmentSetting(tegenlichtUI,
     "Tab style",
     "How the settings tab navigation renders",
     [
@@ -791,7 +801,7 @@ export function renderWorkspace(
   // tab, accent ring on active), or Pill (solid accent fill + ring,
   // fully rounded, inactive tabs also framed). Body class flip in
   // applier.ts; CSS branches under .tc-tabs-active-{glow|glow-b|pill}.
-  buildSegmentSetting(interfaceCluster,
+  buildSegmentSetting(tegenlichtUI,
     "Tab active style",
     "How the active tab indicator paints",
     [
@@ -805,10 +815,9 @@ export function renderWorkspace(
 
   // Accordion paint — applies to every foldable accordion rendered
   // via `buildPrettyAccordion` (Typography panes + Appearance
-  // clusters). Dropdown (not segment) because 8 options don't fit
-  // a pill row. The body-class change cascades to every accordion
-  // via CSS; no redisplay needed.
-  buildDropdownSetting(interfaceCluster,
+  // clusters). Live-swapped via swapAccordionVariant() so the flip
+  // shows without a pane rebuild.
+  buildDropdownSetting(tegenlichtUI,
     "Accordion style",
     "Paint applied to every foldable cluster across Typography + Appearance",
     [
@@ -822,10 +831,14 @@ export function renderWorkspace(
       { label: "Dashed",    value: "subdued"  },
     ],
     s.accordionStyle,
-    async v => { s.accordionStyle = v; await onChange(); },
+    async v => {
+      s.accordionStyle = v;
+      swapAccordionVariant(v);
+      await onChange();
+    },
   );
 
-  new Setting(interfaceCluster)
+  new Setting(tegenlichtUI)
     .setName("Tab spacing")
     .setDesc("Gap between tab buttons (0–16px)")
     .addSlider(sl => sl
@@ -861,8 +874,10 @@ export function build(
       render: pane => renderOutliner(pane, s, onChange) },
     { id: "graph",     label: "Graph",          count: 2,
       render: pane => renderGraph(pane, s, onChange, refresh) },
-    { id: "workspace", label: "Workspace",      count: 6,
+    { id: "workspace", label: "Workspace",      count: 5,
       render: pane => renderWorkspace(pane, s, containerEl, onChange, refresh, pickrs) },
+    { id: "interface", label: "Interface",      count: 1,
+      render: pane => renderInterface(pane, s, onChange) },
   ];
 
   const shellCleanup = buildLeftRailShell(wrap, sections, "appearance");

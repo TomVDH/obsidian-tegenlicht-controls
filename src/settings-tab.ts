@@ -1,8 +1,8 @@
 import { App, PluginSettingTab, Notice, setIcon } from "obsidian";
 import TegenlichtControlsPlugin from "./main";
 import { DEFAULT_SETTINGS } from "./settings";
+import { TegenlichtAcknowledgementsModal } from "./acknowledgements-modal";
 import { build as buildAppearance }  from "./tabs/appearance";
-import { build as buildAppearance2 } from "./tabs/appearance2";
 import { build as buildTypography }  from "./tabs/typography";
 import { build as buildEditing }     from "./tabs/editing";
 import { build as buildLayout }      from "./tabs/layout";
@@ -10,11 +10,10 @@ import { build as buildFeatures }    from "./tabs/features";
 import { build as buildLegacy }      from "./tabs/legacy";
 import { build as buildLab }         from "./tabs/lab";
 
-type Tab = "appearance" | "appearance2" | "typography" | "editing" | "layout" | "features" | "legacy" | "lab";
+type Tab = "appearance" | "typography" | "editing" | "layout" | "features" | "legacy" | "lab";
 
 const TABS: { id: Tab; label: string }[] = [
   { id: "appearance",  label: "Appearance"   },
-  { id: "appearance2", label: "Appearance 2" },
   { id: "typography",  label: "Typography"   },
   { id: "editing",     label: "Editing"      },
   { id: "layout",      label: "Layout"       },
@@ -136,19 +135,18 @@ export class TegenlichtSettingsTab extends PluginSettingTab {
       <path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0 0 16 8c0-4.42-3.58-8-8-8z"/>
     </svg>`;
 
-    // Help button — circular ? icon pointing at the GitHub README
-    // section that covers licensing + acknowledgements. Replaces the
-    // (now-retired) footer github/license/ack trio with a single
-    // discoverable control paired to the version + github cluster.
-    const helpLink = top.createEl("a", {
-      cls: "tc-header-help",
-      href: "https://github.com/tomlinson/obsidian-tegenlicht-controls/blob/main/README.md#acknowledgements",
+    // Help button — circular ? icon that opens the in-app Acknowledgements
+    // modal (licences + ports + companions + libs). Paired with the version
+    // badge + github icon so the top row reads wordmark · spacer · version ·
+    // github · help.
+    const helpBtn = top.createEl("button", { cls: "tc-header-help", type: "button" });
+    helpBtn.setAttr("aria-label", "See Licencing and Acknowledgements");
+    helpBtn.setAttr("title", "See Licencing and Acknowledgements");
+    setIcon(helpBtn, "help-circle");
+    helpBtn.addEventListener("click", (e) => {
+      e.preventDefault();
+      new TegenlichtAcknowledgementsModal(this.app).open();
     });
-    helpLink.setAttr("target", "_blank");
-    helpLink.setAttr("rel", "noopener");
-    helpLink.setAttr("aria-label", "See Licencing and Acknowledgements");
-    helpLink.setAttr("title", "See Licencing and Acknowledgements");
-    setIcon(helpLink, "help-circle");
 
     const tagline = header.createDiv("tc-header-tagline");
     tagline.createSpan({ text: "A bespoke collection of Obsidian quality of life and appearance settings. Inspired by and forked from " });
@@ -174,10 +172,13 @@ export class TegenlichtSettingsTab extends PluginSettingTab {
 
     const ackLink = copy.createEl("a", {
       text: "Acknowledgements",
-      href: "https://github.com/tomlinson/obsidian-tegenlicht-controls#acknowledgements",
+      href: "#",
     });
-    ackLink.setAttr("target", "_blank");
-    ackLink.setAttr("rel", "noopener");
+    ackLink.setAttr("title", "Open the in-app Acknowledgements panel");
+    ackLink.addEventListener("click", (e) => {
+      e.preventDefault();
+      new TegenlichtAcknowledgementsModal(this.app).open();
+    });
 
     // ── Tab bar ───────────────────────────────────────────
     this.tabBtns.clear();
@@ -241,15 +242,17 @@ export class TegenlichtSettingsTab extends PluginSettingTab {
     const savedScrollTop = scroller?.scrollTop ?? 0;
 
     this.contentEl.empty();
+    // Per-tab class for scoped CSS counters (A-1, B-1, …). Reset to the
+    // base class each render then add the active-tab slug so the
+    // ::after counter rule picks the right prefix.
+    this.contentEl.className = "tc-tab-content";
+    this.contentEl.addClass(`tc-content-${this.activeTab}`);
     const onChange  = () => this.plugin.saveSettings();
     const redisplay = () => this.renderContent();
 
     switch (this.activeTab) {
       case "appearance":
         this.cleanup = buildAppearance(this.contentEl, this.plugin, onChange, redisplay);
-        break;
-      case "appearance2":
-        this.cleanup = buildAppearance2(this.contentEl, this.plugin, onChange, redisplay);
         break;
       case "typography": this.cleanup = buildTypography(this.contentEl, this.plugin, onChange, redisplay); break;
       case "editing":    buildEditing(this.contentEl, this.plugin, onChange);    break;
