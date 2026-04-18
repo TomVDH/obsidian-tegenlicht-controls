@@ -481,14 +481,13 @@ interface PropertyRow {
   build: (valueEl: HTMLElement) => void;
 }
 
-/** Builds a text-style property value the way Obsidian actually does:
- *  a `.metadata-input-longtext` div with `contenteditable="true"` and
- *  `spellcheck="false"`. Tom's vault mostly renders through this DOM
- *  shape for text / link properties, so the preview matches verbatim. */
+/** Text-style property value. Obsidian renders these as plain text in
+ *  `.metadata-input-longtext` — NOT contenteditable until the user
+ *  actually clicks the row. Skipping the `contenteditable` attribute
+ *  here keeps the static preview reading as clean label-text, not an
+ *  obvious editable box with a blinking cursor. */
 function buildTextValue(v: HTMLElement, text: string): HTMLElement {
   const input = v.createDiv("metadata-input-longtext");
-  input.setAttribute("contenteditable", "true");
-  input.setAttribute("spellcheck", "false");
   input.setText(text);
   return input;
 }
@@ -500,11 +499,6 @@ const EDITING_PROPERTY_ROWS: PropertyRow[] = [
   },
   {
     type: "multitext", icon: "lucide-list", key: "aliases",
-    // Real-Obsidian multi-select structure: container → pills with
-    // `.multi-select-pill-content` + Lucide-X remove button + a trailing
-    // text-input slot for adding new pills. Matches the DOM shape
-    // tc-tags-* body classes + Obsidian's native .multi-select-pill
-    // rules cascade through.
     build: v => buildMultiSelect(v, ["Short title", "Working name"]),
   },
   {
@@ -513,14 +507,14 @@ const EDITING_PROPERTY_ROWS: PropertyRow[] = [
   },
   {
     type: "date", icon: "calendar-days", key: "created",
+    // Obsidian's Properties panel renders dates as plain text in a
+    // `.metadata-input-date` wrapper — NOT a native <input type="date">.
+    // Using the native type sprouts browser calendar chrome + spinners
+    // that don't appear in the real panel. Same for `type="number"`
+    // below. We render the formatted value as text and let Obsidian's
+    // CSS paint the tabular-num / accent colour styling.
     build: v => {
-      // Real Obsidian renders a native <input type="date"> here so the
-      // browser's calendar affordance matches what the user sees live.
-      // Wrapped in .metadata-input-date for Obsidian's own CSS scope.
-      const wrap = v.createDiv("metadata-input-date");
-      wrap.createEl("input", {
-        attr: { type: "date", value: "2026-04-14", spellcheck: "false" },
-      });
+      v.createDiv({ cls: "metadata-input-date", text: "2026-04-14" });
     },
   },
   {
@@ -530,21 +524,12 @@ const EDITING_PROPERTY_ROWS: PropertyRow[] = [
   {
     type: "number", icon: "binary", key: "priority",
     build: v => {
-      // `<input type="number">` matches Obsidian's native renderer;
-      // .metadata-input-number wrapper picks up the tabular-num +
-      // accent colour styling from the boxed-fm scope.
-      const wrap = v.createDiv("metadata-input-number");
-      wrap.createEl("input", {
-        attr: { type: "number", value: "3", inputmode: "numeric", spellcheck: "false" },
-      });
+      v.createDiv({ cls: "metadata-input-number", text: "3" });
     },
   },
   {
     type: "checkbox", icon: "check-square", key: "done",
     build: v => {
-      // Obsidian renders boolean properties as a raw <input type="checkbox">
-      // directly inside .metadata-property-value. Our boxed-fm rules
-      // already account for this.
       const input = v.createEl("input", {
         cls: "metadata-input-checkbox",
         attr: { type: "checkbox" },
@@ -554,14 +539,11 @@ const EDITING_PROPERTY_ROWS: PropertyRow[] = [
   },
   {
     type: "text", icon: "link", key: "banner",
-    // Real Obsidian renders wikilink frontmatter values as text INSIDE
-    // the editable input, painted as a link-coloured span via the
-    // `.internal-link` / `.cm-hmd-internal-link` cascade. We fake that
-    // by rendering the `[[…]]` string inside the longtext container
-    // with the accent-coloured span nested for the interior filename.
+    // Wikilink frontmatter text — painted inline via cm-* link classes
+    // the way Live Preview renders it. No contenteditable; same
+    // reasoning as buildTextValue above.
     build: v => {
-      const input = buildTextValue(v, "");
-      input.setText("");
+      const input = v.createDiv("metadata-input-longtext");
       input.createSpan({ text: "[[", cls: "cm-formatting cm-formatting-link" });
       input.createSpan({ text: "images/mountain", cls: "cm-hmd-internal-link" });
       input.createSpan({ text: "]]", cls: "cm-formatting cm-formatting-link" });
@@ -569,8 +551,12 @@ const EDITING_PROPERTY_ROWS: PropertyRow[] = [
   },
 ];
 
-/** Multi-select pill container + pills + trailing edit slot — the
- *  shape Obsidian's tag / alias / list-typed properties render as. */
+/** Multi-select pill container + pills. NO trailing `.multi-select-input`
+ *  in the static preview — real Obsidian has the input there in the
+ *  DOM but styles it invisible / zero-width until the row is clicked.
+ *  Rendering it here as a visible empty box was the main "weird text
+ *  box" the preview was sprouting, so it's omitted entirely. Pills
+ *  alone read identically to the unfocused live panel. */
 function buildMultiSelect(v: HTMLElement, values: string[]): void {
   const container = v.createDiv("multi-select-container");
   values.forEach(t => {
@@ -582,13 +568,6 @@ function buildMultiSelect(v: HTMLElement, values: string[]): void {
     pillContent.createSpan({ text: t });
     const removeBtn = pill.createDiv("multi-select-pill-remove-button");
     setIcon(removeBtn, "x");
-  });
-  // Trailing input slot — the affordance for "type to add a new pill".
-  // Obsidian renders this at the end of every multi-select container,
-  // even when empty; faking it here keeps the preview one-for-one.
-  container.createEl("input", {
-    cls: "multi-select-input",
-    attr: { type: "text", placeholder: "", spellcheck: "false" },
   });
 }
 
