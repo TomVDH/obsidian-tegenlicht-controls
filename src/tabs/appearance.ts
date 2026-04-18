@@ -242,6 +242,21 @@ function renderTheme(
   customPickr.on('cancel', (instance: Pickr) => instance.hide());
   pickrs.push(customPickr);
 
+  // ── Light-mode accent — dropdown sibling to the dark accent pip row.
+  //    'auto' means "use the same accent picked above in light mode
+  //    too"; any preset overrides just for .theme-light. Applier reads
+  //    body.theme-light and swaps accordingly. ─────────────────────
+  buildDropdownSetting(paletteCluster,
+    "Light mode accent",
+    "Override the accent when Obsidian is in light mode",
+    [
+      { label: "Auto (match above)", value: "auto" },
+      ...ACCENT_PRESETS.map(p => ({ label: p.label, value: p.hex })),
+    ],
+    s.lightAccentColour || "auto",
+    async v => { s.lightAccentColour = v; await onChange(); },
+  );
+
   // appendPlusSwatch — see top-level helper.
 
   // ── Dark Flavours ──────────────────────────────────────

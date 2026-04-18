@@ -52,6 +52,8 @@ const GROUPS: FeatureGroup[] = [
       { key: "metadataMods",     label: "Metadata mods",     desc: "Frontmatter display tweaks" },
       { key: "speechBubbles",    label: "Speech bubbles",    desc: "Render task-list items as bubble-styled blocks" },
       { key: "printStyling",     label: "Print styling",     desc: "Apply dedicated formatting for print / export" },
+      { key: "pdfBlendLight",    label: "PDF blend (light)", desc: "Blend PDF viewer background with the editor in light mode" },
+      { key: "pdfBlendDark",     label: "PDF blend (dark)",  desc: "Blend PDF viewer background with the editor in dark mode" },
     ],
   },
   {

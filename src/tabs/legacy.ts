@@ -362,6 +362,17 @@ function renderCodeblocks(
     v => { s.codeblockTextColor = v; },
     onChange,
   ));
+
+  // LaTeX colour — sibling to the codeblock text/bg overrides; both are
+  // "override an AnuPpuccin CSS var with a hex" controls. Kept here
+  // rather than spun up into a dedicated Math section for one setting.
+  pickrs.push(buildColourVarRow(pane,
+    "LaTeX colour",
+    "Text colour for LaTeX blocks. Clear = theme default.",
+    () => s.latexColour,
+    v => { s.latexColour = v; },
+    onChange,
+  ));
 }
 
 function renderShowHide(

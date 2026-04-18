@@ -217,6 +217,19 @@ export interface TegenlichtSettings {
   readingWeight: number;
   sourceWeight: number;
 
+  // AnuPpuccin port Wave 5 — specialised single-setting ports.
+  //   lightAccentColour: 'auto' (use accentColour in both modes) OR a
+  //     hex string that overrides the accent when body is .theme-light.
+  //     Mirrors the darkFlavour/lightFlavour pattern for palette pick.
+  //   latexColour: '' (theme default) OR hex — written to --anp-latex-color
+  //     when non-empty. Covers LaTeX block text colour.
+  //   pdfBlendLight / pdfBlendDark: class-toggles that blend the PDF
+  //     viewer background with the editor background per theme mode.
+  lightAccentColour: string;
+  latexColour: string;
+  pdfBlendLight: boolean;
+  pdfBlendDark: boolean;
+
   // Editing — Properties panel styling
   // Toggles an accent-gradient card wrapper around Obsidian's Properties
   // panel (.metadata-container). Same visual as the frontmatter-beauty.css
@@ -424,6 +437,14 @@ export const DEFAULT_SETTINGS: TegenlichtSettings = {
   livePreviewWeight: 400,
   readingWeight: 400,
   sourceWeight: 400,
+
+  // Wave 5 defaults — auto = mirror darkAccent in light mode too
+  // (current behaviour); empty LaTeX colour = theme default paints;
+  // PDF blends off.
+  lightAccentColour: 'auto',
+  latexColour: '',
+  pdfBlendLight: false,
+  pdfBlendDark: false,
 
   propertiesBoxed: false,
 

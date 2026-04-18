@@ -226,13 +226,20 @@ function applyColourClassSelect(prefix: string, chosen: string): void {
 export function apply(s: TegenlichtSettings): void {
   const el = getOrCreateStyleEl();
 
-  // Resolve 'auto' accent from the currently active flavour's entry
+  // Resolve accent. Precedence:
+  //   1. In light mode, if `lightAccentColour` is a hex (not 'auto'),
+  //      use it — lets the user pick independent light / dark accents.
+  //   2. Otherwise fall back to `accentColour`. If that's 'auto', use
+  //      the active flavour's built-in accent.
   const isDarkMode = document.body.classList.contains('theme-dark');
   const activeFlavourCls = isDarkMode ? s.darkFlavour : s.lightFlavour;
   const activeFlavour = ALL_FLAVOURS.find(f => f.cls === activeFlavourCls);
-  const resolvedAccent = s.accentColour === 'auto'
-    ? (activeFlavour?.accent ?? '#e5b32a')
-    : s.accentColour;
+  const lightOverrideActive = !isDarkMode && s.lightAccentColour && s.lightAccentColour !== 'auto';
+  const resolvedAccent = lightOverrideActive
+    ? s.lightAccentColour
+    : (s.accentColour === 'auto'
+        ? (activeFlavour?.accent ?? '#e5b32a')
+        : s.accentColour);
   const accent        = sanitizeHex(resolvedAccent);
   const activeLineClr = sanitizeHex(s.activeLineColour ?? '#e5b32a');
   const selClr        = sanitizeHex(s.selectionTintColour ?? '#89b4fa');
@@ -319,6 +326,8 @@ export function apply(s: TegenlichtSettings): void {
   --anp-font-live-preview-wt: ${s.livePreviewWeight ?? 400};
   --anp-font-preview-wt: ${s.readingWeight ?? 400};
   --anp-font-editor-wt: ${s.sourceWeight ?? 400};
+  /* Wave 5 — LaTeX text colour (empty = theme default). */
+  ${s.latexColour ? `--anp-latex-color: ${s.latexColour};` : ''}
   /* Legacy — Callouts */
   --callout-radius: ${s.calloutRadius ?? 8}px;
   --callout-title-padding: ${s.calloutTitlePaddingX ?? 12}px;
@@ -474,6 +483,9 @@ ${s.caretColourEnabled ? `.cm-cursor { border-left-color: ${caretClr} !important
   cls('anp-speech-bubble',          s.speechBubbles);
   cls('anp-list-toggle',            s.listToggle);
   cls('anp-print',                  s.printStyling);
+  // Wave 5 — PDF blend toggles (per theme mode).
+  cls('anp-pdf-blend-toggle-light', s.pdfBlendLight);
+  cls('anp-pdf-blend-toggle-dark',  s.pdfBlendDark);
   // Wave 3 — heading master toggles + per-H divider toggles.
   cls('anp-header-color-toggle',         s.headingColorsEnabled);
   cls('anp-header-margin-toggle',        s.headingMarginsEnabled);
@@ -674,6 +686,8 @@ export function remove(): void {
    'tc-tags-classic', 'tc-tags-ghost', 'tc-tags-solid',
    // Wave 2 additions
    'anp-speech-bubble', 'anp-list-toggle', 'anp-print',
+   // Wave 5 additions — PDF blend toggles
+   'anp-pdf-blend-toggle-light', 'anp-pdf-blend-toggle-dark',
    // Wave 3 master toggles + per-H divider classes
    'anp-header-color-toggle', 'anp-header-margin-toggle',
    'anp-header-divider-color-toggle',
