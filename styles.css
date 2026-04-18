@@ -1405,9 +1405,9 @@ body.tc-tabs-active-pill .tc-settings .tc-tab-slide-indicator {
    (e.g. embedded code blocks). The preview now uses a real
    `.metadata-container` so it inherits Obsidian's own Properties CSS
    and looks pixel-identical to a real note's Properties panel. */
-body.tc-fm-boxed .tc-mini-obsidian .metadata-container,
-body.tc-fm-boxed .markdown-source-view.is-live-preview .metadata-container,
-body.tc-fm-boxed .markdown-reading-view .metadata-container {
+:is(body.tc-fm-boxed, .tc-fm-preview-forced) .tc-mini-obsidian .metadata-container,
+:is(body.tc-fm-boxed, .tc-fm-preview-forced) .markdown-source-view.is-live-preview .metadata-container,
+:is(body.tc-fm-boxed, .tc-fm-preview-forced) .markdown-reading-view .metadata-container {
   margin: 6px 0 18px !important;
   padding: 10px 14px 12px !important;
   background: linear-gradient(135deg,
@@ -1421,8 +1421,8 @@ body.tc-fm-boxed .markdown-reading-view .metadata-container {
 /* Banner-aware spacing — when the view has the Banners plugin's
    `.has-banner` class, the box needs more breathing room above so it
    doesn't crowd the banner image's bottom edge. */
-body.tc-fm-boxed .view-content.has-banner .markdown-source-view.is-live-preview .metadata-container,
-body.tc-fm-boxed .view-content.has-banner .markdown-reading-view .metadata-container {
+:is(body.tc-fm-boxed, .tc-fm-preview-forced) .view-content.has-banner .markdown-source-view.is-live-preview .metadata-container,
+:is(body.tc-fm-boxed, .tc-fm-preview-forced) .view-content.has-banner .markdown-reading-view .metadata-container {
   margin-top: 20px !important;
 }
 
@@ -1430,19 +1430,19 @@ body.tc-fm-boxed .view-content.has-banner .markdown-reading-view .metadata-conta
    We add small breathing room between rows so the panel reads as a
    structured table rather than a tight stack. Hover lifts each row
    subtly, matching Obsidian's native interactivity. */
-body.tc-fm-boxed .metadata-property {
+:is(body.tc-fm-boxed, .tc-fm-preview-forced) .metadata-property {
   margin: 2px 0 !important;
   padding: 2px 4px !important;
   border-radius: 4px !important;
   transition: background 0.1s ease;
 }
-body.tc-fm-boxed .metadata-property:hover {
+:is(body.tc-fm-boxed, .tc-fm-preview-forced) .metadata-property:hover {
   background: color-mix(in srgb, var(--color-accent) 7%, transparent) !important;
 }
 
 /* Keys — muted, slight letter-spacing for the labelled feel of the
    frontmatter-beauty snippet, without going full uppercase. */
-body.tc-fm-boxed .metadata-property-key {
+:is(body.tc-fm-boxed, .tc-fm-preview-forced) .metadata-property-key {
   color: var(--text-muted) !important;
   font-weight: 500 !important;
   letter-spacing: 0.01em !important;
@@ -1458,9 +1458,9 @@ body.tc-fm-boxed .metadata-property-key {
    Target `.metadata-property[data-property-type=...]` which is where the
    attribute actually lives in Obsidian's DOM (previously targeted the
    wrong element; rule never fired). */
-body.tc-fm-boxed .metadata-property[data-property-type="date"]     .metadata-property-value,
-body.tc-fm-boxed .metadata-property[data-property-type="datetime"] .metadata-property-value,
-body.tc-fm-boxed .metadata-property[data-property-type="number"]   .metadata-property-value {
+:is(body.tc-fm-boxed, .tc-fm-preview-forced) .metadata-property[data-property-type="date"]     .metadata-property-value,
+:is(body.tc-fm-boxed, .tc-fm-preview-forced) .metadata-property[data-property-type="datetime"] .metadata-property-value,
+:is(body.tc-fm-boxed, .tc-fm-preview-forced) .metadata-property[data-property-type="number"]   .metadata-property-value {
   font-family: var(--font-monospace, monospace) !important;
   color: var(--color-accent) !important;
   font-variant-numeric: tabular-nums !important;
@@ -1479,7 +1479,7 @@ body.tc-fm-boxed .metadata-property[data-property-type="number"]   .metadata-pro
    Solution: nuke whatever chevron is currently showing (any svg /
    collapse-* element / ::before pseudo on the heading) and stamp our
    OWN chevron on the right edge via ::after. Cannot fail. */
-body.tc-fm-boxed .metadata-properties-heading {
+:is(body.tc-fm-boxed, .tc-fm-preview-forced) .metadata-properties-heading {
   position: relative !important;
   display: flex !important;
   align-items: center !important;
@@ -1501,16 +1501,16 @@ body.tc-fm-boxed .metadata-properties-heading {
    broad descendant matches like `.metadata-properties-heading svg.svg-icon`
    would snuff every property icon + remove button + Lucide glyph. That
    broke click-to-edit on non-tag fields. Direct-child only. */
-body.tc-fm-boxed .metadata-properties-heading > svg:first-child,
-body.tc-fm-boxed .metadata-properties-heading > .collapse-indicator,
-body.tc-fm-boxed .metadata-properties-heading > .collapse-icon,
-body.tc-fm-boxed .metadata-properties-heading > .right-triangle {
+:is(body.tc-fm-boxed, .tc-fm-preview-forced) .metadata-properties-heading > svg:first-child,
+:is(body.tc-fm-boxed, .tc-fm-preview-forced) .metadata-properties-heading > .collapse-indicator,
+:is(body.tc-fm-boxed, .tc-fm-preview-forced) .metadata-properties-heading > .collapse-icon,
+:is(body.tc-fm-boxed, .tc-fm-preview-forced) .metadata-properties-heading > .right-triangle {
   display: none !important;
   visibility: hidden !important;
   width: 0 !important;
   height: 0 !important;
 }
-body.tc-fm-boxed .metadata-properties-heading::before {
+:is(body.tc-fm-boxed, .tc-fm-preview-forced) .metadata-properties-heading::before {
   content: none !important;
   display: none !important;
 }
@@ -1519,7 +1519,7 @@ body.tc-fm-boxed .metadata-properties-heading::before {
    Uses an inline-SVG data URI so we get a crisp accent-coloured
    chevron at exactly the size we want, pinned right and truly
    vertically centered via top:50% + translateY(-50%). */
-body.tc-fm-boxed .metadata-properties-heading::after {
+:is(body.tc-fm-boxed, .tc-fm-preview-forced) .metadata-properties-heading::after {
   content: "" !important;
   position: absolute !important;
   right: 10px !important;
@@ -1539,9 +1539,9 @@ body.tc-fm-boxed .metadata-properties-heading::after {
 /* Rotate the stamped chevron based on collapsed state. Default
    (expanded) is chevron-down; collapsed rotates to point right.
    Keep translateY(-50%) so vertical centering survives the rotate. */
-body.tc-fm-boxed .metadata-properties-heading.is-collapsed::after,
-body.tc-fm-boxed .metadata-container.is-collapsed .metadata-properties-heading::after,
-body.tc-fm-boxed .metadata-properties-heading[aria-expanded="false"]::after {
+:is(body.tc-fm-boxed, .tc-fm-preview-forced) .metadata-properties-heading.is-collapsed::after,
+:is(body.tc-fm-boxed, .tc-fm-preview-forced) .metadata-container.is-collapsed .metadata-properties-heading::after,
+:is(body.tc-fm-boxed, .tc-fm-preview-forced) .metadata-properties-heading[aria-expanded="false"]::after {
   transform: translateY(-50%) rotate(-90deg) !important;
   opacity: 1 !important;
   visibility: visible !important;
@@ -1550,8 +1550,8 @@ body.tc-fm-boxed .metadata-properties-heading[aria-expanded="false"]::after {
 /* Some Obsidian builds/snippets fade chevrons until hover. Force ours
    to always stay visible — the boxed treatment is a deliberate UI
    choice, not an "only on hover" reveal. */
-body.tc-fm-boxed .metadata-properties-heading:not(:hover)::after,
-body.tc-fm-boxed .metadata-container.is-collapsed .metadata-properties-heading:not(:hover)::after {
+:is(body.tc-fm-boxed, .tc-fm-preview-forced) .metadata-properties-heading:not(:hover)::after,
+:is(body.tc-fm-boxed, .tc-fm-preview-forced) .metadata-container.is-collapsed .metadata-properties-heading:not(:hover)::after {
   opacity: 1 !important;
   visibility: visible !important;
 }
@@ -4410,70 +4410,11 @@ body.tc-graph-halo .workspace-leaf-content[data-type="graph"] .graph-view.color-
   width: 100%;
 }
 
-/* ═══════════════════════════════════════════════════════════
-   Frontmatter-focused preview — strips the mini-Obsidian grid
-   chrome and just shows the .metadata-container box at full width.
-   Useful for comparing tc-fm-boxed vs native flat styling.
-   ═══════════════════════════════════════════════════════════ */
-.tc-settings .tc-fm-only-preview {
-  display: block;
-  grid-template-columns: none;
-  background: var(--background-primary);
-  padding: 18px 20px;
-  border-radius: 8px;
-  border: 1px solid var(--background-modifier-border);
-  min-height: 0;
-}
-
-/* ═══════════════════════════════════════════════════════════
-   Editor-view preview — source / live-preview editor surface.
-   Lines carry real Obsidian classes (.cm-line, .cm-active,
-   .cm-cursor) so the plugin's editor-accent rules paint them.
-   The fake selection span (.mini-selection) renders an accent-
-   tinted highlight so selection tint is visible statically too.
-   ═══════════════════════════════════════════════════════════ */
-.tc-settings .tc-editor-mini .mini-cm-editor {
-  font-family: var(--font-monospace);
-  font-size: 11px;
-  line-height: 1.55;
-  padding: 14px 16px 24px;
-  color: var(--text-normal);
-  background: var(--background-primary);
-  min-height: 260px;
-}
-.tc-settings .tc-editor-mini .cm-line {
-  padding: 0 6px;
-  min-height: 1.55em;
-  white-space: pre-wrap;
-  border-radius: 2px;
-  position: relative;
-}
-/* Blinking caret — positioned inline where the <span.cm-cursor>
-   sits in the active line. Border-left colour picks up the applier's
-   caret-colour rule automatically (.cm-cursor { border-left-color:
-   ... }), so changing the caret setting re-paints this preview. */
-.tc-settings .tc-editor-mini .cm-cursor {
-  display: inline-block;
-  width: 0;
-  height: 1.1em;
-  vertical-align: text-bottom;
-  margin: 0 0 -2px 1px;
-  border-left: 1.5px solid var(--text-normal);
-  animation: tc-mini-caret-blink 1.1s steps(2, start) infinite;
-}
-@keyframes tc-mini-caret-blink {
-  to { visibility: hidden; }
-}
-/* Static "selection" highlight — accent-tinted span the preview
-   stamps by hand. Reads the same accent-RGB triplet the live
-   selection-tint rule uses, so turning the flavour's accent colour
-   updates this preview too. */
-.tc-settings .tc-editor-mini .mini-selection {
-  background: rgba(var(--color-accent-rgb, 229, 179, 42), 0.28);
-  border-radius: 2px;
-  padding: 0 1px;
-  color: var(--text-normal);
-}
+/* Frontmatter-focused preview lives inside `.tc-fm-preview-forced`
+   which is extended into the main tc-fm-boxed selector chain above
+   via `:is(body.tc-fm-boxed, .tc-fm-preview-forced)`. Nothing more
+   to declare here — every pretty-boxed rule cascades onto the
+   preview automatically. One modifier, same paint. */
 .tc-settings .tc-mock-tab-label {
   display: block;
   font-size: 10px;

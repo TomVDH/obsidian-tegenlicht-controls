@@ -658,93 +658,20 @@ function buildFrontmatterDom(parent: HTMLElement): HTMLElement {
   return fm;
 }
 
-/** Focused preview of the frontmatter / Properties panel alone — no
- *  mini-Obsidian chrome, no note body, no sidebar. Useful for comparing
- *  the `tc-fm-boxed` boxed treatment vs native flat rendering at a
- *  glance. Sits inside a `.tc-mini-obsidian` wrapper so the plugin's
- *  preview-scope CSS still applies. */
+/** Focused preview of the frontmatter / Properties panel in its
+ *  PRETTY boxed treatment — no mini-Obsidian chrome, just the
+ *  accent-gradient card with its row chips + accent chevron.
+ *
+ *  Wrapped in `.tc-fm-preview-forced` so the plugin's boxed CSS rules
+ *  (originally scoped to `body.tc-fm-boxed`, now extended to also
+ *  match this wrapper via `:is(body.tc-fm-boxed, .tc-fm-preview-forced)`)
+ *  paint the preview regardless of the user's `propertiesBoxed`
+ *  setting. This is the "pretty" frontmatter visual Tom knew — now
+ *  surfaced in Lab directly rather than hidden behind the global
+ *  toggle. */
 export function buildFrontmatterPreview(parent: HTMLElement): HTMLElement {
-  const wrap = parent.createDiv("tc-typo-preview tc-mini-obsidian tc-fm-only-preview");
+  const wrap = parent.createDiv("tc-fm-preview-forced tc-mini-obsidian");
   buildFrontmatterDom(wrap);
   return wrap;
 }
 
-// ═══════════════════════════════════════════════════════════════════════
-// EDITOR-VIEW PREVIEW — mini-Obsidian shell with a source-mode editor
-// as its main content. Simulates the CodeMirror editor surface with
-// real `.cm-line` / `.cm-active` / `.cm-cursor` / selection classes so
-// the plugin's active-line fill + caret colour + selection-tint rules
-// paint the preview in lockstep with the live editor.
-// ═══════════════════════════════════════════════════════════════════════
-
-const EDITOR_SAMPLE_LINES: { text?: string; active?: boolean; html?: string }[] = [
-  { text: "## Editor preview" },
-  { text: "" },
-  { text: "Lines below simulate Obsidian's source / live-preview editor." },
-  { text: "The highlighted line carries `.cm-active.cm-line`; flip the" },
-  { text: "active-line setting under Appearance → Editor accents." },
-  { text: "" },
-  {
-    active: true,
-    html: 'The <strong>active line</strong> with its caret sits here.<span class="cm-cursor"></span>',
-  },
-  { text: "" },
-  { html: '- A bulleted item with a <span class="mini-selection">selected phrase</span> inside.' },
-  { text: "- Another item, un-selected." },
-  { text: "" },
-  { text: "```js" },
-  { text: "const ratio = 1.618;    // simulated code fence" },
-  { text: "```" },
-  { text: "" },
-  { text: "Blank lines + prose below so the active-line highlight reads clearly." },
-  { text: "" },
-];
-
-export const EDITOR_SAMPLE_FULL_HTML = `
-  <header class="mini-title">
-    <span class="mini-dots"><i></i><i></i><i></i></span>
-    <span class="mini-name">Obsidian</span>
-    <span class="mini-vault">__VAULT_LABEL__</span>
-    <button class="tc-mini-mode-toggle" type="button" aria-label="Toggle preview mode"></button>
-  </header>
-  <aside class="mini-ribbon">
-    <i class="mini-rib active"></i>
-    <i class="mini-rib"></i>
-    <i class="mini-rib"></i>
-    <i class="mini-rib"></i>
-  </aside>
-  <aside class="mini-side">
-    <h4>Notes</h4>
-    <ul>
-      <li>Daily</li>
-      <li class="mini-active">Editor sandbox</li>
-      <li class="mini-nested">Active line demo</li>
-      <li class="mini-nested">Selection demo</li>
-      <li>Archive</li>
-    </ul>
-  </aside>
-  <main class="mini-main tc-editor-main">
-    <div class="mini-tabs">
-      <div class="mini-tab active">Editor sandbox</div>
-      <div class="mini-tab">Scratch</div>
-    </div>
-    <div class="mini-cm-editor">
-      ${EDITOR_SAMPLE_LINES.map(line => {
-        const cls = line.active ? "cm-line cm-active" : "cm-line";
-        const body = line.html ?? (line.text || "&nbsp;");
-        return `<div class="${cls}">${body}</div>`;
-      }).join("\n      ")}
-    </div>
-  </main>
-`;
-
-/** Mini-Obsidian preview with a fake editor-view main content. Active
- *  line + caret + selection classes are real Obsidian classes so the
- *  plugin's editor-accent settings paint this preview in lockstep with
- *  a live note's editor surface. */
-export function buildEditorViewPreview(parent: HTMLElement): HTMLElement {
-  const preview = parent.createDiv("tc-typo-preview tc-mini-obsidian tc-editor-mini");
-  preview.innerHTML = EDITOR_SAMPLE_FULL_HTML.replace("__VAULT_LABEL__", getRandomVaultLabel());
-  setupPreviewModeToggle(preview);
-  return preview;
-}

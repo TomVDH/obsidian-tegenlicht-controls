@@ -14,7 +14,6 @@ import {
   buildCalloutPreview,
   buildEditingPreview,
   buildFrontmatterPreview,
-  buildEditorViewPreview,
 } from "../preview-sample";
 
 /**
@@ -51,7 +50,7 @@ export function build(
 
   const sections: LeftRailSection[] = [
     {
-      id: "previews", label: "Previews", count: 5,
+      id: "previews", label: "Previews", count: 4,
       render: pane => renderPreviews(pane),
     },
     {
@@ -283,11 +282,10 @@ function renderPreviews(pane: HTMLElement): void {
     text: "Every mini-Obsidian preview the plugin ships, stacked for comparison. Re-uses the live build helpers — so changes to the preview content land here too." });
 
   const specs: { label: string; build: (p: HTMLElement) => void }[] = [
-    { label: "Typography", build: buildTypographyPreview },
-    { label: "Callouts",   build: buildCalloutPreview   },
-    { label: "Editing",    build: buildEditingPreview   },
-    { label: "Frontmatter (focused)", build: buildFrontmatterPreview },
-    { label: "Editor view (active-line / caret / selection)", build: buildEditorViewPreview },
+    { label: "Typography",  build: buildTypographyPreview },
+    { label: "Callouts",    build: buildCalloutPreview   },
+    { label: "Editing",     build: buildEditingPreview   },
+    { label: "Frontmatter", build: buildFrontmatterPreview },
   ];
   specs.forEach(spec => {
     const slot = pane.createDiv("tc-mock-preview-slot");
