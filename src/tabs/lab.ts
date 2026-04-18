@@ -13,6 +13,8 @@ import {
   buildTypographyPreview,
   buildCalloutPreview,
   buildEditingPreview,
+  buildFrontmatterPreview,
+  buildEditorViewPreview,
 } from "../preview-sample";
 
 /**
@@ -49,7 +51,7 @@ export function build(
 
   const sections: LeftRailSection[] = [
     {
-      id: "previews", label: "Previews", count: 3,
+      id: "previews", label: "Previews", count: 5,
       render: pane => renderPreviews(pane),
     },
     {
@@ -284,6 +286,8 @@ function renderPreviews(pane: HTMLElement): void {
     { label: "Typography", build: buildTypographyPreview },
     { label: "Callouts",   build: buildCalloutPreview   },
     { label: "Editing",    build: buildEditingPreview   },
+    { label: "Frontmatter (focused)", build: buildFrontmatterPreview },
+    { label: "Editor view (active-line / caret / selection)", build: buildEditorViewPreview },
   ];
   specs.forEach(spec => {
     const slot = pane.createDiv("tc-mock-preview-slot");

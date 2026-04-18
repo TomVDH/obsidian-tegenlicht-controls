@@ -4409,6 +4409,71 @@ body.tc-graph-halo .workspace-leaf-content[data-type="graph"] .graph-view.color-
      added — preview should fill the slot edge-to-edge. */
   width: 100%;
 }
+
+/* ═══════════════════════════════════════════════════════════
+   Frontmatter-focused preview — strips the mini-Obsidian grid
+   chrome and just shows the .metadata-container box at full width.
+   Useful for comparing tc-fm-boxed vs native flat styling.
+   ═══════════════════════════════════════════════════════════ */
+.tc-settings .tc-fm-only-preview {
+  display: block;
+  grid-template-columns: none;
+  background: var(--background-primary);
+  padding: 18px 20px;
+  border-radius: 8px;
+  border: 1px solid var(--background-modifier-border);
+  min-height: 0;
+}
+
+/* ═══════════════════════════════════════════════════════════
+   Editor-view preview — source / live-preview editor surface.
+   Lines carry real Obsidian classes (.cm-line, .cm-active,
+   .cm-cursor) so the plugin's editor-accent rules paint them.
+   The fake selection span (.mini-selection) renders an accent-
+   tinted highlight so selection tint is visible statically too.
+   ═══════════════════════════════════════════════════════════ */
+.tc-settings .tc-editor-mini .mini-cm-editor {
+  font-family: var(--font-monospace);
+  font-size: 11px;
+  line-height: 1.55;
+  padding: 14px 16px 24px;
+  color: var(--text-normal);
+  background: var(--background-primary);
+  min-height: 260px;
+}
+.tc-settings .tc-editor-mini .cm-line {
+  padding: 0 6px;
+  min-height: 1.55em;
+  white-space: pre-wrap;
+  border-radius: 2px;
+  position: relative;
+}
+/* Blinking caret — positioned inline where the <span.cm-cursor>
+   sits in the active line. Border-left colour picks up the applier's
+   caret-colour rule automatically (.cm-cursor { border-left-color:
+   ... }), so changing the caret setting re-paints this preview. */
+.tc-settings .tc-editor-mini .cm-cursor {
+  display: inline-block;
+  width: 0;
+  height: 1.1em;
+  vertical-align: text-bottom;
+  margin: 0 0 -2px 1px;
+  border-left: 1.5px solid var(--text-normal);
+  animation: tc-mini-caret-blink 1.1s steps(2, start) infinite;
+}
+@keyframes tc-mini-caret-blink {
+  to { visibility: hidden; }
+}
+/* Static "selection" highlight — accent-tinted span the preview
+   stamps by hand. Reads the same accent-RGB triplet the live
+   selection-tint rule uses, so turning the flavour's accent colour
+   updates this preview too. */
+.tc-settings .tc-editor-mini .mini-selection {
+  background: rgba(var(--color-accent-rgb, 229, 179, 42), 0.28);
+  border-radius: 2px;
+  padding: 0 1px;
+  color: var(--text-normal);
+}
 .tc-settings .tc-mock-tab-label {
   display: block;
   font-size: 10px;

@@ -584,20 +584,34 @@ export function buildEditingPreview(parent: HTMLElement): HTMLElement {
   tabs.createDiv({ text: "Style Kitchen Sink", cls: "mini-tab active" });
   tabs.createDiv({ text: "Reading list",      cls: "mini-tab" });
 
-  // Properties panel — uses Obsidian's REAL class names throughout so
-  // the preview literally IS a Properties panel as Obsidian would render
-  // it. The `.mini-fm` class stays on the outer div for scope-targeted
-  // sizing/layout in the settings pane; every inner class is Obsidian's
-  // own, which means boxed-Properties CSS, tag-style CSS, and Obsidian's
-  // own metadata CSS all paint the preview exactly as they'd paint a
-  // note. Change a setting → the preview updates in lockstep with what
-  // you'll see in real notes.
-  const fm = main.createDiv("metadata-container mini-fm");
+  // Properties panel DOM built by the shared helper below — reused by
+  // buildFrontmatterPreview so there's one DOM shape maintained.
+  buildFrontmatterDom(main);
 
-  // Heading — `.metadata-properties-heading` with a `.collapse-indicator`
-  // containing the chevron (the plugin's boxed CSS hides this in boxed
-  // mode and stamps its own via ::after; in non-boxed mode the native
-  // chevron shows normally).
+  // Note body — H1 + a short lede so the panel-to-body transition reads.
+  main.createEl("h1", { text: "Lorem ipsum dolor sit amet" });
+  main.createEl("p", {
+    text: "A short lede paragraph to show where the note body begins. " +
+          "The Properties panel above sits exactly where real Obsidian " +
+          "places it — between the tab strip and the first heading of " +
+          "the note.",
+  });
+
+  setupPreviewModeToggle(preview);
+  return preview;
+}
+
+/** Builds the .metadata-container DOM (AKA the frontmatter / Properties
+ *  panel) into `parent`. Uses Obsidian's real class names throughout so
+ *  the plugin's `tc-fm-boxed` rules + tag-style rules + Obsidian's own
+ *  metadata CSS paint it identically to a live note's Properties panel.
+ *
+ *  Shared between buildEditingPreview (full mini-Obsidian shell) and
+ *  buildFrontmatterPreview (focused, chrome-less). Interactive: clicking
+ *  the heading collapses / expands the panel exactly as Obsidian does. */
+function buildFrontmatterDom(parent: HTMLElement): HTMLElement {
+  const fm = parent.createDiv("metadata-container mini-fm");
+
   const fmHeader = fm.createDiv("metadata-properties-heading");
   fmHeader.setAttribute("tabindex", "0");
   fmHeader.setAttribute("aria-expanded", "true");
@@ -612,7 +626,6 @@ export function buildEditingPreview(parent: HTMLElement): HTMLElement {
     fmHeader.setAttribute("aria-expanded", collapsed ? "false" : "true");
   });
 
-  // Content wrapper + properties grid — matches Obsidian's real structure.
   const content = fm.createDiv("metadata-content");
   const props = content.createDiv("metadata-properties");
   EDITING_PROPERTY_ROWS.forEach(row => {
@@ -624,7 +637,6 @@ export function buildEditingPreview(parent: HTMLElement): HTMLElement {
         tabindex: "0",
       },
     });
-    // Key = icon + readonly input (real Obsidian uses an <input>).
     const keyWrap = propEl.createDiv("metadata-property-key");
     const iconSpan = keyWrap.createSpan({ cls: "metadata-property-icon" });
     setIcon(iconSpan, row.icon);
@@ -634,29 +646,105 @@ export function buildEditingPreview(parent: HTMLElement): HTMLElement {
     });
     keyInput.readOnly = true;
 
-    // Value — delegated to the row.build(). Real Obsidian nests a
-    // typed value wrapper inside `.metadata-property-value`; we give
-    // build() the outer div and let it shape the inside.
     const valueEl = propEl.createDiv({ cls: "metadata-property-value" });
     row.build(valueEl);
   });
 
-  // "Add property" button — complete the real-Obsidian shape. Purely
-  // visual in the preview; no click handler.
   const addBtn = content.createDiv("metadata-add-button");
   const addIcon = addBtn.createSpan({ cls: "metadata-add-button-icon" });
   setIcon(addIcon, "plus");
   addBtn.createSpan({ text: "Add property" });
 
-  // Note body — H1 + a short lede so the panel-to-body transition reads.
-  main.createEl("h1", { text: "Lorem ipsum dolor sit amet" });
-  main.createEl("p", {
-    text: "A short lede paragraph to show where the note body begins. " +
-          "The Properties panel above sits exactly where real Obsidian " +
-          "places it — between the tab strip and the first heading of " +
-          "the note.",
-  });
+  return fm;
+}
 
+/** Focused preview of the frontmatter / Properties panel alone — no
+ *  mini-Obsidian chrome, no note body, no sidebar. Useful for comparing
+ *  the `tc-fm-boxed` boxed treatment vs native flat rendering at a
+ *  glance. Sits inside a `.tc-mini-obsidian` wrapper so the plugin's
+ *  preview-scope CSS still applies. */
+export function buildFrontmatterPreview(parent: HTMLElement): HTMLElement {
+  const wrap = parent.createDiv("tc-typo-preview tc-mini-obsidian tc-fm-only-preview");
+  buildFrontmatterDom(wrap);
+  return wrap;
+}
+
+// ═══════════════════════════════════════════════════════════════════════
+// EDITOR-VIEW PREVIEW — mini-Obsidian shell with a source-mode editor
+// as its main content. Simulates the CodeMirror editor surface with
+// real `.cm-line` / `.cm-active` / `.cm-cursor` / selection classes so
+// the plugin's active-line fill + caret colour + selection-tint rules
+// paint the preview in lockstep with the live editor.
+// ═══════════════════════════════════════════════════════════════════════
+
+const EDITOR_SAMPLE_LINES: { text?: string; active?: boolean; html?: string }[] = [
+  { text: "## Editor preview" },
+  { text: "" },
+  { text: "Lines below simulate Obsidian's source / live-preview editor." },
+  { text: "The highlighted line carries `.cm-active.cm-line`; flip the" },
+  { text: "active-line setting under Appearance → Editor accents." },
+  { text: "" },
+  {
+    active: true,
+    html: 'The <strong>active line</strong> with its caret sits here.<span class="cm-cursor"></span>',
+  },
+  { text: "" },
+  { html: '- A bulleted item with a <span class="mini-selection">selected phrase</span> inside.' },
+  { text: "- Another item, un-selected." },
+  { text: "" },
+  { text: "```js" },
+  { text: "const ratio = 1.618;    // simulated code fence" },
+  { text: "```" },
+  { text: "" },
+  { text: "Blank lines + prose below so the active-line highlight reads clearly." },
+  { text: "" },
+];
+
+export const EDITOR_SAMPLE_FULL_HTML = `
+  <header class="mini-title">
+    <span class="mini-dots"><i></i><i></i><i></i></span>
+    <span class="mini-name">Obsidian</span>
+    <span class="mini-vault">__VAULT_LABEL__</span>
+    <button class="tc-mini-mode-toggle" type="button" aria-label="Toggle preview mode"></button>
+  </header>
+  <aside class="mini-ribbon">
+    <i class="mini-rib active"></i>
+    <i class="mini-rib"></i>
+    <i class="mini-rib"></i>
+    <i class="mini-rib"></i>
+  </aside>
+  <aside class="mini-side">
+    <h4>Notes</h4>
+    <ul>
+      <li>Daily</li>
+      <li class="mini-active">Editor sandbox</li>
+      <li class="mini-nested">Active line demo</li>
+      <li class="mini-nested">Selection demo</li>
+      <li>Archive</li>
+    </ul>
+  </aside>
+  <main class="mini-main tc-editor-main">
+    <div class="mini-tabs">
+      <div class="mini-tab active">Editor sandbox</div>
+      <div class="mini-tab">Scratch</div>
+    </div>
+    <div class="mini-cm-editor">
+      ${EDITOR_SAMPLE_LINES.map(line => {
+        const cls = line.active ? "cm-line cm-active" : "cm-line";
+        const body = line.html ?? (line.text || "&nbsp;");
+        return `<div class="${cls}">${body}</div>`;
+      }).join("\n      ")}
+    </div>
+  </main>
+`;
+
+/** Mini-Obsidian preview with a fake editor-view main content. Active
+ *  line + caret + selection classes are real Obsidian classes so the
+ *  plugin's editor-accent settings paint this preview in lockstep with
+ *  a live note's editor surface. */
+export function buildEditorViewPreview(parent: HTMLElement): HTMLElement {
+  const preview = parent.createDiv("tc-typo-preview tc-mini-obsidian tc-editor-mini");
+  preview.innerHTML = EDITOR_SAMPLE_FULL_HTML.replace("__VAULT_LABEL__", getRandomVaultLabel());
   setupPreviewModeToggle(preview);
   return preview;
 }
