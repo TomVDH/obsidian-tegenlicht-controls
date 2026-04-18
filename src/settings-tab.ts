@@ -1,24 +1,26 @@
 import { App, PluginSettingTab, Notice, setIcon } from "obsidian";
 import TegenlichtControlsPlugin from "./main";
 import { DEFAULT_SETTINGS } from "./settings";
-import { build as buildAppearance } from "./tabs/appearance";
-import { build as buildTypography } from "./tabs/typography";
-import { build as buildEditing }    from "./tabs/editing";
-import { build as buildLayout }     from "./tabs/layout";
-import { build as buildFeatures }   from "./tabs/features";
-import { build as buildLegacy }     from "./tabs/legacy";
-import { build as buildLab }        from "./tabs/lab";
+import { build as buildAppearance }  from "./tabs/appearance";
+import { build as buildAppearance2 } from "./tabs/appearance2";
+import { build as buildTypography }  from "./tabs/typography";
+import { build as buildEditing }     from "./tabs/editing";
+import { build as buildLayout }      from "./tabs/layout";
+import { build as buildFeatures }    from "./tabs/features";
+import { build as buildLegacy }      from "./tabs/legacy";
+import { build as buildLab }         from "./tabs/lab";
 
-type Tab = "appearance" | "typography" | "editing" | "layout" | "features" | "legacy" | "lab";
+type Tab = "appearance" | "appearance2" | "typography" | "editing" | "layout" | "features" | "legacy" | "lab";
 
 const TABS: { id: Tab; label: string }[] = [
-  { id: "appearance", label: "Appearance" },
-  { id: "typography", label: "Typography" },
-  { id: "editing",    label: "Editing"    },
-  { id: "layout",     label: "Layout"     },
-  { id: "features",   label: "Features"   },
-  { id: "legacy",     label: "Legacy"     },
-  { id: "lab",        label: "Lab"        },
+  { id: "appearance",  label: "Appearance"   },
+  { id: "appearance2", label: "Appearance 2" },
+  { id: "typography",  label: "Typography"   },
+  { id: "editing",     label: "Editing"      },
+  { id: "layout",      label: "Layout"       },
+  { id: "features",    label: "Features"     },
+  { id: "legacy",      label: "Legacy"       },
+  { id: "lab",         label: "Lab"          },
 ];
 
 const TAB_STYLES: { id: string; label: string }[] = [
@@ -29,23 +31,46 @@ const TAB_STYLES: { id: string; label: string }[] = [
   { id: "ghost",         label: "Ghost"     },
 ];
 
-/** Compute the active tab's centre relative to its containing tab bar
- *  and write the % coordinates as --tc-bloom-x / --tc-bloom-y on the
- *  bar element. The bar's ::before paints a circular radial gradient
- *  at that origin — the bloom slides between tabs as the user clicks.
- *  Smooth slide is handled by the CSS transition on background-image. */
-function updateTabBarBloom(activeBtn: HTMLElement): void {
-  const bar = activeBtn.closest('.tc-tab-bar') as HTMLElement | null;
-  if (!bar) return;
-  // Defer one frame so layout has settled before we read rects.
+/** Roll a fresh off-centre origin for the active tab's ::before radial
+ *  glow (Lab "Glow text" recipe). Each tab switch picks a new random
+ *  point so the halo doesn't feel mechanical across renders. Origin
+ *  stays inside the tab bounds but pulled off-centre enough to read
+ *  as "somewhere behind the text", not a perfect centre flare. */
+function setActiveTabGlowOrigin(btn: HTMLElement): void {
+  const off = () => {
+    const sign = Math.random() < 0.5 ? -1 : 1;
+    return Math.round(50 + sign * (12 + Math.random() * 26));
+  };
+  btn.style.setProperty("--tc-tab-glow-x", off() + "%");
+  btn.style.setProperty("--tc-tab-glow-y", off() + "%");
+}
+
+/** Slide the tab-bar indicator pill to sit behind the active tab,
+ *  AND roll a fresh random origin for the radial accent gradient
+ *  painted inside it. Writes four custom props:
+ *    --tc-slide-x / --tc-slide-w → horizontal position + width
+ *    --tc-slide-glow-x / --tc-slide-glow-y → gradient origin
+ *  Each tab click picks a new off-centre point so the glow doesn't
+ *  feel mechanical across switches. First call adds the --ready
+ *  modifier so the indicator fades in instead of flashing from a
+ *  0-width state at left:0. */
+function updateTabSlideIndicator(indicator: HTMLElement, activeBtn: HTMLElement): void {
   requestAnimationFrame(() => {
-    const barRect = bar.getBoundingClientRect();
-    const btnRect = activeBtn.getBoundingClientRect();
-    if (!barRect.width || !barRect.height) return;
-    const x = ((btnRect.left + btnRect.width / 2) - barRect.left) / barRect.width * 100;
-    const y = ((btnRect.top + btnRect.height / 2) - barRect.top) / barRect.height * 100;
-    bar.style.setProperty('--tc-bloom-x', `${x.toFixed(2)}%`);
-    bar.style.setProperty('--tc-bloom-y', `${y.toFixed(2)}%`);
+    const wrap = indicator.parentElement;
+    if (!wrap) return;
+    const wRect = wrap.getBoundingClientRect();
+    const bRect = activeBtn.getBoundingClientRect();
+    if (!wRect.width || !bRect.width) return;
+    indicator.style.setProperty("--tc-slide-x", `${bRect.left - wRect.left}px`);
+    indicator.style.setProperty("--tc-slide-w", `${bRect.width}px`);
+    // Randomise the gradient origin within a comfortable band —
+    // 25–75% keeps the glow perceptibly inside the pill rather
+    // than hugging an edge, so each click lands somewhere new
+    // without ever looking clipped.
+    const origin = () => 25 + Math.random() * 50;
+    indicator.style.setProperty("--tc-slide-glow-x", `${origin().toFixed(1)}%`);
+    indicator.style.setProperty("--tc-slide-glow-y", `${origin().toFixed(1)}%`);
+    indicator.classList.add("tc-tab-slide-indicator--ready");
   });
 }
 
@@ -96,9 +121,9 @@ export class TegenlichtSettingsTab extends PluginSettingTab {
     top.createSpan({ cls: "tc-header-top-spacer" });
     top.createSpan({ cls: "tc-header-badge", text: `v${this.plugin.manifest.version}` });
 
-    // GitHub icon-link — same SVG and styling as the one in the footer
-    // copy row, slotted right next to the version badge so the header's
-    // top row reads as wordmark · spacer · version · github.
+    // GitHub icon-link — slotted right next to the version badge so
+    // the header's top row reads as wordmark · spacer · version ·
+    // github · help.
     const ghBadgeLink = top.createEl("a", {
       cls: "tc-header-gh tc-header-gh--badge",
       href: "https://github.com/tomlinson/obsidian-tegenlicht-controls",
@@ -111,6 +136,20 @@ export class TegenlichtSettingsTab extends PluginSettingTab {
       <path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0 0 16 8c0-4.42-3.58-8-8-8z"/>
     </svg>`;
 
+    // Help button — circular ? icon pointing at the GitHub README
+    // section that covers licensing + acknowledgements. Replaces the
+    // (now-retired) footer github/license/ack trio with a single
+    // discoverable control paired to the version + github cluster.
+    const helpLink = top.createEl("a", {
+      cls: "tc-header-help",
+      href: "https://github.com/tomlinson/obsidian-tegenlicht-controls/blob/main/README.md#acknowledgements",
+    });
+    helpLink.setAttr("target", "_blank");
+    helpLink.setAttr("rel", "noopener");
+    helpLink.setAttr("aria-label", "See Licencing and Acknowledgements");
+    helpLink.setAttr("title", "See Licencing and Acknowledgements");
+    setIcon(helpLink, "help-circle");
+
     const tagline = header.createDiv("tc-header-tagline");
     tagline.createSpan({ text: "A bespoke collection of Obsidian quality of life and appearance settings. Inspired by and forked from " });
     const link = tagline.createEl("a", { text: "AnuPuccin's theme", href: "https://github.com/AnubisNekhet/AnuPuccin" });
@@ -119,27 +158,10 @@ export class TegenlichtSettingsTab extends PluginSettingTab {
     tagline.createSpan({ text: ", " });
     tagline.createSpan({ cls: "tc-header-tagline-sig", text: "spun up by Onnozelaer" });
 
-    // Footer copy row — GitHub · License · Acknowledgements. Rainbow
-    // bar relocated to the top of the Legacy left rail (per user
-    // directive); the header just hosts the copy links now.
+    // Footer copy row — License · Acknowledgements text links only.
+    // GitHub icon was retired here (now lives once in the top row,
+    // paired with the version badge + new help `?` button).
     const copy = header.createDiv("tc-header-copy");
-
-    // GitHub icon-link
-    const ghLink = copy.createEl("a", {
-      cls: "tc-header-gh",
-      href: "https://github.com/tomlinson/obsidian-tegenlicht-controls",
-    });
-    ghLink.setAttr("target", "_blank");
-    ghLink.setAttr("rel", "noopener");
-    ghLink.setAttr("aria-label", "View on GitHub");
-    ghLink.setAttr("title", "View on GitHub");
-    ghLink.innerHTML = `<svg viewBox="0 0 16 16" width="13" height="13" fill="currentColor" aria-hidden="true">
-      <path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0 0 16 8c0-4.42-3.58-8-8-8z"/>
-    </svg>`;
-
-    // Pip separator between GitHub logo and licence (TODO: confirm licence —
-    // label reflects current placeholder; will resolve to GPL-3 or MIT later)
-    copy.createSpan({ cls: "tc-header-copy-sep", text: "·" });
 
     const licenceLink = copy.createEl("a", {
       text: "GPL-3 / MIT",
@@ -167,22 +189,25 @@ export class TegenlichtSettingsTab extends PluginSettingTab {
     // via the flex:1 spacer installed by installResetAllButton.
     const btnParent = tabBar.createDiv("tc-tab-inner-wrap");
 
+    // Sliding indicator — a single frosted-glass pill that translates +
+    // resizes to sit behind whichever tab is active. Appended first so
+    // it sits behind the buttons in the stacking order.
+    const slideIndicator = btnParent.createDiv("tc-tab-slide-indicator");
+
     TABS.forEach(({ id, label }) => {
       const btn = btnParent.createEl("button", { text: label, cls: "tc-tab" });
       if (id === this.activeTab) {
         btn.addClass("tc-tab--active");
-        updateTabBarBloom(btn);
+        setActiveTabGlowOrigin(btn);
+        updateTabSlideIndicator(slideIndicator, btn);
       }
       this.tabBtns.set(id, btn);
       btn.addEventListener("click", () => {
         if (id === this.activeTab) return;
         this.tabBtns.forEach(b => b.removeClass("tc-tab--active"));
         btn.addClass("tc-tab--active");
-        // Slide the container bloom to the newly active tab. CSS
-        // transitions the bloom's origin smoothly via the background
-        // gradient interpolating between the old and new --tc-bloom-*
-        // values.
-        updateTabBarBloom(btn);
+        setActiveTabGlowOrigin(btn);
+        updateTabSlideIndicator(slideIndicator, btn);
         this.activeTab = id;
         this.renderContent();
       });
@@ -193,6 +218,11 @@ export class TegenlichtSettingsTab extends PluginSettingTab {
     // tooltip changes). Second click while armed resets every setting
     // to DEFAULT_SETTINGS. Auto-disarms after 4 seconds or on outside click.
     this.installResetAllButton(tabBar);
+
+    // ── Theme toggle (light/dark) — sits immediately right of the
+    //    reset button. Same .tc-circle-btn visual vocabulary; icon
+    //    swaps sun ⇄ moon based on the workspace's current theme.
+    this.installThemeToggleButton(tabBar);
 
     // ── Content area (never rebuilt on tab switch) ────────
     this.contentEl = containerEl.createDiv("tc-tab-content");
@@ -218,7 +248,10 @@ export class TegenlichtSettingsTab extends PluginSettingTab {
       case "appearance":
         this.cleanup = buildAppearance(this.contentEl, this.plugin, onChange, redisplay);
         break;
-      case "typography": buildTypography(this.contentEl, this.plugin, onChange, redisplay); break;
+      case "appearance2":
+        this.cleanup = buildAppearance2(this.contentEl, this.plugin, onChange, redisplay);
+        break;
+      case "typography": this.cleanup = buildTypography(this.contentEl, this.plugin, onChange, redisplay); break;
       case "editing":    buildEditing(this.contentEl, this.plugin, onChange);    break;
       case "layout":     buildLayout(this.contentEl, this.plugin, onChange);     break;
       case "features":   buildFeatures(this.contentEl, this.plugin, onChange);   break;
@@ -313,6 +346,59 @@ export class TegenlichtSettingsTab extends PluginSettingTab {
       document.removeEventListener("keydown", escHandler);
       if (disarmTimer !== null) window.clearTimeout(disarmTimer);
     });
+  }
+
+  /** Light/dark theme toggle — sits immediately right of the reset
+   *  button. Icon swaps sun (when in dark) → moon (when in light) so
+   *  the icon represents "where you will go next", mirroring the
+   *  convention in most apps. Click flips the workspace theme via
+   *  Obsidian's internal APIs and re-syncs the icon.
+   *
+   *  All Obsidian internals are guarded — typed as any and wrapped in
+   *  try/catch so future API churn doesn't break the settings screen.
+   *  Falls back to a body-class toggle if setTheme is missing so the
+   *  visual flip at least happens even when persistence can't. */
+  private installThemeToggleButton(tabBar: HTMLElement): void {
+    const btn = tabBar.createEl("button", { cls: "tc-circle-btn tc-theme-toggle-btn" });
+    btn.setAttribute("aria-label", "Toggle light / dark theme");
+
+    const isDark = () => document.body.classList.contains("theme-dark");
+
+    const syncIcon = () => {
+      // Clear previous SVG and re-render. Lucide `sun` when in dark,
+      // `moon` when in light — icon advertises the destination.
+      btn.empty();
+      setIcon(btn, isDark() ? "sun" : "moon");
+      btn.setAttribute("title", isDark()
+        ? "Switch to light theme"
+        : "Switch to dark theme");
+    };
+    syncIcon();
+
+    btn.addEventListener("click", (e) => {
+      e.stopPropagation();
+      const nextTheme = isDark() ? "moonstone" : "obsidian";
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const app = this.plugin.app as any;
+      try {
+        app?.setTheme?.(nextTheme);
+        app?.vault?.setConfig?.("theme", nextTheme);
+        this.plugin.app.workspace.trigger("css-change");
+      } catch (err) {
+        console.warn("[tegenlicht-controls] theme toggle — API call failed, falling back to class swap", err);
+        document.body.classList.toggle("theme-dark");
+        document.body.classList.toggle("theme-light");
+      }
+      // Defer a frame so any async theme swap has settled before we
+      // re-read body classes for the icon.
+      requestAnimationFrame(syncIcon);
+    });
+
+    // Obsidian emits css-change when the user flips the theme from
+    // Appearance settings or the command palette — keep our icon in
+    // step regardless of where the swap originated.
+    const cssChangeRef = this.plugin.app.workspace.on("css-change", () => syncIcon());
+    this.disposers.push(() => this.plugin.app.workspace.offref(cssChangeRef));
   }
 
   /** Write --tc-tab-gap CSS variable so pill + segment tabs pick it up live. */

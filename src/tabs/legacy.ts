@@ -1,7 +1,10 @@
 import { Setting, setIcon } from "obsidian";
 import Pickr from "@simonwep/pickr";
 import TegenlichtControlsPlugin from "../main";
-import { buildLeftRailShell, LeftRailSection, buildSegmentSetting, buildCluster } from "./_shared";
+import {
+  buildLeftRailShell, LeftRailSection, buildSegmentSetting,
+  buildCluster, buildColourVarRow,
+} from "./_shared";
 import { buildTypographyPreview, buildCalloutPreview } from "../preview-sample";
 
 /**
@@ -13,49 +16,6 @@ import { buildTypographyPreview, buildCalloutPreview } from "../preview-sample";
  * Ship-push 2 (future): Headings + Lists & Tags + Workspace details
  * Skipped: Palette overrides, Integrations (Kanban / MAKE.md / Minimal Cards)
  */
-
-/** Single-use Pickr row for Codeblocks — colour picker with no toggle.
- *  Empty-string value means "no override" (removes the CSS var so the
- *  theme paints). The Clear button in Pickr resets to empty. Returns
- *  the Pickr instance so the caller can include it in its disposer set. */
-function buildColourVarRow(
-  container: HTMLElement,
-  name: string,
-  desc: string,
-  getValue: () => string,
-  setValue: (v: string) => void,
-  onChange: () => Promise<void>,
-): Pickr {
-  const setting = new Setting(container).setName(name).setDesc(desc);
-  const pickerEl = setting.controlEl.createDiv("pickr");
-  const pickr = Pickr.create({
-    el: pickerEl,
-    container: container.closest('.modal-content') as HTMLElement ?? document.body,
-    theme: 'nano',
-    default: getValue() || '#000000',
-    lockOpacity: true,
-    position: 'left-middle',
-    components: {
-      preview: true,
-      hue: true,
-      opacity: false,
-      interaction: { hex: true, input: true, clear: true, save: true, cancel: true },
-    },
-  });
-  pickr.on('save', (color: Pickr.HSVaColor | null, instance: Pickr) => {
-    if (!color) return;
-    setValue(color.toHEXA().toString().slice(0, 7));
-    instance.hide();
-    onChange();
-  });
-  pickr.on('clear', (instance: Pickr) => {
-    setValue('');
-    instance.hide();
-    onChange();
-  });
-  pickr.on('cancel', (instance: Pickr) => instance.hide());
-  return pickr;
-}
 
 export function build(
   containerEl: HTMLElement,
@@ -101,6 +61,12 @@ export function build(
       count: 9,
       render: (pane) => renderTabsDeep(pane, s, onChange, refresh),
     },
+    {
+      id: "accents",
+      label: "Accents",
+      count: 2,
+      render: (pane) => renderLegacyAccents(pane, s, onChange, pickrs),
+    },
     // Temporary mock — verifies the rail label marquee on hover.
     // Label is intentionally longer than the 116px rail can fit, so
     // the .tc-leftrail-label-text translateX animation has something
@@ -117,7 +83,7 @@ export function build(
     },
   ];
 
-  const shellCleanup = buildLeftRailShell(containerEl, sections);
+  const shellCleanup = buildLeftRailShell(containerEl, sections, "legacy");
 
   return () => {
     shellCleanup();
@@ -360,6 +326,65 @@ function renderCodeblocks(
     "Override the code block text colour. Clear = theme default.",
     () => s.codeblockTextColor,
     v => { s.codeblockTextColor = v; },
+    onChange,
+  ));
+
+  // LaTeX colour — sibling to the codeblock text/bg overrides; both are
+  // "override an AnuPpuccin CSS var with a hex" controls. Kept here
+  // rather than spun up into a dedicated Math section for one setting.
+  pickrs.push(buildColourVarRow(pane,
+    "LaTeX colour",
+    "Text colour for LaTeX blocks. Clear = theme default.",
+    () => s.latexColour,
+    v => { s.latexColour = v; },
+    onChange,
+  ));
+}
+
+/** Legacy → Accents — one-off dropdown that's too niche for the
+ *  Appearance palette row (stashed here per 2026-04-18 directive).
+ *  Keeps the light-mode accent override discoverable without bloating
+ *  Appearance's already-busy accent pips. */
+function renderLegacyAccents(
+  pane: HTMLElement,
+  s: import("../settings").TegenlichtSettings,
+  onChange: () => Promise<void>,
+  pickrs: Pickr[],
+): void {
+  pane.createEl("h3", { cls: "tc-leftrail-sechead", text: "Accents" });
+  pane.createEl("p", { cls: "tc-leftrail-secdesc",
+    text: "Per-mode accent overrides. Main accent picker lives in Appearance → Theme & Colour; this section carries the light-mode override only." });
+
+  // Flat UI India preset list — duplicated from appearance.ts (5 items
+  // don't warrant a shared export). If the Appearance list grows,
+  // consider lifting to a shared constant.
+  const LIGHT_PRESETS = [
+    { label: "Yriel Yellow",       hex: "#eab543" },
+    { label: "Rosy Highlight",     hex: "#fd7272" },
+    { label: "Clear Chill",        hex: "#1b9cfc" },
+    { label: "Keppel",             hex: "#58b19f" },
+    { label: "Circumorbital Ring", hex: "#82589f" },
+  ];
+
+  new Setting(pane)
+    .setName("Light mode accent")
+    .setDesc("Override the accent when Obsidian is in light mode (auto = match the main Appearance pick)")
+    .addDropdown(dd => {
+      dd.addOption("auto", "Auto (match main accent)");
+      LIGHT_PRESETS.forEach(p => dd.addOption(p.hex, p.label));
+      dd.setValue(s.lightAccentColour || "auto");
+      dd.onChange(async v => { s.lightAccentColour = v; await onChange(); });
+    });
+
+  // Colorful frame custom colour — AnuPpuccin's --anp-colorful-frame-
+  // color var, written as an R, G, B triplet so the theme can wrap it
+  // in rgb()/rgba() per its existing selectors. Clear = theme default.
+  // Pickr handles hex; applier converts to triplet.
+  pickrs.push(buildColourVarRow(pane,
+    "Colorful frame colour",
+    "Override the colorful-frame accent colour. Clear = theme default.",
+    () => s.colorfulFrameColour,
+    v => { s.colorfulFrameColour = v; },
     onChange,
   ));
 }

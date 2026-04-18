@@ -3,6 +3,64 @@
 All notable changes to this project are documented in this file.
 Format loosely follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [0.8.0] — 2026-04-17 — codename "Inventory"
+
+Major port round based on the AnuPpuccin inventory (`docs/anuppuccin-inventory.md`). Six waves, ~70 new settings ported into natural homes across the existing tab structure.
+
+### Added — Typography
+
+- **Headings section** (Wave 3): per-H colour dropdown (14 Catppuccin colours) + per-H divider toggle (H1–H6). Master toggles gate whether picks paint. New **heading margin** slider via master toggle. Exposes 17 AnuPpuccin settings.
+- **Accents section** (Wave 3 + 6): bold / italic / highlight colour dropdowns, gated by a new **Enable decoration colours** master. 3 dropdowns + 1 master.
+- **Weight & leading section** (Wave 4): 4 sub-accordions — Global weights (bold + live-preview + reading + source), Per-H weight (H1–H6), Per-H line-height (H1–H6), Per-H font family (H1–H6 text inputs). 22 new settings.
+
+### Added — Appearance
+
+- **Light mode accent** (Wave 5) — dropdown beside the main accent row. `auto` follows the main pick; presets override only in light mode. Enables independent light / dark palettes.
+
+### Added — Features
+
+- **Speech bubbles** + **Print styling** (Wave 2) — class-toggles.
+- **PDF blend (light)** + **PDF blend (dark)** (Wave 5) — PDF viewer bg blending per theme mode.
+- **Darker canvas backdrop**, **Workspace bg fix**, **Hide pane borders**, **Card shadows** (Wave 6).
+
+### Added — Editing
+
+- **List styling** toggle (Wave 2) — AnuPpuccin's nested-bullet glyph cascade.
+- **Tag border width** + **Tag radius** sliders (Wave 2).
+- **Custom preview margins** toggle (Wave 6).
+- **List bullet colour** Pickr (Wave 6) — `--list-marker-color`.
+
+### Added — Layout
+
+- **Embed max height** slider (Wave 2) — `--embed-max-height`.
+- **Colorful frame opacity** slider (Wave 6) — pairs with the existing `colorfulFrame` toggle.
+
+### Added — Legacy → Codeblocks
+
+- **LaTeX colour** Pickr (Wave 5) — `--anp-latex-color`.
+
+### Changed
+
+- **Appearance tab never rebuilds its pane** on setting change. Accent dots, extended swatch wraps, and CSS-var / body-class settings all update imperatively — the preview (and scroll / focus / open accordions) stays put across every flip. `refresh()` → `onChange()` for 10+ callsites.
+- **Rail left edge flush** with the settings container's leftmost edge. Rail padding-left dropped to 0; rail items visually align with the leftmost top-level tab.
+- **Accent divider thickness** bumped 1px → 2px; equal 14px padding above and below.
+- **buildColourVarRow** extracted from `legacy.ts` to `_shared.ts` — shared between Legacy, Editing, and future surfaces.
+- **CATPPUCCIN_COLOURS** constant exported from `applier.ts` — canonical 14-name list used by Typography UI + applier.
+
+### Infrastructure
+
+- **applyColourClassSelect** helper in applier — handles the "one of N body classes from a shared prefix" pattern used by all 9 colour-class-selects (H1–H6 + bold / italic / highlight).
+- `remove()` nukes all 126 possible colour classes (14 × 9 prefixes) + 14 new Wave 2 / 5 / 6 body classes on plugin unload.
+- Port plan document at `docs/anuppuccin-port-plan.md`. Inventory document at `docs/anuppuccin-inventory.md`.
+
+### Ported from AnuPpuccin inventory (~70 settings)
+
+Counts per wave: W2 (6) + W3 (17) + W4 (22) + W5 (4) + W6 (8) = 57 UI surfaces for ~70 underlying AnuPpuccin settings (some waves surface multiple classes through one control).
+
+### Intentionally skipped
+
+25 Catppuccin palette colour pickers (plugin's swatch-injection approach is the right answer per inventory analysis), 17 Kanban integration settings, 6 Minimal Cards snippet settings, MAKE.md integrations except Inline Title.
+
 ## [0.7.7] — 2026-04-16 — codename "Tegendraads"
 
 ### Added

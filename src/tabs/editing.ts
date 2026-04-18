@@ -1,7 +1,7 @@
 import { Setting } from "obsidian";
 import TegenlichtControlsPlugin from "../main";
 import { buildEditingPreview } from "../preview-sample";
-import { buildSegmentSetting } from "./_shared";
+import { buildSegmentSetting, buildColourVarRow } from "./_shared";
 
 // Session-scoped accordion state — same pattern as the Appearance and
 // Typography tabs so flipping a toggle doesn't snap sections shut.
@@ -11,22 +11,23 @@ const accordionOpen: Record<string, boolean> = {
 };
 
 /** Build an accordion shell matching the Appearance tab's `tc-feat-group`
- *  pattern. Title gets accent tint via the global `.tc-feat-title` rule. */
+ *  pattern. Title gets accent tint via the global `.tc-feat-title` rule.
+ *
+ *  Collapsible behaviour paused 2026-04-18 — accordions always render
+ *  open, the chevron hides via styles.css. Original click-toggle +
+ *  state map left in place (commented) for easy re-enable. */
 function buildAccordion(
   container: HTMLElement,
   key: keyof typeof accordionOpen,
   title: string,
 ): HTMLElement {
+  void accordionOpen[key]; // kept live for a future re-enable
   const accordion = container.createDiv(
-    "tc-feat-group" + (accordionOpen[key] ? " tc-feat-group--open" : "")
+    "tc-feat-group tc-feat-group--open tc-feat-group--no-fold",
   );
   const header = accordion.createDiv("tc-feat-header");
   header.createDiv("tc-feat-title").createSpan({ text: title });
   header.createDiv("tc-feat-meta").createSpan({ text: "▶", cls: "tc-feat-chevron" });
-  header.addEventListener("click", () => {
-    accordionOpen[key] = !accordionOpen[key];
-    accordion.toggleClass("tc-feat-group--open", accordionOpen[key]);
-  });
   return accordion.createDiv("tc-feat-body tc-setting-card");
 }
 
@@ -87,6 +88,66 @@ export function build(
       .setValue(s.rainbowTags)
       .onChange(async v => { s.rainbowTags = v; await onChange(); })
     );
+
+  // AnuPpuccin's nested-bullet shape cascade — different glyph per
+  // nesting depth. Lands in Reading view since it's a reading concern.
+  new Setting(readingBody)
+    .setName("List styling")
+    .setDesc("Differentiate nested bullets with per-depth glyphs")
+    .addToggle(t => t
+      .setValue(s.listToggle)
+      .onChange(async v => { s.listToggle = v; await onChange(); })
+    );
+
+  // Ordered list numbering style — 17 CSS list-style-type values
+  // (decimal / roman / hiragana / etc.). Dropdown keeps the long
+  // option set from overflowing the row.
+  new Setting(readingBody)
+    .setName("Ordered list style")
+    .setDesc("Numbering glyph for ordered lists — writes --list-numbered-style")
+    .addDropdown(dd => dd
+      .addOption("decimal",              "Decimal (1, 2, 3…)")
+      .addOption("decimal-leading-zero", "Decimal, zero-padded")
+      .addOption("lower-alpha",          "Lowercase alphabetical")
+      .addOption("upper-alpha",          "Uppercase alphabetical")
+      .addOption("lower-roman",          "Lowercase Roman")
+      .addOption("upper-roman",          "Uppercase Roman")
+      .addOption("lower-latin",          "Lowercase Latin")
+      .addOption("upper-latin",          "Uppercase Latin")
+      .addOption("lower-greek",          "Lowercase Greek")
+      .addOption("upper-greek",          "Uppercase Greek")
+      .addOption("hiragana",             "Hiragana")
+      .addOption("hiragana-iroha",       "Hiragana Iroha")
+      .addOption("katakana-iroha",       "Katakana Iroha")
+      .addOption("armenian",             "Armenian")
+      .addOption("cjk-ideographic",      "CJK Ideographic")
+      .addOption("hebrew",               "Hebrew")
+      .setValue(s.orderedListStyle || "decimal")
+      .onChange(async v => { s.orderedListStyle = v; await onChange(); })
+    );
+
+  // Wave 6 — custom preview margins toggle. Gates AnuPpuccin's
+  // reading-view margin vars (anp-toggle-preview body class).
+  new Setting(readingBody)
+    .setName("Custom preview margins")
+    .setDesc("Apply AnuPpuccin's reading-view margin scheme to preview mode")
+    .addToggle(t => t
+      .setValue(s.customPreviewMargins)
+      .onChange(async v => { s.customPreviewMargins = v; await onChange(); })
+    );
+
+  // Wave 6 — unordered list bullet colour (themed hex). Empty = theme
+  // default; any hex overrides --list-marker-color. Pickr instance
+  // leaks DOM if not destroyed — but this tab doesn't carry a disposer
+  // lifecycle yet. TODO: thread a cleanup once Editing grows more
+  // Pickrs; for now the single instance is acceptable transient DOM.
+  buildColourVarRow(readingBody,
+    "List bullet colour",
+    "Colour for unordered list bullets (clear = theme default)",
+    () => s.listMarkerColour,
+    v => { s.listMarkerColour = v; },
+    onChange,
+  );
 
   // ── Coding accordion — editor affordances for source work ────────
   const codingBody = buildAccordion(wrap, "coding", "Coding & source");
@@ -153,6 +214,30 @@ export function build(
     s.tagStyle || "classic",
     async v => { s.tagStyle = v; await onChange(); },
   );
+
+  // Tag border width + radius — native AnuPpuccin CSS vars. Scalars,
+  // so sliders; changes take effect without redisplay (applier writes
+  // the var on every save). Range + step match the theme's YAML.
+  new Setting(propertiesBody)
+    .setName("Tag border width")
+    .setDesc("Outline thickness on every tag pill, 0–4 px")
+    .addSlider(sl => sl
+      .setLimits(0, 4, 1)
+      .setValue(s.tagBorderWidth ?? 0)
+      .setDynamicTooltip()
+      .onChange(async v => { s.tagBorderWidth = v; await onChange(); })
+    );
+
+  new Setting(propertiesBody)
+    .setName("Tag radius")
+    .setDesc("Corner rounding on every tag pill, 0–2 em")
+    .addSlider(sl => sl
+      .setLimits(0, 2, 0.1)
+      .setValue(s.tagRadius ?? 2)
+      .setDynamicTooltip()
+      .onChange(async v => { s.tagRadius = v; await onChange(); })
+    );
+
 
   // Forward-looking note for pretty-properties integration.
   const propHint = propertiesBody.createDiv("tc-empty-hint");

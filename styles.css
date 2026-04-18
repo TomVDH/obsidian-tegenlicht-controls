@@ -46,29 +46,40 @@
 }
 /* Easter egg — hover the diamond and it bloom-glows in the active accent.
    No more click-required, no more wordmark shimmer; the diamond is the
-   only thing that lights up. Tapers in/out via the transition above. */
+   only thing that lights up. Brightness boosted per user directive:
+   stronger core alpha, two additional wider halo layers reaching 54px,
+   and a subtle colour-lift to near-white at the inner core so the hover
+   reads as "lit-up" rather than "tinted". Tapers in/out via the
+   transition on the base rule above. */
 .tc-settings .tc-header-icon:hover {
+  color: color-mix(in srgb, var(--color-accent, #e5b32a) 35%, #fff 65%);
   text-shadow:
-    0 0 8px rgba(var(--color-accent-rgb, 229, 179, 42), 0.85),
-    0 0 18px rgba(var(--color-accent-rgb, 229, 179, 42), 0.55),
-    0 0 32px rgba(var(--color-accent-rgb, 229, 179, 42), 0.30);
+    0 0 4px  rgba(var(--color-accent-rgb, 229, 179, 42), 1),
+    0 0 10px rgba(var(--color-accent-rgb, 229, 179, 42), 0.95),
+    0 0 22px rgba(var(--color-accent-rgb, 229, 179, 42), 0.75),
+    0 0 38px rgba(var(--color-accent-rgb, 229, 179, 42), 0.50),
+    0 0 54px rgba(var(--color-accent-rgb, 229, 179, 42), 0.30);
 }
 
 .tc-settings .tc-header-name-brand {
   font-size: 28px;
   font-weight: 700;
   color: var(--text-normal);
-  letter-spacing: -0.02em;
+  /* Positive tracking (+0.02em) gives "tegenlicht" a touch of breath
+     between the letters without drifting away from the tight wordmark
+     feel. Previously sat at -0.02em (condensed). */
+  letter-spacing: 0.02em;
   /* Lowercase per Tom — "tegenlicht" reads as the brand mark, not a
      proper noun. Source string is already lowercase but text-transform
      guards against future re-casing. */
   text-transform: lowercase;
 }
 /* Subtitle "Settings Companion" — spaced small-caps style, sits beside
-   the Tegenlicht wordmark. Muted tone + tracking so it reads as a
-   label/kicker rather than continuing the brand title. */
+   the Tegenlicht wordmark. Gap tightened (was 10px) so the subtitle
+   sits closer to the wordmark and reads as a continuation rather
+   than a detached chip. */
 .tc-settings .tc-header-subtitle {
-  margin-left: 10px;
+  margin-left: 5px;
   font-size: 10px;
   font-weight: 600;
   text-transform: uppercase;
@@ -84,7 +95,10 @@
   animation: tc-golden-shimmer 1.6s ease forwards;
 }
 
-/* GitHub link next to the version badge */
+/* GitHub link next to the version badge — margin tightened
+   (was 4px) so the version + github + ? trio reads as a single
+   cluster rather than three loose icons. The help button carries
+   its own 2px left margin for the inner micro-gap. */
 .tc-settings .tc-header-gh {
   display: inline-flex;
   align-items: center;
@@ -94,46 +108,66 @@
   padding: 4px;
   border-radius: 50%;
   transition: color 140ms ease, background 140ms ease;
-  margin-left: 4px;
+  margin-left: 8px;
 }
 .tc-settings .tc-header-gh:hover {
   color: var(--color-accent);
   background: color-mix(in srgb, var(--color-accent) 12%, transparent);
 }
 .tc-settings .tc-header-gh svg { display: block; }
+
+/* Help button (?) — same circular chrome as .tc-header-gh so the
+   two icons read as a paired trio with the version badge. Points
+   at the README section covering licensing + acknowledgements. */
+.tc-settings .tc-header-help {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-muted);
+  text-decoration: none;
+  padding: 4px;
+  border-radius: 50%;
+  transition: color 140ms ease, background 140ms ease;
+  margin-left: 2px;
+}
+.tc-settings .tc-header-help:hover {
+  color: var(--color-accent);
+  background: color-mix(in srgb, var(--color-accent) 12%, transparent);
+}
+.tc-settings .tc-header-help svg {
+  display: block;
+  width: 14px;
+  height: 14px;
+}
 .tc-settings .tc-header-name {
   font-size: 20px;
   font-weight: 700;
   color: var(--text-normal);
   letter-spacing: -0.02em;
 }
+/* Version badge — flattened to plain text (2026-04-17). No pill, no
+   bg, no border, no hover/shimmer. Sits as a muted kicker label in
+   the header row alongside the GitHub icon + help (?) button.
+   Same small-caps typography as the Settings Companion subtitle.
+
+   Explicitly `align-self: center` so the badge lines up on the same
+   vertical midline as the two icon buttons it pairs with (both
+   inline-flex + align-items: center). The prior flex-end +
+   padding-bottom baseline trick left the badge sitting below the
+   icons' centre line. */
 .tc-settings .tc-header-badge {
   font-size: 10px;
   color: var(--text-muted);
-  background: var(--background-secondary);
-  border: 1px solid var(--background-modifier-border);
-  border-radius: 100px;
-  padding: 5px 14px;
-  /* Same typography vocabulary as the "Settings Companion" subtitle —
-     interface font, weight 600, uppercase, wide tracking. Drops the
-     prior monospace family so version reads as a kicker label, not a
-     code chip. */
+  background: transparent;
+  border: none;
+  border-radius: 0;
+  padding: 0;
   font-family: inherit;
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.18em;
   cursor: default;
-  transition: border-color 0.24s ease, color 0.24s ease, box-shadow 0.24s ease, background-color 0.6s ease;
-}
-.tc-settings .tc-header-badge:hover {
-  border-color: var(--color-accent);
-  color: var(--color-accent);
-  /* Shimmer plays over the border on hover — same accent-glow vocabulary
-     as the wordmark's diamond-click shimmer (tc-golden-shimmer), but here
-     it's a one-shot box-shadow pulse on the badge's pill border, paired
-     with a slow accent-fill ramp that peaks just as the glow ends and
-     then tapers off gently. */
-  animation: tc-badge-shimmer 1.6s ease, tc-badge-fill 2.6s ease;
+  align-self: center;
 }
 /* Combined shimmer: outer halo + inner edge glow + text glow all peak
    together, then taper sequentially within the same 1.6s window —
@@ -189,7 +223,9 @@
   color: var(--text-muted);
   line-height: 1.6;
   max-width: 60%;
-  margin-bottom: 18px;
+  /* Bottom margin equals the copy-row top padding below — symmetric
+     breathing room around the accent divider that sits between. */
+  margin-bottom: 14px;
 }
 .tc-settings .tc-header-tagline a {
   color: var(--color-accent, #e5b32a);
@@ -206,7 +242,14 @@
   gap: 6px;
   font-size: 10px;
   color: var(--text-faint);
-  padding: 8px 0 14px;
+  /* Accent divider on the top edge — separates the tagline quip
+     above from the copy links below. Bumped to 2px for a bit more
+     presence. Alpha 0.40 matches the unified accent-border family
+     (pretty cluster / rail-active / pill / glow-b). Padding-top is
+     14px to match the tagline's 14px margin-bottom below the
+     divider — symmetric breathing room either side. */
+  border-top: 2px solid rgba(var(--color-accent-rgb, 229, 179, 42), 0.40);
+  padding: 14px 0 14px;
 }
 /* Inline-row + .tc-color-bar--header rules retired — rainbow bar
    relocated to the top of the Legacy left rail. Header now hosts the
@@ -253,25 +296,10 @@
 }
 .tc-color-bar.tc-color-bar--accent:hover { opacity: 1; }
 
-/* Header variant — lives in the settings panel header between the
-   tagline and the footer copy row — RETIRED, rainbow now lives at
-   the top of the Legacy left rail (.tc-leftrail-rainbow rule below). */
-
-/* Rainbow flourish at the top of the Legacy left rail. Inherits the
-   gradient + height + radius from .tc-color-bar; this rule just slots
-   it into the rail layout (full-width of the rail, top-aligned, not
-   interactive — no hover, no active). */
-.tc-settings .tc-leftrail-rainbow {
-  /* Top margin tuned so the rainbow's vertical midline lines up with
-     the right pane's section header (h3) midline — pane padding-top
-     18 + h3 line-box ~9 = 27px from pane top; rail padding-top 8 + 17
-     + 2 = 27px from rail top. Keeps the two columns optically aligned
-     across the divider. */
-  margin: 17px 0 10px;
-  width: 100%;
-  pointer-events: none;
-  flex-shrink: 0;
-}
+/* Rainbow variants at the top of the left rail and in the settings
+   header — both retired (2026-04-17). The accent divider right below
+   the top tab bar already carries the "accent territory" cue; a
+   second colour element at the top of every rail was redundant. */
 
 /* ── Swatch cards ── */
 .tc-settings .tc-swatch-card {
@@ -357,6 +385,17 @@
   transition: color 0.2s ease, border-color 0.2s ease, background 0.2s ease, box-shadow 0.25s ease;
   box-shadow: 0 0 0 0 transparent;
 }
+
+/* Theme toggle — sits immediately right of the reset button. Same
+   size + shape as .tc-reset-all-btn via the shared .tc-circle-btn
+   base. A small gap separates the two so they don't read as a
+   single control. Icon swaps sun ⇄ moon in JS. */
+.tc-settings .tc-theme-toggle-btn {
+  width: 34px;
+  height: 34px;
+  margin-left: 8px;
+}
+.tc-settings .tc-theme-toggle-btn svg { width: 17px; height: 17px; }
 /* Spacer between the tab cluster and the reset button — dashed
    horizontal connector spanning the FULL gap (no inset margins) so
    the line truly "wires" the last tab to the reset button. Same
@@ -387,6 +426,9 @@
   display: flex;
   align-items: center;
   padding: 12px 0;
+  /* Accent divider previously lived here as border-bottom; relocated
+     to sit between the tagline quip and the footer copy row instead
+     (see .tc-header-copy border-top rule). */
   border-bottom: none;
   margin-bottom: 0;
 }
@@ -503,69 +545,103 @@
 }
 
 /* ═══════════════════════════════════════════════════════════
-   AMBIENT TAB-BAR BLOOM — applies regardless of tabBarStyle.
+   MESH BLOOM — hover-gated easter egg (2026-04-17).
 
-   Two technical fixes vs the prior version:
-   1. @property declarations make --tc-bloom-x / --tc-bloom-y
-      interpolatable as percentages, so the transition on the parent
-      drifts the gradient ORIGIN smoothly frame-by-frame instead of
-      crossfading between two static gradients (which jumped + banded).
-   2. The bloom is now CONTAINED inside the tab-bar via overflow:
-      hidden, so it no longer bleeds into the settings panel below.
-      Many close alpha stops smooth the edge ramp — kills banding.
+   Previously ambient (visible all the time in the upper-right or
+   bottom-right), the mesh now hides until you hover the ◈ diamond
+   in the header. On hover it fades in and swirls near the diamond's
+   own position (top-left of the panel), like a halo blooming
+   around the easter-egg trigger. Fades back out when un-hovered.
+   Alphas bumped a touch vs the ambient iteration — since it's now
+   a deliberate reveal, a quieter whisper would go unnoticed.
+
+   "for the time being" per user directive — may re-ambient later
+   with its own position / intensity tuning.
    ═══════════════════════════════════════════════════════════ */
-@property --tc-bloom-x {
-  syntax: "<percentage>";
-  inherits: true;
-  initial-value: 10%;
+@property --mesh-a-x { syntax: "<percentage>"; inherits: true; initial-value: 18%; }
+@property --mesh-a-y { syntax: "<percentage>"; inherits: true; initial-value: 26%; }
+@property --mesh-b-x { syntax: "<percentage>"; inherits: true; initial-value: 32%; }
+@property --mesh-b-y { syntax: "<percentage>"; inherits: true; initial-value: 14%; }
+
+@keyframes tc-mesh-drift-a {
+  0%   { --mesh-a-x: 18%; --mesh-a-y: 26%; }
+  50%  { --mesh-a-x: 30%; --mesh-a-y: 20%; }
+  100% { --mesh-a-x: 18%; --mesh-a-y: 26%; }
 }
-@property --tc-bloom-y {
-  syntax: "<percentage>";
-  inherits: true;
-  initial-value: 50%;
+@keyframes tc-mesh-drift-b {
+  0%   { --mesh-b-x: 32%; --mesh-b-y: 14%; }
+  50%  { --mesh-b-x: 20%; --mesh-b-y: 34%; }
+  100% { --mesh-b-x: 32%; --mesh-b-y: 14%; }
 }
 
-.tc-settings .tc-tab-bar {
+.tc-settings {
   position: relative;
   isolation: isolate;
-  /* Bloom SPREADS freely past the bar — no clipping. The radial's own
-     alpha ramp does the soft-edge work. */
-  overflow: visible;
-  /* Transition the typed custom properties themselves — origin
-     interpolates frame-by-frame, the gradient re-renders each frame,
-     visible drift is smooth. */
-  transition:
-    --tc-bloom-x 0.7s cubic-bezier(0.32, 0.72, 0, 1),
-    --tc-bloom-y 0.7s cubic-bezier(0.32, 0.72, 0, 1);
 }
-.tc-settings .tc-tab-bar::before {
+.tc-settings::before {
   content: "";
   position: absolute;
-  /* Generous negative inset on all sides — gradient extends well past
-     the bar's bounds so the bloom can bleed into the surrounding
-     header / panel chrome. Larger than the gradient's outer radius
-     PLUS the blur extension (filter: blur expands the visible
-     bounding box). */
-  inset: -160px -160px;
-  background: radial-gradient(
-    /* Circular, fixed 200px radius — round halo regardless of bar
-       aspect. Lower peak alpha for a quieter bloom (was 0.16, now
-       0.09); the blur filter below physically smooths the alpha ramp
-       so even a sparse stop list no longer bands. */
-    circle 200px at var(--tc-bloom-x, 10%) var(--tc-bloom-y, 50%),
-    rgba(var(--color-accent-rgb, 229, 179, 42), 0.09) 0%,
-    rgba(var(--color-accent-rgb, 229, 179, 42), 0.06) 30%,
-    rgba(var(--color-accent-rgb, 229, 179, 42), 0.03) 55%,
-    rgba(var(--color-accent-rgb, 229, 179, 42), 0.012) 80%,
-    transparent 100%
-  );
-  /* Physical blur on the gradient itself — eliminates the concentric
-     "band" rings that low-alpha radial-gradients show on 8-bit
-     displays. Also softens the falloff so the bloom edge feels like
-     a haze rather than a crisp circle. */
-  filter: blur(14px);
+  /* Anchored to the top-left of the settings panel so the bloom
+     swirls around the diamond's own position in the header. Width
+     bracket just wide enough to cover the wordmark area without
+     bleeding into the tab bar below. */
+  top: 0;
+  left: 0;
+  width: 460px;
+  height: 280px;
+  background:
+    radial-gradient(
+      ellipse 220px 170px at var(--mesh-a-x, 18%) var(--mesh-a-y, 26%),
+      rgba(var(--color-accent-rgb, 229, 179, 42), 0.11) 0%,
+      rgba(var(--color-accent-rgb, 229, 179, 42), 0.05) 42%,
+      transparent 74%
+    ),
+    radial-gradient(
+      ellipse 260px 200px at var(--mesh-b-x, 32%) var(--mesh-b-y, 14%),
+      rgba(var(--color-accent-rgb, 229, 179, 42), 0.065) 0%,
+      rgba(var(--color-accent-rgb, 229, 179, 42), 0.03) 46%,
+      transparent 80%
+    );
+  animation:
+    tc-mesh-drift-a 13s ease-in-out infinite,
+    tc-mesh-drift-b 17s ease-in-out infinite;
+  filter: blur(22px);
   pointer-events: none;
   z-index: -1;
+  /* Hidden at rest — revealed only while the diamond is hovered.
+     0.7s fade-in / fade-out so the swirl materialises gently
+     rather than flashing on. */
+  opacity: 0;
+  transition: opacity 0.7s ease;
+}
+.tc-settings:has(.tc-header-icon:hover)::before {
+  opacity: 1;
+}
+
+/* Respect users who opt out of motion — freeze the mesh at its
+   initial phase rather than strobing through reduced-motion. */
+@media (prefers-reduced-motion: reduce) {
+  .tc-settings::before { animation: none; }
+}
+
+/* Light mode — bloom now runs in light mode too (2026-04-17). The
+   alphas are subtle enough (0.055 / 0.032 peak) that the accent
+   reads as a whisper against pale backgrounds rather than harsh
+   tinting. Revisit only if a specific light flavour breaks it. */
+
+/* Safety: ensure Obsidian's native modal close-button (top-right
+   X on every settings pane) never gets hidden or visually buried
+   by anything the plugin paints. Belt + braces — forces the
+   display/visibility/opacity trio AND bumps z-index above any
+   pseudo-elements inside .tc-settings. Selector targets all
+   modal containers (including `.mod-dim`) so it covers every
+   variant Obsidian uses. */
+body > div.modal-container .modal-close-button {
+  display: flex !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+  z-index: 999 !important;
+  pointer-events: auto !important;
 }
 /* Tabs sit above the ::before via the isolation context. Important
    for the switch / amber styles whose pills also need to sit above
@@ -576,42 +652,41 @@
   z-index: 1;
 }
 
-/* Glow on every active top tab — independent of tabBarStyle. Per-
-   button radial gradient on ::before, origin fixed at 50% 50% (no
-   off-centre randomness). Layers above the button background, below
-   the text content. Combined with the container bloom on the bar's
-   ::before, the active state reads as: bloom radiates around the
-   tab, the tab itself glows from its own centre. */
+/* Active top tab — "Glow text" recipe (Lab Tab Styles option 1):
+   per-tab ::before radial gradient behind the text with a lightly
+   random off-centre origin, plus a sliding pill indicator in the
+   tab bar that translates between positions (see below).
+
+   No frosted pill / inset ring / backdrop-filter on the tab itself
+   — the sliding indicator carries the "active surface", the ::before
+   radial carries the glow, and text-shadow on the label reads as
+   the tab being lit. */
 .tc-settings .tc-tab {
   overflow: hidden;
+  /* `z-index: 1` lets the sliding indicator (z-index 0 inside the
+     bar's isolated stacking context) sit behind every tab's content
+     without needing per-tab isolation. */
+  z-index: 1;
 }
 .tc-settings .tc-tab::before {
   content: "";
   position: absolute;
   inset: 0;
   background: radial-gradient(
-    ellipse 130% 220% at 50% 50%,
+    ellipse 130% 220% at var(--tc-tab-glow-x, 50%) var(--tc-tab-glow-y, 50%),
     rgba(var(--color-accent-rgb, 229, 179, 42), 0.22) 0%,
     rgba(var(--color-accent-rgb, 229, 179, 42), 0.10) 35%,
-    rgba(var(--color-accent-rgb, 229, 179, 42), 0.03) 70%,
-    transparent 100%
+    transparent 75%
   );
   opacity: 0;
   transition: opacity 0.55s ease;
   pointer-events: none;
-  /* No z-index — natural paint order puts ::before above the element
-     background but below text content. */
+  z-index: -1;
   border-radius: inherit;
 }
 .tc-settings .tc-tab--active::before {
   opacity: 1;
 }
-
-/* Active state language matches the Lab "Glow text" mock: no
-   background fill, no border ring, no box-shadow inset. The ::before
-   glow + accent text colour ARE the active indicator. Overrides
-   whichever tabBarStyle would otherwise paint a Frost pill / outline
-   / underline on the active tab. */
 .tc-settings .tc-tab--active,
 .tc-settings .tc-tab--active:hover {
   background: transparent !important;
@@ -620,6 +695,118 @@
   backdrop-filter: none !important;
   -webkit-backdrop-filter: none !important;
   color: var(--color-accent) !important;
+  /* Text-shadow glow removed per user directive — the sliding
+     frosted pill carries the active surface, and accent text colour
+     alone is the reading cue. No font-glow on these strings. */
+  text-shadow: none !important;
+  transition: color 0.28s ease;
+}
+
+/* Sliding indicator — lives inside .tc-tab-inner-wrap, translates +
+   resizes to sit behind the active tab. Paint is now a radial
+   accent gradient (not the prior gray frosted pill): goes from
+   rgba(accent, 0.22) at centre through to transparent at edges,
+   so it reads as a glow rather than a tinted surface.
+
+   The gradient's ORIGIN is driven by --tc-slide-glow-x /
+   --tc-slide-glow-y custom props, randomised per tab click in
+   settings-tab.ts so the glow doesn't feel mechanical. Position
+   + size driven by --tc-slide-x / --tc-slide-w as before. */
+.tc-settings .tc-tab-inner-wrap {
+  position: relative;
+  isolation: isolate;
+}
+.tc-settings .tc-tab-slide-indicator {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  width: var(--tc-slide-w, 0);
+  transform: translateX(var(--tc-slide-x, 0));
+  border-radius: var(--radius-m, 4px);
+  z-index: 0;
+  /* Slide/resize transitions removed per user directive — every time
+     a setting change triggers redisplay(), the indicator used to
+     animate from its initial 0 position to the measured active-tab
+     position, which read as an unwanted re-init animation. Snapping
+     directly to position keeps the pill static between state flips. */
+  pointer-events: none;
+  /* Pre-measurement state: hidden so we don't flash a 0-width pill
+     at left:0 on first render. JS adds .tc-tab-slide-indicator--ready
+     after the first RAF. */
+  opacity: 0;
+}
+.tc-settings .tc-tab-slide-indicator--ready { opacity: 1; }
+
+/* Active-indicator variant — GLOW and GLOW B share the slide
+   indicator paint: a radial accent gradient with a randomised
+   origin (--tc-slide-glow-x/y rolled fresh per tab click in
+   settings-tab.ts). Reads as a glow rather than a tinted surface.
+   GLOW B additionally frames every tab with a currentColor border
+   ring (see rules below) and gives the active tab an accent ring
+   overlay. */
+/* NOTE: `tc-tabs-active-*` is set on BODY by applier.ts (the settings
+   pane doesn't exist yet when apply() first runs from onload, so body
+   is the reliable anchor). Each tab-active variant rule therefore
+   matches body → .tc-settings rather than requiring both classes on
+   the same element. */
+body.tc-tabs-active-glow .tc-settings .tc-tab-slide-indicator,
+body.tc-tabs-active-glow-b .tc-settings .tc-tab-slide-indicator {
+  background: radial-gradient(
+    ellipse 120% 200% at var(--tc-slide-glow-x, 50%) var(--tc-slide-glow-y, 50%),
+    rgba(var(--color-accent-rgb, 229, 179, 42), 0.22) 0%,
+    rgba(var(--color-accent-rgb, 229, 179, 42), 0.09) 38%,
+    rgba(var(--color-accent-rgb, 229, 179, 42), 0.03) 70%,
+    transparent 100%
+  );
+}
+
+/* Active-indicator variant — GLOW B additions.
+   Every tab wears a persistent 1px inset border in currentColor
+   (22% alpha at rest, 36% on hover) — currentColor tracks text-
+   muted / text-normal automatically so no per-state colour rule
+   is needed. Active tab overrides with the accent 40% ring so
+   its frame lines up with the pretty-cluster + rail-active border
+   language. Box-shadow excluded from the transition list to avoid
+   the currentColor↔accent flicker. */
+body.tc-tabs-active-glow-b .tc-settings .tc-tab {
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, currentColor 22%, transparent);
+  transition: color 0.18s ease, background 0.22s ease;
+}
+body.tc-tabs-active-glow-b .tc-settings .tc-tab:hover {
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, currentColor 36%, transparent);
+}
+body.tc-tabs-active-glow-b .tc-settings .tc-tab--active,
+body.tc-tabs-active-glow-b .tc-settings .tc-tab--active:hover {
+  box-shadow: inset 0 0 0 1px rgba(var(--color-accent-rgb, 229, 179, 42), 0.40) !important;
+}
+
+/* Active-indicator variant — PILL (Pill B recipe).
+   Lab tc-mock--pill-b: every tab is a framed pill. Inactive tabs
+   wear a 1px inset border in currentColor (22% at rest, 36% on
+   hover) — because currentColor resolves to text-muted on inactive
+   buttons and text-normal on hover automatically. Active tab's
+   own border is suppressed (`.tc-tab--active { box-shadow: none
+   !important }` further up); the sliding indicator carries the
+   accent pill instead. Tabs round to 100px so slider + button
+   shapes line up. */
+body.tc-tabs-active-pill .tc-settings .tc-tab {
+  border-radius: 100px !important;
+  padding: 5px 16px;
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, currentColor 22%, transparent);
+  /* box-shadow omitted from the transition list — transitioning
+     between currentColor color-mix and literal rgba(accent) can
+     flicker through a blocked-out intermediate. Snapping keeps
+     the border change crisp. */
+  transition: color 0.18s ease, background 0.22s ease;
+}
+body.tc-tabs-active-pill .tc-settings .tc-tab:hover {
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, currentColor 36%, transparent);
+}
+body.tc-tabs-active-pill .tc-settings .tc-tab-slide-indicator {
+  background: rgba(var(--color-accent-rgb, 229, 179, 42), 0.16);
+  box-shadow: inset 0 0 0 1px rgba(var(--color-accent-rgb, 229, 179, 42), 0.40);
+  border-radius: 100px;
 }
 
 /* Text style — minimal chrome at rest, no Frost on active. The
@@ -636,14 +823,9 @@
   background: transparent;
   color: var(--text-normal);
 }
-.tc-settings.tc-tabs-text .tc-tab--active,
-.tc-settings.tc-tabs-text .tc-tab--active:hover {
-  color: var(--color-accent);
-  background: transparent;
-  box-shadow: none;
-  backdrop-filter: none;
-  -webkit-backdrop-filter: none;
-}
+/* Active state styling is universal — see `.tc-settings .tc-tab--active`
+   above. Text-variant doesn't strip anymore; the frosted pill + text
+   glow paints on every tabBarStyle. */
 
 /* ── Tab style switcher ── */
 .tc-settings .tc-tab-style-switcher {
@@ -1223,9 +1405,9 @@
    (e.g. embedded code blocks). The preview now uses a real
    `.metadata-container` so it inherits Obsidian's own Properties CSS
    and looks pixel-identical to a real note's Properties panel. */
-body.tc-fm-boxed .tc-mini-obsidian .metadata-container,
-body.tc-fm-boxed .markdown-source-view.is-live-preview .metadata-container,
-body.tc-fm-boxed .markdown-reading-view .metadata-container {
+:is(body.tc-fm-boxed, .tc-fm-preview-forced) .tc-mini-obsidian .metadata-container,
+:is(body.tc-fm-boxed, .tc-fm-preview-forced) .markdown-source-view.is-live-preview .metadata-container,
+:is(body.tc-fm-boxed, .tc-fm-preview-forced) .markdown-reading-view .metadata-container {
   margin: 6px 0 18px !important;
   padding: 10px 14px 12px !important;
   background: linear-gradient(135deg,
@@ -1239,8 +1421,8 @@ body.tc-fm-boxed .markdown-reading-view .metadata-container {
 /* Banner-aware spacing — when the view has the Banners plugin's
    `.has-banner` class, the box needs more breathing room above so it
    doesn't crowd the banner image's bottom edge. */
-body.tc-fm-boxed .view-content.has-banner .markdown-source-view.is-live-preview .metadata-container,
-body.tc-fm-boxed .view-content.has-banner .markdown-reading-view .metadata-container {
+:is(body.tc-fm-boxed, .tc-fm-preview-forced) .view-content.has-banner .markdown-source-view.is-live-preview .metadata-container,
+:is(body.tc-fm-boxed, .tc-fm-preview-forced) .view-content.has-banner .markdown-reading-view .metadata-container {
   margin-top: 20px !important;
 }
 
@@ -1248,19 +1430,65 @@ body.tc-fm-boxed .view-content.has-banner .markdown-reading-view .metadata-conta
    We add small breathing room between rows so the panel reads as a
    structured table rather than a tight stack. Hover lifts each row
    subtly, matching Obsidian's native interactivity. */
-body.tc-fm-boxed .metadata-property {
-  margin: 2px 0 !important;
-  padding: 2px 4px !important;
+:is(body.tc-fm-boxed, .tc-fm-preview-forced) .metadata-property {
+  /* Flex row with vertical centre alignment so the key (icon + label)
+     and value (text / pills / checkbox) sit on the same midline,
+     regardless of value height. Gap 10px between key column and
+     value column. */
+  display: flex !important;
+  align-items: center !important;
+  gap: 10px !important;
+  /* Tighter vertical rhythm — rows no longer feel airy. 0 margin
+     between rows, minimal vertical padding inside each row. The
+     border-radius stays for the hover highlight (rule below). */
+  margin: 0 !important;
+  padding: 1px 4px !important;
+  min-height: 0 !important;
   border-radius: 4px !important;
   transition: background 0.1s ease;
 }
-body.tc-fm-boxed .metadata-property:hover {
+/* Key + value column: zero their own vertical padding + min-height
+   so the parent's `align-items: center` has nothing to fight. */
+:is(body.tc-fm-boxed, .tc-fm-preview-forced) .metadata-property-key,
+:is(body.tc-fm-boxed, .tc-fm-preview-forced) .metadata-property-value {
+  min-height: 0 !important;
+  padding-top: 0 !important;
+  padding-bottom: 0 !important;
+}
+/* Key column interior — icon + label sit tight against each other
+   by default in Obsidian's base CSS (inline with no gap). Force a
+   flex row with a 6px gap so the Lucide glyph + property name
+   breathe. */
+:is(body.tc-fm-boxed, .tc-fm-preview-forced) .metadata-property-key {
+  display: flex !important;
+  align-items: center !important;
+  gap: 6px !important;
+}
+/* Pills — shrink to match label text height so the value column
+   doesn't dominate the row's vertical footprint. Without this, a
+   tags/aliases row reads visibly taller than a plain-text row and
+   pills look out of proportion next to their label. */
+:is(body.tc-fm-boxed, .tc-fm-preview-forced) .multi-select-pill {
+  min-height: 0 !important;
+  padding: 0 4px 0 8px !important;
+  line-height: 1.5 !important;
+}
+:is(body.tc-fm-boxed, .tc-fm-preview-forced) .metadata-property:hover {
   background: color-mix(in srgb, var(--color-accent) 7%, transparent) !important;
 }
 
 /* Keys — muted, slight letter-spacing for the labelled feel of the
-   frontmatter-beauty snippet, without going full uppercase. */
-body.tc-fm-boxed .metadata-property-key {
+   frontmatter-beauty snippet, without going full uppercase.
+   Fixed flex slot so every row's value column starts at the same
+   X coord — otherwise content-sized keys shift each value row's
+   left edge, and 3/2026-04-14/draft/pills land at visibly different
+   columns. 140px is tight against the longest key ("priority",
+   "created") without wasting horizontal space. */
+:is(body.tc-fm-boxed, .tc-fm-preview-forced) .metadata-property-key {
+  flex: 0 0 140px !important;
+  width: 140px !important;
+  min-width: 140px !important;
+  max-width: 140px !important;
   color: var(--text-muted) !important;
   font-weight: 500 !important;
   letter-spacing: 0.01em !important;
@@ -1276,9 +1504,9 @@ body.tc-fm-boxed .metadata-property-key {
    Target `.metadata-property[data-property-type=...]` which is where the
    attribute actually lives in Obsidian's DOM (previously targeted the
    wrong element; rule never fired). */
-body.tc-fm-boxed .metadata-property[data-property-type="date"]     .metadata-property-value,
-body.tc-fm-boxed .metadata-property[data-property-type="datetime"] .metadata-property-value,
-body.tc-fm-boxed .metadata-property[data-property-type="number"]   .metadata-property-value {
+:is(body.tc-fm-boxed, .tc-fm-preview-forced) .metadata-property[data-property-type="date"]     .metadata-property-value,
+:is(body.tc-fm-boxed, .tc-fm-preview-forced) .metadata-property[data-property-type="datetime"] .metadata-property-value,
+:is(body.tc-fm-boxed, .tc-fm-preview-forced) .metadata-property[data-property-type="number"]   .metadata-property-value {
   font-family: var(--font-monospace, monospace) !important;
   color: var(--color-accent) !important;
   font-variant-numeric: tabular-nums !important;
@@ -1297,7 +1525,7 @@ body.tc-fm-boxed .metadata-property[data-property-type="number"]   .metadata-pro
    Solution: nuke whatever chevron is currently showing (any svg /
    collapse-* element / ::before pseudo on the heading) and stamp our
    OWN chevron on the right edge via ::after. Cannot fail. */
-body.tc-fm-boxed .metadata-properties-heading {
+:is(body.tc-fm-boxed, .tc-fm-preview-forced) .metadata-properties-heading {
   position: relative !important;
   display: flex !important;
   align-items: center !important;
@@ -1319,16 +1547,16 @@ body.tc-fm-boxed .metadata-properties-heading {
    broad descendant matches like `.metadata-properties-heading svg.svg-icon`
    would snuff every property icon + remove button + Lucide glyph. That
    broke click-to-edit on non-tag fields. Direct-child only. */
-body.tc-fm-boxed .metadata-properties-heading > svg:first-child,
-body.tc-fm-boxed .metadata-properties-heading > .collapse-indicator,
-body.tc-fm-boxed .metadata-properties-heading > .collapse-icon,
-body.tc-fm-boxed .metadata-properties-heading > .right-triangle {
+:is(body.tc-fm-boxed, .tc-fm-preview-forced) .metadata-properties-heading > svg:first-child,
+:is(body.tc-fm-boxed, .tc-fm-preview-forced) .metadata-properties-heading > .collapse-indicator,
+:is(body.tc-fm-boxed, .tc-fm-preview-forced) .metadata-properties-heading > .collapse-icon,
+:is(body.tc-fm-boxed, .tc-fm-preview-forced) .metadata-properties-heading > .right-triangle {
   display: none !important;
   visibility: hidden !important;
   width: 0 !important;
   height: 0 !important;
 }
-body.tc-fm-boxed .metadata-properties-heading::before {
+:is(body.tc-fm-boxed, .tc-fm-preview-forced) .metadata-properties-heading::before {
   content: none !important;
   display: none !important;
 }
@@ -1337,29 +1565,45 @@ body.tc-fm-boxed .metadata-properties-heading::before {
    Uses an inline-SVG data URI so we get a crisp accent-coloured
    chevron at exactly the size we want, pinned right and truly
    vertically centered via top:50% + translateY(-50%). */
-body.tc-fm-boxed .metadata-properties-heading::after {
+:is(body.tc-fm-boxed, .tc-fm-preview-forced) .metadata-properties-heading::after {
   content: "" !important;
   position: absolute !important;
   right: 10px !important;
   top: 50% !important;
   transform: translateY(-50%) rotate(0deg) !important;
-  width: 16px !important;
-  height: 16px !important;
-  background-color: var(--color-accent) !important;
-  -webkit-mask: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'><polyline points='6 9 12 15 18 9'/></svg>") no-repeat center / contain !important;
-          mask: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'><polyline points='6 9 12 15 18 9'/></svg>") no-repeat center / contain !important;
-  opacity: 1 !important;
+  /* Quieter chevron — 12px (was 16), muted colour, slightly
+     translucent. Reads as supporting chrome rather than a primary
+     affordance, matching Obsidian's native understated collapse
+     glyph. */
+  width: 12px !important;
+  height: 12px !important;
+  background-color: var(--text-muted) !important;
+  -webkit-mask: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><polyline points='6 9 12 15 18 9'/></svg>") no-repeat center / contain !important;
+          mask: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><polyline points='6 9 12 15 18 9'/></svg>") no-repeat center / contain !important;
+  opacity: 0.7 !important;
   visibility: visible !important;
-  transition: transform 0.18s ease !important;
+  transition: transform 0.18s ease, opacity 0.18s ease !important;
   pointer-events: none !important;
+}
+/* Hover lift — chevron snaps to full opacity so the affordance is
+   reachable on deliberate hover without shouting at rest. */
+:is(body.tc-fm-boxed, .tc-fm-preview-forced) .metadata-properties-heading:hover::after {
+  opacity: 1 !important;
+}
+/* Collapse actually hides content. Obsidian handles this natively in
+   real notes, but the standalone preview needs an explicit rule.
+   Toggle happens via the click handler in buildFrontmatterDom —
+   this rule just ensures the state is visible. */
+:is(body.tc-fm-boxed, .tc-fm-preview-forced) .metadata-container.is-collapsed .metadata-content {
+  display: none !important;
 }
 
 /* Rotate the stamped chevron based on collapsed state. Default
    (expanded) is chevron-down; collapsed rotates to point right.
    Keep translateY(-50%) so vertical centering survives the rotate. */
-body.tc-fm-boxed .metadata-properties-heading.is-collapsed::after,
-body.tc-fm-boxed .metadata-container.is-collapsed .metadata-properties-heading::after,
-body.tc-fm-boxed .metadata-properties-heading[aria-expanded="false"]::after {
+:is(body.tc-fm-boxed, .tc-fm-preview-forced) .metadata-properties-heading.is-collapsed::after,
+:is(body.tc-fm-boxed, .tc-fm-preview-forced) .metadata-container.is-collapsed .metadata-properties-heading::after,
+:is(body.tc-fm-boxed, .tc-fm-preview-forced) .metadata-properties-heading[aria-expanded="false"]::after {
   transform: translateY(-50%) rotate(-90deg) !important;
   opacity: 1 !important;
   visibility: visible !important;
@@ -1368,8 +1612,8 @@ body.tc-fm-boxed .metadata-properties-heading[aria-expanded="false"]::after {
 /* Some Obsidian builds/snippets fade chevrons until hover. Force ours
    to always stay visible — the boxed treatment is a deliberate UI
    choice, not an "only on hover" reveal. */
-body.tc-fm-boxed .metadata-properties-heading:not(:hover)::after,
-body.tc-fm-boxed .metadata-container.is-collapsed .metadata-properties-heading:not(:hover)::after {
+:is(body.tc-fm-boxed, .tc-fm-preview-forced) .metadata-properties-heading:not(:hover)::after,
+:is(body.tc-fm-boxed, .tc-fm-preview-forced) .metadata-container.is-collapsed .metadata-properties-heading:not(:hover)::after {
   opacity: 1 !important;
   visibility: visible !important;
 }
@@ -1916,6 +2160,24 @@ body.tc-radius-rounded .tc-settings .tc-feat-group { border-radius: 14px !import
 .tc-settings .tc-feat-group--open .tc-feat-chevron { transform: rotate(90deg); }
 .tc-settings .tc-feat-body { display: none; }
 .tc-settings .tc-feat-group--open .tc-feat-body { display: block; }
+/* Non-collapsible variants — chevron hidden, header not clickable.
+   Set via `tc-feat-group--no-fold` / `tc-mock-acc--no-fold` on the
+   builder so one modifier turns the whole fold system off. */
+.tc-settings .tc-feat-group--no-fold .tc-feat-chevron,
+.tc-settings .tc-mock-acc--no-fold .tc-mock-acc-chev {
+  display: none !important;
+}
+.tc-settings .tc-feat-group--no-fold .tc-feat-header,
+.tc-settings .tc-mock-acc--no-fold .tc-mock-acc-header {
+  cursor: default;
+}
+/* Pretty-accordion bodies are wrapped in `.tc-mock-acc` containers
+   (see buildPrettyAccordion in _shared.ts). They still carry
+   `.tc-feat-body.tc-setting-card` for the setting-item styling
+   cascade, but the open-state toggle flips `.tc-mock-acc--open`
+   on the container rather than `.tc-feat-group--open`, so the
+   body needs a dedicated show rule against that class. */
+.tc-settings .tc-mock-acc--open > .tc-feat-body { display: block; }
 /* Theme & Colour flat body */
 .tc-settings .tc-theme-body { padding: 0; }
 .tc-settings .tc-theme-section {
@@ -2279,6 +2541,18 @@ body.tc-radius-rounded .tc-settings .tc-feat-group { border-radius: 14px !import
 .tc-settings .tc-feat-group--flat .tc-feat-header { background: transparent; }
 .tc-settings .tc-feat-group--flat .tc-feat-header:hover { background: var(--background-secondary); }
 
+/* Setting-item reset inside a pretty accordion body — kills Obsidian's
+   per-row dark blob so the accent-painted body (or the neutral-painted
+   body in Simple variants) shows through without per-row bg leaking.
+   Previously this was scoped to production's `.tc-feat-group--pretty`
+   class; now scoped to any Lab-class container since buildPrettyAccordion
+   emits `.tc-mock-acc` directly (no more `.tc-feat-group`). */
+.tc-settings .tc-mock-acc .tc-feat-body.tc-setting-card .setting-item,
+.tc-settings .tc-mock-acc .tc-feat-body.tc-setting-card .setting-item:hover {
+  background: transparent !important;
+  border-top: none;
+}
+
 .tc-settings .tc-feat-row {
   display: flex;
   align-items: center;
@@ -2427,6 +2701,7 @@ body.tc-density-spacious {
 
 /* Icon stroke weight — affects every Lucide icon in the chrome. Exposed
    to users as "Icon intensity" in the Appearance tab. */
+body.tc-icon-stroke-hair    { --icon-stroke: 0.6px;  --icon-stroke-width: 0.6px; }
 body.tc-icon-stroke-thin    { --icon-stroke: 1px;    --icon-stroke-width: 1px; }
 body.tc-icon-stroke-regular { --icon-stroke: 1.75px; --icon-stroke-width: 1.75px; }
 body.tc-icon-stroke-bold    { --icon-stroke: 2.5px;  --icon-stroke-width: 2.5px; }
@@ -2727,20 +3002,52 @@ body.tc-borders-ligne-claire .titlebar {
   min-height: 24px;
 }
 .tc-settings .tc-seg-btn:hover { color: var(--text-normal); }
-/* Active pill — frosted-glass treatment ported from the menu tab pill-frost
-   variant so segment pickers share the same visual vocabulary as the tab
-   bar. Container .tc-seg was loosened to a 4%-alpha mono tint so the
-   backdrop-filter has something to sample. */
+/* Active segment button — the frosted-glass paint has MOVED to the
+   sliding indicator below so the selected surface can translate
+   smoothly between options on click. The active button itself now
+   just shifts text colour; the sliding pill carries the surface. */
 .tc-settings .tc-seg-btn--active,
 .tc-settings .tc-seg-btn--active:hover {
-  background: rgba(var(--mono-rgb-100, 200, 200, 200), 0.07) !important;
+  color: var(--text-normal) !important;
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
+/* Segment sliding indicator — same frosted vocabulary as the top-tab
+   sliding pill, just scaled to segment height. Track needs relative
+   + isolation so the indicator sits behind buttons but inside the
+   .tc-seg's own stacking context. Buttons bump to z-index 1 so they
+   catch clicks above the indicator. */
+.tc-settings .tc-seg {
+  position: relative;
+  isolation: isolate;
+}
+.tc-settings .tc-seg-btn {
+  position: relative;
+  z-index: 1;
+}
+.tc-settings .tc-seg-slide-indicator {
+  position: absolute;
+  top: 2px;
+  bottom: 2px;
+  left: 0;
+  width: var(--tc-slide-w, 0);
+  transform: translateX(var(--tc-slide-x, 0));
+  background: rgba(var(--mono-rgb-100, 200, 200, 200), 0.07);
   backdrop-filter: blur(10px) saturate(1.4);
   -webkit-backdrop-filter: blur(10px) saturate(1.4);
-  color: var(--text-normal) !important;
   box-shadow:
     inset 0 0 0 1px rgba(var(--mono-rgb-100, 200, 200, 200), 0.14),
-    0 2px 8px rgba(0, 0, 0, 0.2) !important;
+    0 2px 8px rgba(0, 0, 0, 0.18);
+  border-radius: calc(var(--radius-m, 4px) - 1px);
+  z-index: 0;
+  /* Slide/resize transitions removed to match the top-tab slider —
+     segment indicator snaps directly to the active option instead of
+     animating, so settings rebuilds don't re-play the slide. */
+  pointer-events: none;
+  opacity: 0;
 }
+.tc-settings .tc-seg-slide-indicator--ready { opacity: 1; }
 
 /* Placeholder accordion body — used by Sidebar Outliner + Graph shells
    until they get real settings. */
@@ -3751,10 +4058,14 @@ body.tc-graph-halo .workspace-leaf-content[data-type="graph"] .graph-view.color-
      it replaces, reads as a soft separator between rail and pane
      instead of a structural border. */
   border-right: 1px dashed rgba(var(--mono-rgb-100, 200, 200, 200), 0.10);
-  /* Symmetric padding so the active highlight has equal breathing
-     room on the rail's outer-left edge and the divider on the right.
-     Flex column + gap so rail items breathe vertically too. */
-  padding: 8px;
+  /* Left padding dropped to 0 so the rail items' left edge lines up
+     vertically with the leftmost top-level tab (both sit flush to
+     the settings container's left edge). Right padding keeps the 8px
+     breathing room between items and the dashed divider. Top padding
+     bumped to 12px so the first rail item's vertical midline aligns
+     with the right pane's h3 title midline (pane padding-top 18 +
+     h3 half-height 9 = 27px; rail 12 + item half-height 15 = 27px). */
+  padding: 12px 8px 8px 0;
   display: flex;
   flex-direction: column;
   gap: 4px;
@@ -3794,7 +4105,10 @@ body.tc-graph-halo .workspace-leaf-content[data-type="graph"] .graph-view.color-
   background: rgba(var(--color-accent-rgb, 229, 179, 42), 0.16);
   backdrop-filter: blur(10px) saturate(1.4);
   -webkit-backdrop-filter: blur(10px) saturate(1.4);
-  box-shadow: inset 0 0 0 1px rgba(var(--color-accent-rgb, 229, 179, 42), 0.48);
+  /* Border alpha 0.48 → 0.40 to match the top-tab pill indicator and
+     the pretty-cluster border — three accent-bordered surfaces now
+     read at identical intensity. */
+  box-shadow: inset 0 0 0 1px rgba(var(--color-accent-rgb, 229, 179, 42), 0.40);
 }
 
 .tc-settings .tc-leftrail-count {
@@ -3893,39 +4207,21 @@ body.tc-graph-halo .workspace-leaf-content[data-type="graph"] .graph-view.color-
    the surrounding settings is therefore identical with OR without
    the caption present — the caption "floats" as a kicker label
    instead of acting as a row of its own. */
-.tc-settings .tc-flavour-caption {
-  position: relative;
-  height: 0;
-  margin: 0;
-  padding: 0;
-  overflow: visible;
-  pointer-events: none;
-  line-height: 1;
-}
-.tc-settings .tc-flavour-caption-label {
-  position: absolute;
-  top: -2px;
-  left: 4px;
+/* Flavour kicker — small-caps "licht" / "tegenlicht" label prepended
+   DIRECTLY inside the Setting's name slot (see appearance.ts: the
+   span lives as a child of .setting-item-name, not as a preceding
+   sibling row). Anchors the kicker to its setting so the label
+   never drifts between sibling rows when the list rebuilds. */
+.tc-settings .tc-flavour-kicker {
+  display: block;
   font-size: 9px;
   letter-spacing: 0.12em;
   text-transform: lowercase;
   font-variant: small-caps;
   color: var(--text-faint);
   opacity: 0.85;
-}
-/* The setting-item that follows a caption needs room for the floating
-   label to sit on top — bump its top padding by 8px. */
-.tc-settings .tc-flavour-caption + .setting-item {
-  padding-top: 16px !important;
-  border-top: none !important;
-}
-.tc-settings .tc-flavour-caption-label {
-  font-size: 9px;
-  letter-spacing: 0.12em;
-  text-transform: lowercase;
-  font-variant: small-caps;
-  color: var(--text-faint);
-  opacity: 0.8;
+  line-height: 1;
+  margin-bottom: 4px;
 }
 
 /* Live preview wrap inside a left-rail content pane — bare wrap, no
@@ -4007,8 +4303,10 @@ body.tc-graph-halo .workspace-leaf-content[data-type="graph"] .graph-view.color-
 
 /* PREVIEW affordance row — sits below the section header.
    Layout: [PREVIEW label] · [dashed connector] · [foldout button]
-   Same visual idiom as the tab-bar spacer + reset button. The dashed
-   connector visually "wires" the label to its toggle. */
+   Same visual idiom as the tab-bar spacer + reset button. On hover
+   of the chevron button, the label and dash each sweep to accent
+   colour in sequence (left-to-right) via :has() + transition-delay
+   so the row feels like it's "lighting up" along its length. */
 .tc-settings .tc-section-preview-bar {
   display: flex;
   align-items: center;
@@ -4022,8 +4320,15 @@ body.tc-graph-halo .workspace-leaf-content[data-type="graph"] .graph-view.color-
   letter-spacing: 0.18em;
   color: var(--text-muted);
   flex: 0 0 auto;
+  /* Base state = muted. Delay on the colour transition so when the
+     accent state is removed (button no longer hovered + not expanded),
+     the label waits for the dash to finish un-sweeping before fading
+     back — reverse animation plays sequentially (dash un-wipes right
+     to left → label fades last). */
+  transition: color 0.22s ease 0.36s;
 }
 .tc-settings .tc-section-preview-dash {
+  position: relative;
   flex: 1;
   align-self: center;
   height: 0;
@@ -4031,15 +4336,53 @@ body.tc-graph-halo .workspace-leaf-content[data-type="graph"] .graph-view.color-
   margin: 0 12px;
   pointer-events: none;
 }
+/* Accent wipe overlay — paints a second dashed line in accent colour
+   on top of the base dash, starting at 0 width. On hover the width
+   transitions to 100% so the accent "sweeps" left-to-right after the
+   label has lit. 6px dash length matches the base border-top-style:
+   dashed rhythm closely enough that the overlay reads as the same
+   rule recolouring. */
+.tc-settings .tc-section-preview-dash::after {
+  content: "";
+  position: absolute;
+  top: -1px;
+  left: 0;
+  height: 1px;
+  width: 0;
+  background-image: linear-gradient(to right,
+    rgba(var(--color-accent-rgb, 229, 179, 42), 0.85) 50%,
+    transparent 50%);
+  background-size: 6px 1px;
+  background-repeat: repeat-x;
+  transition: width 0.42s cubic-bezier(0.32, 0.72, 0, 1);
+}
+/* Sweep triggers on either (a) hover of the chevron button or
+   (b) expanded preview state (btn has --open class). Same effect
+   in both states so the preview row "holds" its accent lighting
+   while the preview is open, then reverses sequentially (dash un-
+   wipes right-to-left, then label fades back to muted) when it
+   collapses. Label lights first on entry (0 delay), dash follows
+   at 0.14s — left-to-right wipe forward. */
+.tc-settings .tc-section-preview-bar:has(.tc-section-preview-btn:hover) .tc-section-preview-label,
+.tc-settings .tc-section-preview-bar:has(.tc-section-preview-btn--open) .tc-section-preview-label {
+  color: var(--color-accent);
+  transition: color 0.18s ease 0s;
+}
+.tc-settings .tc-section-preview-bar:has(.tc-section-preview-btn:hover) .tc-section-preview-dash::after,
+.tc-settings .tc-section-preview-bar:has(.tc-section-preview-btn--open) .tc-section-preview-dash::after {
+  width: 100%;
+  transition: width 0.42s cubic-bezier(0.32, 0.72, 0, 1) 0.14s;
+}
 
-/* Foldout button at the right end of the bar — sized to match the
-   tab-bar reset button (34×34, fully round, neutral chrome). Inherits
-   border-radius: 50% !important from .tc-circle-btn. */
+/* Foldout button — shrunk (was 34×34) per user directive so it
+   reads as a small chevron affordance rather than a heavy
+   standalone control. Sits at the right end of the bar, fully
+   round, neutral chrome. */
 .tc-settings .tc-section-preview-bar > button.tc-section-preview-btn {
-  width: 34px !important;
-  height: 34px !important;
-  min-width: 34px !important;
-  min-height: 34px !important;
+  width: 24px !important;
+  height: 24px !important;
+  min-width: 24px !important;
+  min-height: 24px !important;
   padding: 0 !important;
   margin: 0 !important;
   box-sizing: border-box !important;
@@ -4054,8 +4397,8 @@ body.tc-graph-halo .workspace-leaf-content[data-type="graph"] .graph-view.color-
   color: var(--color-accent);
 }
 .tc-settings .tc-section-preview-bar > button.tc-section-preview-btn > svg {
-  width: 17px !important;
-  height: 17px !important;
+  width: 12px !important;
+  height: 12px !important;
   transition: transform 0.3s cubic-bezier(0.32, 0.72, 0, 1);
 }
 .tc-settings .tc-section-preview-btn--open > svg {
@@ -4120,6 +4463,337 @@ body.tc-graph-halo .workspace-leaf-content[data-type="graph"] .graph-view.color-
 .tc-settings .tc-mock-tab-demo {
   margin: 18px 0 24px;
 }
+/* Lab → Previews — stacked mini-Obsidian preview slots. Each slot is
+   a labelled wrapper around one preview build function; the labels
+   reuse .tc-mock-tab-label for the uppercase kicker look. */
+.tc-settings .tc-mock-preview-slot {
+  margin: 18px 0 28px;
+}
+.tc-settings .tc-mock-preview-wrap {
+  /* The preview elements carry their own grid / chrome styling; this
+     wrapper just owns the surrounding margin. No internal padding
+     added — preview should fill the slot edge-to-edge. */
+  width: 100%;
+}
+
+/* Frontmatter-focused preview lives inside `.tc-fm-preview-forced`
+   which is extended into the main tc-fm-boxed selector chain above
+   via `:is(body.tc-fm-boxed, .tc-fm-preview-forced)`. Nothing more
+   to declare here — every pretty-boxed rule cascades onto the
+   preview automatically. One modifier, same paint. */
+
+/* Properties preview — make the key div (which we substitute for the
+   real Obsidian <input>) render as clean plain text in both the
+   focused-boxed preview AND live notes. Real Obsidian styles its
+   <input class="metadata-property-key-input"> flat; our <div>
+   substitute needs the same flatness. */
+:is(body.tc-fm-boxed, .tc-fm-preview-forced) div.metadata-property-key-input {
+  background: transparent !important;
+  border: none !important;
+  padding: 0 !important;
+  margin: 0 !important;
+  font: inherit !important;
+  color: var(--text-muted) !important;
+  cursor: text;
+  /* Let the key text flow with the rest of the row — no artificial
+     width / ellipsis; the parent's grid layout handles alignment. */
+  width: auto !important;
+  min-width: 0 !important;
+  outline: none !important;
+  box-shadow: none !important;
+}
+
+/* Date value — leading calendar glyph + the date text. Icon is muted
+   so it reads as supporting chrome, not competing with the value. */
+:is(body.tc-fm-boxed, .tc-fm-preview-forced) .metadata-input-date {
+  display: inline-flex !important;
+  align-items: center;
+  gap: 6px;
+  color: inherit !important;
+}
+:is(body.tc-fm-boxed, .tc-fm-preview-forced) .metadata-input-date-icon {
+  display: inline-flex;
+  align-items: center;
+  color: var(--text-muted);
+  opacity: 0.75;
+}
+:is(body.tc-fm-boxed, .tc-fm-preview-forced) .metadata-input-date-icon svg {
+  width: 14px;
+  height: 14px;
+}
+
+/* The Lab Frontmatter preview renders via `.tc-fm-preview-forced`
+   ALONE — no `.tc-mini-obsidian` class, no extra overrides. That
+   means the preview picks up exactly the same boxed-fm rules the
+   live Properties panel uses (via the :is() extension at the top of
+   this block) and nothing else. Divergence between preview and real
+   panel kept us chasing row heights; removing the extra scope leaves
+   one paint path, one truth. */
+
+/* ═══════════════════════════════════════════════════════════
+   Alternative Properties panel designs — VISUAL MOCKS ONLY.
+   Each `.tc-fm-alt--<variant>` wraps the same DOM that the boxed
+   preview uses; only the scope class differs. Gives Tom three
+   distinct treatments to compare against the boxed default
+   without any body-class wiring. Picking one later = just
+   replace the `.tc-fm-preview-forced` scope in the :is() rules
+   above with the winner.
+
+   Shared base (`.tc-fm-alt`) replicates the flex-row layout + row
+   density + pill shape that the boxed rules set up, so each
+   variant only needs to override its signature visual (box vs
+   stripe vs bar).
+   ═══════════════════════════════════════════════════════════ */
+.tc-settings .tc-fm-alt {
+  font-family: var(--font-interface, inherit);
+  font-size: 13px;
+  margin: 0;
+}
+.tc-settings .tc-fm-alt .metadata-properties-heading {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 8px;
+  color: var(--text-muted);
+  font-weight: 500;
+  cursor: pointer;
+}
+.tc-settings .tc-fm-alt .metadata-properties-heading > svg:first-child,
+.tc-settings .tc-fm-alt .metadata-properties-heading > .collapse-indicator,
+.tc-settings .tc-fm-alt .metadata-properties-heading > .collapse-icon {
+  display: none;
+}
+.tc-settings .tc-fm-alt .metadata-properties-heading::after {
+  content: "";
+  position: absolute;
+  right: 10px;
+  top: 50%;
+  transform: translateY(-50%) rotate(0deg);
+  width: 12px;
+  height: 12px;
+  background-color: var(--text-muted);
+  -webkit-mask: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><polyline points='6 9 12 15 18 9'/></svg>") no-repeat center / contain;
+          mask: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><polyline points='6 9 12 15 18 9'/></svg>") no-repeat center / contain;
+  opacity: 0.7;
+  transition: transform 0.18s ease;
+}
+.tc-settings .tc-fm-alt .metadata-container.is-collapsed .metadata-properties-heading::after {
+  transform: translateY(-50%) rotate(-90deg);
+}
+.tc-settings .tc-fm-alt .metadata-container.is-collapsed .metadata-content {
+  display: none;
+}
+.tc-settings .tc-fm-alt .metadata-property {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 3px 8px;
+  font-size: 13px;
+}
+.tc-settings .tc-fm-alt .metadata-property-key {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  width: 128px;
+  flex: 0 0 128px;
+  color: var(--text-muted);
+}
+.tc-settings .tc-fm-alt .metadata-property-icon {
+  display: inline-flex;
+  align-items: center;
+  color: var(--text-muted);
+}
+.tc-settings .tc-fm-alt .metadata-property-icon svg {
+  width: 14px;
+  height: 14px;
+}
+.tc-settings .tc-fm-alt .metadata-property-key-input {
+  background: transparent;
+  border: none;
+  padding: 0;
+  margin: 0;
+  font: inherit;
+  color: var(--text-muted);
+  cursor: text;
+  outline: none;
+}
+.tc-settings .tc-fm-alt .metadata-property-value {
+  flex: 1;
+  color: var(--text-normal);
+  line-height: 1.5;
+}
+.tc-settings .tc-fm-alt .multi-select-container {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+.tc-settings .tc-fm-alt .multi-select-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 0 6px;
+  background: var(--background-secondary);
+  border: 1px solid var(--background-modifier-border);
+  border-radius: 100px;
+  font-size: 11px;
+  line-height: 1.6;
+  color: var(--text-normal);
+  min-height: 0;
+}
+.tc-settings .tc-fm-alt .multi-select-pill-remove-button svg {
+  width: 11px;
+  height: 11px;
+  color: var(--text-muted);
+}
+.tc-settings .tc-fm-alt .metadata-add-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 8px 8px 2px;
+  font-size: 11px;
+  color: var(--text-faint);
+}
+.tc-settings .tc-fm-alt .metadata-add-button svg {
+  width: 12px;
+  height: 12px;
+}
+.tc-settings .tc-fm-alt .metadata-input-date,
+.tc-settings .tc-fm-alt .metadata-input-number,
+.tc-settings .tc-fm-alt .metadata-input-longtext {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: inherit;
+}
+.tc-settings .tc-fm-alt .metadata-input-date-icon {
+  display: inline-flex;
+  align-items: center;
+  color: var(--text-muted);
+  opacity: 0.75;
+}
+.tc-settings .tc-fm-alt .metadata-input-date-icon svg {
+  width: 13px;
+  height: 13px;
+}
+
+/* ── Variant 1: Minimal ──────────────────────────────────────
+   No box, no bg, no radius. Rows separated by dashed hairlines.
+   Properties as reading rhythm rather than card chrome. */
+.tc-settings .tc-fm-alt--minimal .metadata-container {
+  background: transparent;
+  border: none;
+  border-radius: 0;
+  box-shadow: none;
+  padding: 4px 0;
+}
+.tc-settings .tc-fm-alt--minimal .metadata-properties-heading {
+  border-bottom: 1px dashed rgba(var(--mono-rgb-100, 200, 200, 200), 0.22);
+}
+.tc-settings .tc-fm-alt--minimal .metadata-property {
+  border-top: 1px dashed rgba(var(--mono-rgb-100, 200, 200, 200), 0.12);
+}
+.tc-settings .tc-fm-alt--minimal .metadata-property:first-child {
+  border-top: none;
+}
+
+/* ── Variant 2: Striped ──────────────────────────────────────
+   Soft card with alternating row backgrounds. Zebra-stripe
+   rhythm. Neutral palette, no accent gradient. */
+.tc-settings .tc-fm-alt--striped .metadata-container {
+  background: var(--background-primary);
+  border: 1px solid var(--background-modifier-border);
+  border-radius: 6px;
+  padding: 2px 0 4px;
+}
+.tc-settings .tc-fm-alt--striped .metadata-properties-heading {
+  border-bottom: 1px solid var(--background-modifier-border);
+  margin-bottom: 2px;
+}
+.tc-settings .tc-fm-alt--striped .metadata-property {
+  border-radius: 0;
+  margin: 0;
+}
+.tc-settings .tc-fm-alt--striped .metadata-property:nth-of-type(even) {
+  background: rgba(var(--mono-rgb-100, 200, 200, 200), 0.06);
+}
+.tc-settings .tc-fm-alt--striped .metadata-add-button {
+  padding: 6px 8px;
+}
+
+/* ── Variant 3: Accent bar ───────────────────────────────────
+   No outer box, left-edge accent stripe does the framing.
+   Rows flow open on the right, 3px accent bar marks the panel. */
+.tc-settings .tc-fm-alt--accentbar .metadata-container {
+  background: transparent;
+  border: none;
+  border-left: 3px solid var(--color-accent);
+  border-radius: 0;
+  box-shadow: none;
+  padding: 4px 0 4px 14px;
+}
+.tc-settings .tc-fm-alt--accentbar .metadata-properties-heading {
+  padding-left: 0;
+}
+
+/* ═══════════════════════════════════════════════════════════
+   Appearance 2 — stacked / no-rail variant. All four section
+   renderers run in one scrolling column; a generous bottom gap
+   between sections keeps them legibly separated.
+   ═══════════════════════════════════════════════════════════ */
+/* ═══════════════════════════════════════════════════════════
+   DEV REFERENCE NUMBERING — every .setting-item inside a visible
+   pane gets a small muted "#N" suffix on its name so we can point
+   at specific settings in conversation ("the #4 in Appearance →
+   Theme"). CSS counters only, no per-setting JS — automatically
+   renumbers as settings are added / removed / reordered.
+
+   Counter scope:
+   - tc-tab-content (flat tabs: Editing, Layout, Features)
+   - tc-leftrail-pane (rail tabs: Appearance, Typography, Legacy,
+     Lab — only the currently-visible pane counts)
+   - tc-appearance2-section (Appearance 2 stacks all sections
+     in one pane; each section gets its own counter)
+
+   To hide the numbers later (ship-mode): remove the ::after rule
+   at the bottom of this block OR gate on a body class toggle. */
+.tc-settings .tc-tab-content,
+.tc-settings .tc-leftrail-pane,
+.tc-settings .tc-appearance2-section {
+  counter-reset: tc-setting;
+}
+.tc-settings .setting-item {
+  counter-increment: tc-setting;
+}
+.tc-settings .setting-item .setting-item-name::after {
+  content: "  #" counter(tc-setting);
+  font-family: var(--font-monospace, monospace);
+  font-size: 9px;
+  font-weight: 400;
+  color: var(--text-faint);
+  opacity: 0.55;
+  letter-spacing: 0;
+  margin-left: 6px;
+  vertical-align: middle;
+}
+
+.tc-settings .tc-appearance2-wrap {
+  padding: 12px 0 40px;
+}
+.tc-settings .tc-appearance2-section {
+  margin-bottom: 36px;
+}
+.tc-settings .tc-appearance2-section:last-child {
+  margin-bottom: 0;
+}
+/* Subtle dashed separator above every section except the first —
+   stacked layout otherwise reads as one long scroll with no
+   landmarks. Same dashed vocabulary as the rail divider + the
+   tab-bar spacer, so the visual language is consistent. */
+.tc-settings .tc-appearance2-section:not(:first-child) {
+  border-top: 1px dashed rgba(var(--mono-rgb-100, 200, 200, 200), 0.15);
+  padding-top: 24px;
+}
 .tc-settings .tc-mock-tab-label {
   display: block;
   font-size: 10px;
@@ -4182,6 +4856,51 @@ body.tc-graph-halo .workspace-leaf-content[data-type="graph"] .graph-view.color-
   opacity: 1;
 }
 
+/* ── 1b. Glow text B — same radial glow as Glow text, but EVERY tab
+   wears a border ring: inactive tabs get a currentColor-based ring
+   (tracks text-muted at rest, text-normal on hover) and the active
+   tab gets the accent 40% ring. Border snaps between states — no
+   box-shadow transition so the hover/active swap can't flicker
+   through a blocked-out intermediate frame. ── */
+.tc-settings .tc-mock--glow-b .tc-mock-tab {
+  overflow: hidden;
+  z-index: 0;
+  border-radius: 6px;
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, currentColor 22%, transparent);
+  /* No box-shadow in the transition list — transitioning between a
+     currentColor color-mix and a literal rgba() accent can briefly
+     interpolate to a transparent intermediate in some browsers,
+     reading as the border "blocking out" before coming back in
+     accent. Snapping avoids that artefact entirely. */
+  transition: color 0.18s ease;
+}
+.tc-settings .tc-mock--glow-b .tc-mock-tab:hover {
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, currentColor 36%, transparent);
+}
+.tc-settings .tc-mock--glow-b .tc-mock-tab::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(
+    ellipse 130% 220% at var(--tc-tab-glow-x, 35%) var(--tc-tab-glow-y, 40%),
+    rgba(var(--color-accent-rgb, 229, 179, 42), 0.20) 0%,
+    rgba(var(--color-accent-rgb, 229, 179, 42), 0.08) 35%,
+    transparent 75%
+  );
+  opacity: 0;
+  transition: opacity 0.55s ease;
+  pointer-events: none;
+  z-index: -1;
+  border-radius: inherit;
+}
+.tc-settings .tc-mock--glow-b .tc-mock-tab--active::before {
+  opacity: 1;
+}
+.tc-settings .tc-mock--glow-b .tc-mock-tab--active,
+.tc-settings .tc-mock--glow-b .tc-mock-tab--active:hover {
+  box-shadow: inset 0 0 0 1px rgba(var(--color-accent-rgb, 229, 179, 42), 0.40);
+}
+
 /* ── 2. Underline — thin accent rule under the active tab ── */
 .tc-settings .tc-mock--underline {
   border-bottom: 1px solid rgba(var(--mono-rgb-100, 200, 200, 200), 0.10);
@@ -4204,6 +4923,28 @@ body.tc-graph-halo .workspace-leaf-content[data-type="graph"] .graph-view.color-
   transition: color 0.18s ease, background 0.22s ease;
 }
 .tc-settings .tc-mock--pill .tc-mock-tab--active {
+  background: rgba(var(--color-accent-rgb, 229, 179, 42), 0.16);
+  box-shadow: inset 0 0 0 1px rgba(var(--color-accent-rgb, 229, 179, 42), 0.40);
+}
+
+/* ── 3b. Pill B — same accent pill on the active tab, plus a
+   persistent text-colour border on INACTIVE tabs. Every tab reads
+   as a framed pill; the active one just fills in with accent.
+   Inactive border uses currentColor at 0.22 alpha so it tracks
+   text-muted when at rest and text-normal on hover automatically.
+   Border snaps between states (no box-shadow in transition list)
+   so the currentColor↔accent swap can't flicker through a
+   transparent intermediate. ── */
+.tc-settings .tc-mock--pill-b .tc-mock-tab {
+  border-radius: 100px;
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, currentColor 22%, transparent);
+  transition: color 0.18s ease, background 0.22s ease;
+}
+.tc-settings .tc-mock--pill-b .tc-mock-tab:hover {
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, currentColor 36%, transparent);
+}
+.tc-settings .tc-mock--pill-b .tc-mock-tab--active,
+.tc-settings .tc-mock--pill-b .tc-mock-tab--active:hover {
   background: rgba(var(--color-accent-rgb, 229, 179, 42), 0.16);
   box-shadow: inset 0 0 0 1px rgba(var(--color-accent-rgb, 229, 179, 42), 0.40);
 }
@@ -5236,4 +5977,507 @@ body.tc-graph-halo .workspace-leaf-content[data-type="graph"] .graph-view.color-
 }
 .tc-settings .tc-callout-mini .mini-content--active {
   display: block;
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   LAB → ACCORDION STYLES — a library of variants on the pretty-
+   accordion shell. Each variant sits inside a `.tc-mock-acc-block`
+   that carries a section title (h5) + subquip (p) ABOVE the
+   accordion — simulates real production usage where a rail pane
+   renders title + quip + accordion stacked. Block margin owns the
+   vertical rhythm; variants share a flush-left edge with title/quip
+   (no per-variant horizontal inset) so the outer left edge reads
+   as ONE continuous vertical line through the block.
+
+   Shared accordion DOM shape across variants:
+     .tc-mock-acc.{variant}.tc-mock-acc--open?
+       .tc-mock-acc-header
+         .tc-mock-acc-kicker?   (opt-in, E bloc only)
+         .tc-mock-acc-title
+         .tc-mock-acc-chev      (empty — glyph via ::before)
+       .tc-mock-acc-body
+         .tc-mock-acc-row × 3
+   ═══════════════════════════════════════════════════════════════════ */
+
+/* Accordion card — title + quip live INSIDE the header as a
+   stacked group (not above the card), so each variant reads as a
+   single integrated unit. Uniform 32px margin between cards so
+   the Lab pane reads as a rhythmic list with comfortable breathing,
+   regardless of variant chrome. */
+.tc-settings .tc-mock-acc {
+  margin: 0 0 32px 0;
+  border-radius: 6px;
+  overflow: hidden;
+  transition: border-color 0.22s ease, box-shadow 0.22s ease;
+}
+.tc-settings .tc-mock-acc:last-child { margin-bottom: 0; }
+
+/* Lab subheadings (Pretty / Simple) — a touch more top margin so
+   the group change reads decisively between variants. */
+.tc-settings .tc-lab-subhead {
+  margin-top: 28px;
+}
+.tc-settings .tc-lab-subhead:first-of-type { margin-top: 12px; }
+
+/* Titlegroup — stacked title + quip inside the header. Grows to
+   fill the flex row so the chevron sits at the right edge. */
+.tc-settings .tc-mock-acc-titlegroup {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+.tc-settings .tc-mock-acc-quip {
+  font-size: 11px;
+  font-weight: 400;
+  color: var(--text-muted);
+  line-height: 1.45;
+  /* Font / case / tracking INHERIT from the variant's title so
+     the variant-specific styling doesn't bleed into the quip.
+     Variants override these defaults if they want a different
+     quip treatment. */
+  font-style: normal;
+  text-transform: none;
+  letter-spacing: normal;
+  font-family: inherit;
+}
+.tc-settings .tc-mock-acc-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 11px 14px;
+  cursor: pointer;
+  user-select: none;
+  gap: 10px;
+}
+.tc-settings .tc-mock-acc-title {
+  font-size: 13px;
+  flex: 1;
+}
+.tc-settings .tc-mock-acc-chev {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-muted);
+  font-size: 11px;
+  line-height: 1;
+  transition: transform 0.22s ease, color 0.22s ease,
+              background 0.22s ease, border-color 0.22s ease;
+  flex: 0 0 auto;
+}
+.tc-settings .tc-mock-acc-body {
+  max-height: 0;
+  overflow: hidden;
+  transition: max-height 0.36s cubic-bezier(0.32, 0.72, 0, 1),
+              padding 0.36s cubic-bezier(0.32, 0.72, 0, 1);
+  padding: 0 14px;
+}
+.tc-settings .tc-mock-acc--open .tc-mock-acc-body {
+  max-height: 280px;
+  padding: 4px 14px 14px;
+}
+/* Blurb paragraph inside the body removed — the section subquip
+   above the accordion now carries the description role. */
+.tc-settings .tc-mock-acc-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 7px 0;
+  border-top: 1px solid rgba(var(--mono-rgb-100, 200, 200, 200), 0.08);
+}
+.tc-settings .tc-mock-acc-row:first-of-type { border-top: none; }
+.tc-settings .tc-mock-acc-row-label {
+  font-size: 12px;
+  color: var(--text-normal);
+}
+.tc-settings .tc-mock-acc-row-ctl {
+  width: 28px;
+  height: 16px;
+  border-radius: 10px;
+  background: rgba(var(--mono-rgb-100, 200, 200, 200), 0.14);
+  box-shadow: inset 0 0 0 1px rgba(var(--mono-rgb-100, 200, 200, 200), 0.14);
+}
+
+/* ── A · Pretty (default) ─────────────────────────────────────
+   Baseline — accent gradient fill + accent border, all-caps
+   subtitle header, triangle chevron that rotates 90°. */
+.tc-settings .tc-mock-acc--pretty {
+  background: linear-gradient(135deg,
+    color-mix(in srgb, var(--color-accent) 8%, transparent),
+    color-mix(in srgb, var(--color-accent) 3%, transparent));
+  border: 1px solid rgba(var(--color-accent-rgb, 229, 179, 42), 0.40);
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.08);
+}
+.tc-settings .tc-mock-acc--pretty .tc-mock-acc-title {
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-normal);
+}
+.tc-settings .tc-mock-acc--pretty .tc-mock-acc-chev::before { content: "▶"; }
+.tc-settings .tc-mock-acc--pretty.tc-mock-acc--open .tc-mock-acc-chev {
+  transform: rotate(90deg);
+}
+
+/* ── B · Gutter line ──────────────────────────────────────────
+   Accent reduced to a left-hand gutter stripe. Rest of the card
+   is near-neutral. Small-caps title, + / − glyph chevron. */
+.tc-settings .tc-mock-acc--gutter {
+  background: rgba(var(--mono-rgb-100, 200, 200, 200), 0.03);
+  border: 1px solid rgba(var(--mono-rgb-100, 200, 200, 200), 0.10);
+  border-left: 3px solid rgba(var(--color-accent-rgb, 229, 179, 42), 0.55);
+  border-radius: 3px;
+}
+.tc-settings .tc-mock-acc--gutter .tc-mock-acc-title {
+  font-variant: small-caps;
+  letter-spacing: 0.08em;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text-normal);
+}
+.tc-settings .tc-mock-acc--gutter .tc-mock-acc-chev {
+  width: 18px;
+  height: 18px;
+  font-size: 16px;
+  font-weight: 300;
+  color: var(--text-muted);
+}
+.tc-settings .tc-mock-acc--gutter .tc-mock-acc-chev::before { content: "+"; }
+.tc-settings .tc-mock-acc--gutter.tc-mock-acc--open .tc-mock-acc-chev::before { content: "−"; }
+
+/* ── C · Filing tab ──────────────────────────────────────────
+   Title lives in a chip that overhangs the top edge of the
+   card — the "filing folder tab" look. Rest of the card is
+   neutral chrome; circular ↑/↓ chevron on the right. */
+.tc-settings .tc-mock-acc--filed {
+  background: var(--background-secondary);
+  border: 1px solid var(--background-modifier-border);
+  border-radius: 8px;
+  /* Top margin tuned so the filed-chip overhang has room to protrude
+     above the card without colliding with the section subquip line
+     above. Block margin handles the rest of the rhythm. */
+  margin-top: 14px;
+  position: relative;
+  overflow: visible;
+}
+.tc-settings .tc-mock-acc--filed .tc-mock-acc-header {
+  padding: 14px 14px 12px;
+  justify-content: flex-end;
+}
+.tc-settings .tc-mock-acc--filed .tc-mock-acc-title {
+  position: absolute;
+  top: -14px;
+  left: 14px;
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.16em;
+  padding: 5px 12px;
+  background: var(--background-primary);
+  border: 1px solid var(--background-modifier-border);
+  border-radius: 100px;
+  color: var(--text-normal);
+  flex: 0 0 auto;
+}
+.tc-settings .tc-mock-acc--filed .tc-mock-acc-chev {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  border: 1px solid var(--background-modifier-border);
+  background: var(--background-primary);
+  font-size: 11px;
+  color: var(--text-muted);
+}
+.tc-settings .tc-mock-acc--filed .tc-mock-acc-chev::before { content: "↓"; }
+.tc-settings .tc-mock-acc--filed.tc-mock-acc--open .tc-mock-acc-chev::before { content: "↑"; }
+.tc-settings .tc-mock-acc--filed .tc-mock-acc-body {
+  padding-left: 14px;
+  padding-right: 14px;
+}
+.tc-settings .tc-mock-acc--filed.tc-mock-acc--open .tc-mock-acc-body {
+  padding-bottom: 14px;
+}
+
+/* ── Bloc — two-row header: small-caps "SECTION" kicker STACKED
+   ABOVE a larger regular-weight title. Circular + / − disc chevron,
+   tinted-neutral (no accent) so this variant stays pure mono. */
+.tc-settings .tc-mock-acc--bloc {
+  background: rgba(var(--mono-rgb-100, 200, 200, 200), 0.04);
+  border: 1px solid rgba(var(--mono-rgb-100, 200, 200, 200), 0.10);
+  border-radius: 8px;
+}
+.tc-settings .tc-mock-acc--bloc .tc-mock-acc-header {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  grid-template-rows: auto auto;
+  row-gap: 2px;
+  column-gap: 10px;
+  align-items: center;
+  padding: 12px 14px;
+}
+.tc-settings .tc-mock-acc--bloc .tc-mock-acc-kicker {
+  grid-column: 1;
+  grid-row: 1;
+  font-size: 9px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--text-faint);
+  font-weight: 600;
+  line-height: 1;
+}
+/* Titlegroup takes the kicker's grid slot below, stacking title + quip
+   vertically. Kicker sits above as a section marker. */
+.tc-settings .tc-mock-acc--bloc .tc-mock-acc-titlegroup {
+  grid-column: 1;
+  grid-row: 2;
+}
+.tc-settings .tc-mock-acc--bloc .tc-mock-acc-title {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--text-normal);
+  line-height: 1.2;
+}
+.tc-settings .tc-mock-acc--bloc .tc-mock-acc-chev {
+  grid-column: 2;
+  grid-row: 1 / span 2;
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  background: rgba(var(--mono-rgb-100, 200, 200, 200), 0.10);
+  color: var(--text-muted);
+  font-size: 14px;
+  font-weight: 300;
+  align-self: center;
+}
+.tc-settings .tc-mock-acc--bloc .tc-mock-acc-chev::before { content: "+"; }
+.tc-settings .tc-mock-acc--bloc.tc-mock-acc--open .tc-mock-acc-chev {
+  background: rgba(var(--mono-rgb-100, 200, 200, 200), 0.16);
+}
+.tc-settings .tc-mock-acc--bloc.tc-mock-acc--open .tc-mock-acc-chev::before {
+  content: "−";
+}
+
+/* ── G · Ghost bloom ─────────────────────────────────────────
+   Transparent at rest. On hover (or when open) a soft accent
+   radial blooms behind the header, the muted title lifts to full
+   colour, and the chevron fades in. Ambient, spectral feel —
+   closest thing we have to an "invisible" UI state. */
+.tc-settings .tc-mock-acc--ghost {
+  background: transparent;
+  border: none;
+  border-radius: 6px;
+  position: relative;
+  overflow: visible;
+}
+.tc-settings .tc-mock-acc--ghost .tc-mock-acc-header {
+  position: relative;
+  padding: 11px 14px;
+  isolation: isolate;
+}
+.tc-settings .tc-mock-acc--ghost .tc-mock-acc-header::before {
+  content: "";
+  position: absolute;
+  /* Bloom contained at the header's top edge (no -10px top overflow)
+     so the blur doesn't paint a soft halo line ABOVE the header —
+     user flagged that as reading like a divider. Side + bottom
+     bleed preserved so the accent still haloes visibly. Origin
+     biased downward (y 65%) so the gradient energy sits around
+     the header's lower half, away from the top boundary. */
+  inset: 0 -20px -10px -20px;
+  background: radial-gradient(
+    ellipse 60% 130% at 15% 65%,
+    rgba(var(--color-accent-rgb, 229, 179, 42), 0.14) 0%,
+    rgba(var(--color-accent-rgb, 229, 179, 42), 0.06) 40%,
+    transparent 80%
+  );
+  opacity: 0;
+  transition: opacity 0.5s ease;
+  pointer-events: none;
+  z-index: -1;
+  filter: blur(14px);
+  border-radius: inherit;
+}
+.tc-settings .tc-mock-acc--ghost:hover .tc-mock-acc-header::before,
+.tc-settings .tc-mock-acc--ghost.tc-mock-acc--open .tc-mock-acc-header::before {
+  opacity: 1;
+}
+.tc-settings .tc-mock-acc--ghost .tc-mock-acc-title {
+  font-size: 12px;
+  color: var(--text-faint);
+  letter-spacing: 0.02em;
+  font-weight: 500;
+  transition: color 0.28s ease;
+}
+.tc-settings .tc-mock-acc--ghost .tc-mock-acc-quip {
+  color: var(--text-faint);
+  opacity: 0.7;
+  transition: color 0.28s ease, opacity 0.28s ease;
+}
+.tc-settings .tc-mock-acc--ghost:hover .tc-mock-acc-title,
+.tc-settings .tc-mock-acc--ghost.tc-mock-acc--open .tc-mock-acc-title {
+  color: var(--text-normal);
+}
+.tc-settings .tc-mock-acc--ghost:hover .tc-mock-acc-quip,
+.tc-settings .tc-mock-acc--ghost.tc-mock-acc--open .tc-mock-acc-quip {
+  color: var(--text-muted);
+  opacity: 1;
+}
+.tc-settings .tc-mock-acc--ghost .tc-mock-acc-chev {
+  opacity: 0;
+  color: var(--text-muted);
+  transition: opacity 0.28s ease;
+  font-size: 12px;
+}
+.tc-settings .tc-mock-acc--ghost:hover .tc-mock-acc-chev,
+.tc-settings .tc-mock-acc--ghost.tc-mock-acc--open .tc-mock-acc-chev {
+  opacity: 1;
+}
+.tc-settings .tc-mock-acc--ghost .tc-mock-acc-chev::before { content: "›"; }
+.tc-settings .tc-mock-acc--ghost.tc-mock-acc--open .tc-mock-acc-chev::before { content: "⌄"; }
+
+/* Lab subheading — small-caps divider between the Pretty and
+   Simple accordion groups in the Lab pane. */
+.tc-settings .tc-lab-subhead {
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.18em;
+  color: var(--text-faint);
+  margin: 22px 0 6px;
+}
+.tc-settings .tc-lab-subhead:first-of-type { margin-top: 10px; }
+
+/* ── I · Two-tone ────────────────────────────────────────────
+   Accent-tinted header strip above a neutral body. The two
+   surfaces stack visually — the header wears the accent gradient,
+   the body is neutral secondary bg with its own inset tint. */
+.tc-settings .tc-mock-acc--twotone {
+  background: var(--background-secondary);
+  border: 1px solid rgba(var(--color-accent-rgb, 229, 179, 42), 0.24);
+  border-radius: 7px;
+}
+.tc-settings .tc-mock-acc--twotone .tc-mock-acc-header {
+  background: linear-gradient(135deg,
+    color-mix(in srgb, var(--color-accent) 14%, transparent),
+    color-mix(in srgb, var(--color-accent) 6%, transparent));
+  border-bottom: 1px solid rgba(var(--color-accent-rgb, 229, 179, 42), 0.24);
+  padding: 11px 14px;
+}
+.tc-settings .tc-mock-acc--twotone .tc-mock-acc-title {
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  color: var(--text-normal);
+}
+.tc-settings .tc-mock-acc--twotone .tc-mock-acc-chev {
+  color: var(--color-accent);
+}
+.tc-settings .tc-mock-acc--twotone .tc-mock-acc-chev::before { content: "▾"; }
+.tc-settings .tc-mock-acc--twotone.tc-mock-acc--open .tc-mock-acc-chev {
+  transform: rotate(180deg);
+}
+
+
+/* ── Halo glow ───────────────────────────────────────────
+   Pretty default paint at rest (accent gradient + border). On
+   hover / open, a large soft accent halo blooms OUTSIDE the
+   card's perimeter via a ::after pseudo so the whole card
+   glows without changing its own paint. Halo is heavily blurred
+   and negative-inset beyond the card bounds. */
+.tc-settings .tc-mock-acc--halo {
+  position: relative;
+  background: linear-gradient(135deg,
+    color-mix(in srgb, var(--color-accent) 8%, transparent),
+    color-mix(in srgb, var(--color-accent) 3%, transparent));
+  border: 1px solid rgba(var(--color-accent-rgb, 229, 179, 42), 0.40);
+  border-radius: 6px;
+  overflow: visible;
+  isolation: isolate;
+}
+.tc-settings .tc-mock-acc--halo::after {
+  content: "";
+  position: absolute;
+  inset: -18px;
+  background: radial-gradient(
+    ellipse 60% 80% at 50% 50%,
+    rgba(var(--color-accent-rgb, 229, 179, 42), 0.22) 0%,
+    rgba(var(--color-accent-rgb, 229, 179, 42), 0.10) 40%,
+    transparent 80%
+  );
+  opacity: 0;
+  transition: opacity 0.55s ease;
+  pointer-events: none;
+  z-index: -1;
+  filter: blur(22px);
+  border-radius: inherit;
+}
+.tc-settings .tc-mock-acc--halo:hover::after,
+.tc-settings .tc-mock-acc--halo.tc-mock-acc--open::after {
+  opacity: 1;
+}
+.tc-settings .tc-mock-acc--halo .tc-mock-acc-title {
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-normal);
+}
+.tc-settings .tc-mock-acc--halo .tc-mock-acc-chev::before { content: "▶"; }
+.tc-settings .tc-mock-acc--halo.tc-mock-acc--open .tc-mock-acc-chev {
+  transform: rotate(90deg);
+}
+
+/* ── Dashed — subdued
+   Faint neutral bg with a dashed mono border. Italic small
+   title, chevron is a text caret with no chrome around it —
+   minimal affordance, deliberate quietude. For auxiliary /
+   "also" sections that don't deserve attention on first read. */
+.tc-settings .tc-mock-acc--subdued {
+  background: rgba(var(--mono-rgb-100, 200, 200, 200), 0.02);
+  border: 1px dashed rgba(var(--mono-rgb-100, 200, 200, 200), 0.25);
+  border-radius: 4px;
+}
+.tc-settings .tc-mock-acc--subdued .tc-mock-acc-header {
+  padding: 10px 14px;
+}
+.tc-settings .tc-mock-acc--subdued .tc-mock-acc-title {
+  font-size: 12px;
+  font-style: italic;
+  font-weight: 400;
+  color: var(--text-faint);
+  letter-spacing: 0.01em;
+}
+.tc-settings .tc-mock-acc--subdued .tc-mock-acc-chev {
+  color: var(--text-faint);
+  font-size: 12px;
+  font-family: var(--font-monospace, "SF Mono", monospace);
+}
+.tc-settings .tc-mock-acc--subdued .tc-mock-acc-chev::before { content: "+"; }
+.tc-settings .tc-mock-acc--subdued.tc-mock-acc--open .tc-mock-acc-chev::before { content: "−"; }
+
+/* ═══════════════════════════════════════════════════════════════════
+   Rainbow folders — native chevron tinting.
+
+   The theme's `anp-simple-rainbow-collapse-icon-toggle` class only
+   recolours AnuPpuccin's folder glyphs (when Folder display is set
+   to Folders). In Chevrons mode — Obsidian's NATIVE collapse icon —
+   the chevron stays neutral regardless of the toggle.
+
+   Plugin-side fix: force the native chevron SVG to inherit currentColor
+   from the folder-title row. Since AnuPpuccin's rainbow-title rule
+   sets the row's colour to the rotating hue, `inherit`/currentColor
+   then propagates into the chevron's stroke/fill. Works in both
+   Chevrons and Folders display modes. !important needed because
+   Obsidian's native .collapse-icon rule sets an explicit colour. */
+body.anp-simple-rainbow-collapse-icon-toggle .nav-folder-title .nav-folder-collapse-indicator,
+body.anp-simple-rainbow-collapse-icon-toggle .nav-folder-title .collapse-icon {
+  color: inherit !important;
+}
+body.anp-simple-rainbow-collapse-icon-toggle .nav-folder-title .nav-folder-collapse-indicator svg,
+body.anp-simple-rainbow-collapse-icon-toggle .nav-folder-title .collapse-icon svg {
+  color: inherit !important;
+  stroke: currentColor !important;
+  fill: currentColor !important;
 }

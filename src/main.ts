@@ -2,7 +2,10 @@ import { Plugin } from "obsidian";
 import { TegenlichtSettings, DEFAULT_SETTINGS } from "./settings";
 import { apply, remove } from "./applier";
 import { TegenlichtSettingsTab } from "./settings-tab";
-import { TegenlichtQuickPanel } from "./quick-panel";
+// QuickPanel disabled (2026-04-17) — floating panel needs graceful mobile
+// handling before it re-ships. Kept in the codebase for a dedicated refine
+// branch. Import left commented so grep still finds the call site.
+// import { TegenlichtQuickPanel } from "./quick-panel";
 import { ALL_FLAVOURS } from "./flavours";
 import { registerPreviewPluginRef } from "./preview-sample";
 
@@ -46,13 +49,13 @@ export default class TegenlichtControlsPlugin extends Plugin {
     registerPreviewPluginRef(this.settings);
     this.addSettingTab(new TegenlichtSettingsTab(this.app, this));
 
-    // Ribbon icon — diamond (Lucide). Click opens a floating, draggable
-    // QuickPanel so the user can tweak settings while staying inside
-    // their workspace (the full Settings screen blocks Obsidian, which
-    // defeats the purpose of quick iteration).
-    this.addRibbonIcon('diamond', 'Tegenlicht Controls', () => {
-      new TegenlichtQuickPanel(this).open();
-    });
+    // Ribbon icon + QuickPanel disabled (2026-04-17). The floating
+    // panel's mobile layout needs work before it re-ships. Restore
+    // by uncommenting the import at the top of this file and the
+    // addRibbonIcon block below in the mobile-refine branch.
+    // this.addRibbonIcon('diamond', 'Tegenlicht Controls', () => {
+    //   new TegenlichtQuickPanel(this).open();
+    // });
 
     // Re-apply when Obsidian switches dark/light mode so the correct flavour class is active
     this.registerEvent(
@@ -74,6 +77,17 @@ export default class TegenlichtControlsPlugin extends Plugin {
     const VALID_TAB_STYLES = new Set(['text', 'switch', 'switch-amber', 'underline', 'ghost']);
     if (!VALID_TAB_STYLES.has(this.settings.tabBarStyle)) {
       this.settings.tabBarStyle = 'text';
+    }
+    // One-shot migration to promote existing 'glow' saves to the new
+    // 'glow-b' default so users inherit the upgraded treatment without
+    // having to flip the picker manually. Only runs once, then respects
+    // any subsequent explicit pick (including switching back to 'glow').
+    if (!this.settings.tabActiveStyleMigratedV1) {
+      if (this.settings.tabActiveStyle === 'glow') {
+        this.settings.tabActiveStyle = 'glow-b';
+      }
+      this.settings.tabActiveStyleMigratedV1 = true;
+      await this.saveData(this.settings);
     }
   }
 

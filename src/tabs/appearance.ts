@@ -1,18 +1,26 @@
 import { Setting } from "obsidian";
 import Pickr from "@simonwep/pickr";
 import TegenlichtControlsPlugin from "../main";
+import { TegenlichtSettings } from "../settings";
 import {
   FlavourEntry,
   DARK_BASE, DARK_EXTENDED, DARK_EXTENDED_TC, DARK_EXTENDED_ANP,
   LIGHT_BASE, LIGHT_EXTENDED, LIGHT_EXTENDED_TC, LIGHT_EXTENDED_ANP,
 } from "../flavours";
-import { buildSegmentSetting, buildCluster, buildColorToggleRow } from "./_shared";
+import {
+  buildSegmentSetting, buildColorToggleRow,
+  buildLeftRailShell, LeftRailSection,
+  buildPrettyAccordion, buildSectionPreview,
+} from "./_shared";
 import { buildTypographyPreview } from "../preview-sample";
 
-// Section-header pattern replaces accordions on Appearance. Every
-// section is always visible — the tab reads as a continuous scroll with
-// neat header bars delimiting each section. Accordion collapse state is
-// no longer tracked because there's nothing to collapse. Typography,
+// Left-rail layout (2026-04-17): Appearance's four sections live on
+// the rail; each pane stacks the former clusters as foldable pretty
+// accordions, matching Typography's pattern. Title + quip sit outside
+// the accordion column (Callouts idiom). Theme & Colour gets a
+// collapsible PREVIEW strip up top — replaces the bespoke
+// tc-palette-expander that used to live inside the Palette cluster.
+// Typography,
 // Editing, and other tabs still use accordions; only Appearance has
 // switched to flat sections.
 
@@ -71,80 +79,10 @@ function buildDivider(container: HTMLElement): void {
 // buildSegmentSetting now lives in ./_shared so the Editing tab can
 // share the same pill-picker helper without duplication.
 
-/** Segment pill-select + an auto / mono colour pair on the same row.
- *  - Auto = empty string = theme default, which for icons and borders
- *    already resolves to the accent colour on every current flavour.
- *  - Mono = 'mono' sentinel = monochrome (rgb(var(--mono-rgb-100))),
- *    rendered in the pip as a solid white circle with a subtle border.
- *  Two binary states — no custom Pickr; the choice is opinionated.
- *
- *  Used for "Icon intensity" and "Border intensity". */
-function buildSegmentWithColor(
-  container: HTMLElement,
-  name: string,
-  desc: string,
-  options: { label: string; value: string }[],
-  currentSegment: string,
-  onSegmentChange: (value: string) => Promise<void>,
-  colour: {
-    getValue: () => string;                // '' | 'mono'
-    setValue: (v: string) => void;
-    onChange: () => Promise<void>;
-  },
-): void {
-  const setting = new Setting(container).setName(name).setDesc(desc);
-  const wrap = setting.controlEl.createDiv("tc-seg-with-color");
-
-  // Pills — identical markup to buildSegmentSetting.
-  const group = wrap.createDiv("tc-seg");
-  const buttons = new Map<string, HTMLElement>();
-  options.forEach(o => {
-    const btn = group.createEl("button", { text: o.label, cls: "tc-seg-btn" });
-    if (o.value === currentSegment) btn.addClass("tc-seg-btn--active");
-    btn.addEventListener("click", async () => {
-      if (btn.hasClass("tc-seg-btn--active")) return;
-      buttons.forEach(b => b.removeClass("tc-seg-btn--active"));
-      btn.addClass("tc-seg-btn--active");
-      await onSegmentChange(o.value);
-    });
-    buttons.set(o.value, btn);
-  });
-
-  // Separator between pills and colour dots.
-  wrap.createDiv("tc-accent-sep");
-
-  // Auto / Mono pair.
-  const autoItem = wrap.createDiv("tc-accent-item tc-accent-item--auto");
-  const autoDot = autoItem.createDiv("tc-accent-dot tc-accent-dot--auto");
-  autoDot.setAttribute("title", "Auto — subtle accent (40% alpha)");
-  autoItem.createSpan({ text: "auto", cls: "tc-accent-caption" });
-
-  const monoItem = wrap.createDiv("tc-accent-item tc-accent-item--mono");
-  const monoDot = monoItem.createDiv("tc-accent-dot tc-accent-dot--mono");
-  monoDot.setAttribute("title", "Mono — theme's native tint");
-  monoItem.createSpan({ text: "mono", cls: "tc-accent-caption" });
-
-  const setActiveDot = (which: 'auto' | 'mono') => {
-    [autoDot, monoDot].forEach(d => d.removeClass('tc-accent-dot--active'));
-    ({ auto: autoDot, mono: monoDot })[which].addClass('tc-accent-dot--active');
-  };
-
-  // Seed active state. Any legacy value that isn't 'mono' (including
-  // old 'accent' sentinels or stray hex strings from the Pickr era)
-  // collapses to auto so old saves don't leave the UI in limbo.
-  setActiveDot(colour.getValue() === 'mono' ? 'mono' : 'auto');
-
-  autoDot.addEventListener('click', async () => {
-    colour.setValue('');
-    setActiveDot('auto');
-    await colour.onChange();
-  });
-  monoDot.addEventListener('click', async () => {
-    colour.setValue('mono');
-    setActiveDot('mono');
-    await colour.onChange();
-  });
-}
+// buildSegmentWithColor (pills + auto/mono dots) retired — Weight
+// cluster now uses plain buildSegmentSetting matching Shape's style.
+// iconColour / borderColour settings kept for back-compat; default
+// 'auto' (empty string = 40% accent tint).
 
 /** Native Obsidian Setting row with dropdown for multi-option controls. */
 function buildDropdownSetting(
@@ -163,30 +101,47 @@ function buildDropdownSetting(
   });
 }
 
-/** Native Obsidian Setting row: Pickr colour picker + native toggle. Returns the Pickr instance for cleanup. */
-export function build(
+// ─── Rail-section renderers ─────────────────────────────────────────
+
+/** Appends an outlined "+" swatch at the end of an inline swatch grid.
+ *  Extracted from the Palette renderer so the closure over state is
+ *  explicit. Returns the swatch element + its parent item so the
+ *  caller can update both imperatively on toggle (active class for
+ *  the rotated-x look, title attribute for the accessibility label)
+ *  without tearing the whole pane down via redisplay(). */
+function appendPlusSwatch(
+  inlineWrap: HTMLElement,
+  isOpen: boolean,
+  onToggle: () => Promise<void>,
+): { item: HTMLElement, sw: HTMLElement } | null {
+  const grid = inlineWrap.querySelector<HTMLElement>(".tc-swatch-grid");
+  if (!grid) return null;
+  const item = grid.createDiv("tc-swatch-item tc-swatch-item--plus");
+  item.setAttribute("title", isOpen ? "Hide extended flavours" : "Show extended flavours");
+  const sw = item.createDiv("tc-swatch tc-swatch-plus" + (isOpen ? " tc-swatch-plus--active" : ""));
+  sw.createSpan({ text: "+", cls: "tc-swatch-plus-icon" });
+  item.addEventListener("click", async () => { await onToggle(); });
+  return { item, sw };
+}
+
+export function renderTheme(
+  pane: HTMLElement,
+  s: TegenlichtSettings,
   containerEl: HTMLElement,
-  plugin: TegenlichtControlsPlugin,
   onChange: () => Promise<void>,
-  redisplay?: () => void,
-): () => void {
-  const s = plugin.settings;
-  const pickrs: Pickr[] = [];
-  const refresh = async () => {
-    await onChange();
-    redisplay?.();
-  };
+  refresh: () => Promise<void>,
+  pickrs: Pickr[],
+): void {
+  pane.createEl("h3", { cls: "tc-leftrail-sechead", text: "Theme" });
+  pane.createEl("p", { cls: "tc-leftrail-secdesc",
+    text: "Accent pick, light + dark flavour swatches, corner radius, density, icon + border intensity. The PREVIEW below reads every change live." });
 
-  // Colour bar previously rendered here has been promoted to the
-  // settings panel header (lives once globally in settings-tab.ts,
-  // between the tagline and the footer copy row).
-
-  // ── Theme & Colour section ─────────────────────────────
-  containerEl.createEl("div", { cls: "tc-section-header", text: "Theme & Colour" });
-  const themeBody = containerEl.createDiv("tc-section-body tc-feat-body tc-setting-card");
+  // Section-level PREVIEW strip — replaces the former in-cluster
+  // palette expander. Same chevron + dashed connector as Callouts.
+  buildSectionPreview(pane, "app-theme-preview", buildTypographyPreview);
 
   // ── Palette cluster — accent + dark/light flavours ────
-  const paletteCluster = buildCluster(themeBody, "Palette");
+  const paletteCluster = buildPrettyAccordion(pane, "app-palette", "Palette", true, s.accordionStyle);
 
   // ── Accent Colour — native Setting row, pips in the control slot ──
   const accentSetting = new Setting(paletteCluster)
@@ -194,15 +149,26 @@ export function build(
     .setDesc("Drives the highlight colour across the interface");
   const accentRow = accentSetting.controlEl.createDiv("tc-accent-row");
 
+  // Track all accent dots so we can update active state imperatively
+  // on click — no redisplay() needed, which means the preview and
+  // other open elements in the pane stay put when accent changes.
+  const accentDots: HTMLElement[] = [];
+  const setActiveAccentDot = (target: HTMLElement) => {
+    accentDots.forEach(d => d.removeClass("tc-accent-dot--active"));
+    target.addClass("tc-accent-dot--active");
+  };
+
   ACCENT_PRESETS.forEach(({ label, hex }) => {
     const item = accentRow.createDiv("tc-accent-item");
     const dot  = item.createDiv("tc-accent-dot");
     dot.style.background = hex;
     if (s.accentColour === hex) dot.addClass("tc-accent-dot--active");
     dot.setAttribute("title", label); // tooltip only — no visible caption
+    accentDots.push(dot);
     dot.addEventListener("click", async () => {
       s.accentColour = hex;
-      await refresh();
+      setActiveAccentDot(dot);
+      await onChange();
     });
   });
   accentRow.createDiv("tc-accent-sep");
@@ -212,9 +178,11 @@ export function build(
   const autoDot  = autoItem.createDiv("tc-accent-dot tc-accent-dot--auto");
   if (s.accentColour === 'auto') autoDot.addClass("tc-accent-dot--active");
   autoDot.setAttribute("title", "Use flavour's default accent");
+  accentDots.push(autoDot);
   autoDot.addEventListener("click", async () => {
     s.accentColour = 'auto';
-    await refresh();
+    setActiveAccentDot(autoDot);
+    await onChange();
   });
   autoItem.createSpan({ text: "auto", cls: "tc-accent-caption" });
 
@@ -274,29 +242,12 @@ export function build(
   customPickr.on('cancel', (instance: Pickr) => instance.hide());
   pickrs.push(customPickr);
 
-  /** Appends an outlined "+" swatch at the end of an inline swatch grid.
-   *  Clicking it flips the "show extended" state for that row and calls
-   *  refresh so the extended grid folds out / in below. When the row is
-   *  already open, the + rotates 45° into a × so it reads as "close".
-   *  Replaces the old dedicated toggle-row pattern — one interaction,
-   *  one less row in the accordion. */
-  function appendPlusSwatch(
-    inlineWrap: HTMLElement,
-    isOpen: boolean,
-    onToggle: () => Promise<void>,
-  ): void {
-    const grid = inlineWrap.querySelector<HTMLElement>(".tc-swatch-grid");
-    if (!grid) return;
-    const item = grid.createDiv("tc-swatch-item tc-swatch-item--plus");
-    item.setAttribute("title", isOpen ? "Hide extended flavours" : "Show extended flavours");
-    const sw = item.createDiv("tc-swatch tc-swatch-plus" + (isOpen ? " tc-swatch-plus--active" : ""));
-    // Single glyph "+", the icon (not the swatch) rotates 45° when open
-    // so it reads as ×. Rotating only the inner span keeps the swatch
-    // bounding box flush with its sibling pips — no overflow. No caption
-    // — the cross/plus state already tells the whole story.
-    sw.createSpan({ text: "+", cls: "tc-swatch-plus-icon" });
-    item.addEventListener("click", async () => { await onToggle(); });
-  }
+  // Light-mode accent control stashed in Legacy → Accents (2026-04-18).
+  // The main Appearance row is already busy with dark-accent pips +
+  // auto + custom Pickr; a second accent control here doubled up the
+  // visual weight. Kept functional; just relocated.
+
+  // appendPlusSwatch — see top-level helper.
 
   // ── Dark Flavours ──────────────────────────────────────
   // Base flavours + a "+" swatch at the end that folds the extended grid
@@ -305,78 +256,73 @@ export function build(
   // Shared flavour-pick handler — assigns the chosen class AND resets any
   // per-flavour overrides (currently just iconColour) so picking a theme
   // always lands at that theme's defaults. Tom can re-tint after switching.
+  // Flavour pick — writes the chosen class + resets per-flavour overrides
+  // (iconColour / borderColour currently have no UI surface in this pane,
+  // so resetting them doesn't require a redisplay). The swatch grids
+  // manage their own active-swatch class imperatively on click, so all
+  // we need is applier re-run via onChange().
   const pickFlavour = async (kind: 'dark' | 'light', cls: string) => {
     if (kind === 'dark') s.darkFlavour = cls;
     else                 s.lightFlavour = cls;
     s.iconColour   = '';
     s.borderColour = '';
-    await refresh();
+    await onChange();
   };
 
-  // ── Light Flavours (light first now, per user preference) ────
-  paletteCluster.createDiv("tc-flavour-caption")
-    .createSpan({ text: "licht", cls: "tc-flavour-caption-label" });
+  // ── Light Flavours ────────────────────────────────────────────
   const lightSetting = new Setting(paletteCluster)
     .setName("Light flavour")
     .setDesc("Applied when Obsidian is in light mode");
+  lightSetting.nameEl.prepend(
+    createSpan({ cls: "tc-flavour-kicker", text: "licht" }),
+  );
   const lightInlineWrap = lightSetting.controlEl.createDiv("tc-swatch-grid-inline");
   buildSwatchGrid(lightInlineWrap, LIGHT_BASE, s.lightFlavour, cls => pickFlavour('light', cls));
-  appendPlusSwatch(lightInlineWrap, s.showExtendedLight, async () => {
+  // Extended light wrap ALWAYS rendered; display toggled imperatively
+  // so expanding/collapsing doesn't need a pane rebuild.
+  const lightExtWrap = paletteCluster.createDiv("tc-swatch-grid-wrap tc-swatch-grouped");
+  lightExtWrap.createSpan({ text: "Tegenlicht", cls: "tc-swatch-group-label" });
+  buildSwatchGrid(lightExtWrap, LIGHT_EXTENDED_TC, s.lightFlavour, cls => pickFlavour('light', cls));
+  lightExtWrap.createSpan({ text: "AnuPuccin", cls: "tc-swatch-group-label" });
+  buildSwatchGrid(lightExtWrap, LIGHT_EXTENDED_ANP, s.lightFlavour, cls => pickFlavour('light', cls));
+  lightExtWrap.style.display = s.showExtendedLight ? "" : "none";
+  const lightPlus = appendPlusSwatch(lightInlineWrap, s.showExtendedLight, async () => {
     s.showExtendedLight = !s.showExtendedLight;
-    await refresh();
+    lightExtWrap.style.display = s.showExtendedLight ? "" : "none";
+    lightPlus?.sw.classList.toggle("tc-swatch-plus--active", s.showExtendedLight);
+    lightPlus?.item.setAttribute("title",
+      s.showExtendedLight ? "Hide extended flavours" : "Show extended flavours");
+    await onChange();
   });
-  if (s.showExtendedLight) {
-    const lightExtWrap = paletteCluster.createDiv("tc-swatch-grid-wrap tc-swatch-grouped");
-    lightExtWrap.createSpan({ text: "Tegenlicht", cls: "tc-swatch-group-label" });
-    buildSwatchGrid(lightExtWrap, LIGHT_EXTENDED_TC, s.lightFlavour, cls => pickFlavour('light', cls));
-    lightExtWrap.createSpan({ text: "AnuPuccin", cls: "tc-swatch-group-label" });
-    buildSwatchGrid(lightExtWrap, LIGHT_EXTENDED_ANP, s.lightFlavour, cls => pickFlavour('light', cls));
-  }
 
   // ── Dark Flavours ─────────────────────────────────────────────
-  paletteCluster.createDiv("tc-flavour-caption")
-    .createSpan({ text: "tegenlicht", cls: "tc-flavour-caption-label" });
   const darkSetting = new Setting(paletteCluster)
     .setName("Dark flavour")
     .setDesc("Applied when Obsidian is in dark mode");
+  darkSetting.nameEl.prepend(
+    createSpan({ cls: "tc-flavour-kicker", text: "tegenlicht" }),
+  );
   const darkInlineWrap = darkSetting.controlEl.createDiv("tc-swatch-grid-inline");
   buildSwatchGrid(darkInlineWrap, DARK_BASE, s.darkFlavour, cls => pickFlavour('dark', cls));
-  appendPlusSwatch(darkInlineWrap, s.showExtendedDark, async () => {
+  const darkExtWrap = paletteCluster.createDiv("tc-swatch-grid-wrap tc-swatch-grouped");
+  darkExtWrap.createSpan({ text: "Tegenlicht", cls: "tc-swatch-group-label" });
+  buildSwatchGrid(darkExtWrap, DARK_EXTENDED_TC, s.darkFlavour, cls => pickFlavour('dark', cls));
+  darkExtWrap.createSpan({ text: "AnuPuccin", cls: "tc-swatch-group-label" });
+  buildSwatchGrid(darkExtWrap, DARK_EXTENDED_ANP, s.darkFlavour, cls => pickFlavour('dark', cls));
+  darkExtWrap.style.display = s.showExtendedDark ? "" : "none";
+  const darkPlus = appendPlusSwatch(darkInlineWrap, s.showExtendedDark, async () => {
     s.showExtendedDark = !s.showExtendedDark;
-    await refresh();
+    darkExtWrap.style.display = s.showExtendedDark ? "" : "none";
+    darkPlus?.sw.classList.toggle("tc-swatch-plus--active", s.showExtendedDark);
+    darkPlus?.item.setAttribute("title",
+      s.showExtendedDark ? "Hide extended flavours" : "Show extended flavours");
+    await onChange();
   });
-  if (s.showExtendedDark) {
-    const darkExtWrap = paletteCluster.createDiv("tc-swatch-grid-wrap tc-swatch-grouped");
-    darkExtWrap.createSpan({ text: "Tegenlicht", cls: "tc-swatch-group-label" });
-    buildSwatchGrid(darkExtWrap, DARK_EXTENDED_TC, s.darkFlavour, cls => pickFlavour('dark', cls));
-    darkExtWrap.createSpan({ text: "AnuPuccin", cls: "tc-swatch-group-label" });
-    buildSwatchGrid(darkExtWrap, DARK_EXTENDED_ANP, s.darkFlavour, cls => pickFlavour('dark', cls));
-  }
 
-  // Palette preview expander — small accented chevron button at the
-  // bottom of the cluster. Click → the panel below grows open with a
-  // smooth max-height transition and renders the same Obsidian
-  // preview the Typography tab uses. Lets users see flavour swatches
-  // applied to live Markdown without scrolling away.
-  const paletteExpander = paletteCluster.createDiv("tc-palette-expander");
-  const paletteExpanderBtn = paletteExpander.createEl("button", {
-    cls: "tc-palette-expander-btn",
-    attr: { "aria-label": "Toggle preview", title: "Toggle preview" },
-  });
-  paletteExpanderBtn.createSpan({ cls: "tc-palette-expander-chevron", text: "▾" });
-  const palettePreviewWrap = paletteCluster.createDiv("tc-palette-preview-wrap");
-  buildTypographyPreview(palettePreviewWrap);
-  let palettePreviewOpen = false;
-  paletteExpanderBtn.addEventListener("click", () => {
-    palettePreviewOpen = !palettePreviewOpen;
-    if (palettePreviewOpen) {
-      palettePreviewWrap.style.maxHeight = palettePreviewWrap.scrollHeight + "px";
-      paletteExpanderBtn.addClass("tc-palette-expander-btn--open");
-    } else {
-      palettePreviewWrap.style.maxHeight = "0px";
-      paletteExpanderBtn.removeClass("tc-palette-expander-btn--open");
-    }
-  });
+  // Palette preview moved out of the cluster — now a section-level
+  // PREVIEW strip rendered at the top of the pane (see buildSectionPreview
+  // call at the start of renderTheme). Same buildTypographyPreview
+  // content; standardised Callouts-style chevron affordance.
 
   // Background-effect pill and Native-translucency toggle were REMOVED.
   // Neither approach produced reliable results: CSS backdrop-filter in
@@ -397,9 +343,7 @@ export function build(
   // than Theme & Colour (which is now strictly palette + shape/weight).
 
   // ── Shape cluster — how UI elements bend and breathe ──
-  // Lives inside Theme & Colour now that the Interface section has been
-  // retired; shape knobs read naturally alongside palette + surface.
-  const shapeCluster = buildCluster(themeBody, "Shape");
+  const shapeCluster = buildPrettyAccordion(pane, "app-shape", "Shape", true, s.accordionStyle);
 
   // Corner radius leads the Shape cluster — the most visually global
   // setting (buttons, cards, inputs, images) so it gets the top slot.
@@ -411,7 +355,7 @@ export function build(
       { label: "Rounded", value: "rounded" },
     ],
     s.cornerRadius,
-    async v => { s.cornerRadius = v; await refresh(); },
+    async v => { s.cornerRadius = v; await onChange(); },
   );
 
   buildSegmentSetting(shapeCluster,
@@ -422,37 +366,31 @@ export function build(
       { label: "Spacious",    value: "spacious" },
     ],
     s.uiDensity,
-    async v => { s.uiDensity = v; await refresh(); },
+    async v => { s.uiDensity = v; await onChange(); },
   );
 
   // ── Weight cluster — line weight of icons and borders ─
-  const weightCluster = buildCluster(themeBody, "Weight");
+  // Plain segment pickers matching Shape's pattern exactly (pills
+  // only, no auto/mono colour dots). The per-choice icon/border
+  // colour (`iconColour` / `borderColour`) stays in settings for
+  // future reuse but is no longer UI-exposed here — defaults to
+  // 'auto' (empty string = 40% accent tint).
+  const weightCluster = buildPrettyAccordion(pane, "app-weight", "Weight", true, s.accordionStyle);
 
-  // Icon intensity — weight pills + auto/mono tint pair.
-  // 'auto' = theme default (accent). 'mono' = monochrome via the
-  // mono-rgb scale. Flavour switching resets to '' so each theme starts
-  // at its own default.
-  buildSegmentWithColor(
-    weightCluster,
-    "Icon intensity", "Weight + tint of every Lucide icon in the chrome",
+  buildSegmentSetting(weightCluster,
+    "Icon intensity", "Stroke weight of every Lucide icon in the chrome",
     [
+      { label: "Hair",    value: "hair" },
       { label: "Thin",    value: "thin" },
       { label: "Regular", value: "regular" },
       { label: "Bold",    value: "bold" },
     ],
     s.iconStroke,
-    async v => { s.iconStroke = v; await refresh(); },
-    {
-      getValue: () => s.iconColour,
-      setValue: v  => { s.iconColour = v; },
-      onChange: refresh,
-    },
+    async v => { s.iconStroke = v; await onChange(); },
   );
 
-  // Border intensity — strength pills + auto/mono tint pair.
-  buildSegmentWithColor(
-    weightCluster,
-    "Border intensity", "Strength + tint of borders across the Obsidian interface",
+  buildSegmentSetting(weightCluster,
+    "Border intensity", "Strength of borders across the Obsidian interface",
     [
       { label: "None",         value: "none" },
       { label: "Whisper",      value: "whisper" },
@@ -460,23 +398,22 @@ export function build(
       { label: "Ligne claire", value: "ligne-claire" },
     ],
     s.borderIntensity,
-    async v => { s.borderIntensity = v; await refresh(); },
-    {
-      getValue: () => s.borderColour,
-      setValue: v  => { s.borderColour = v; },
-      onChange: refresh,
-    },
+    async v => { s.borderIntensity = v; await onChange(); },
   );
 
-  // ── Outliner section — file tree / nav-files pane settings ─────
-  // Ports the file-browser knobs from AnuPuccin (rainbow folders, file
-  // type icons, collapse arrows, custom vault title) into one home so
-  // the "left sidebar look" lives in one section.
-  containerEl.createEl("div", { cls: "tc-section-header", text: "Outliner" });
-  const outlinerBody = containerEl.createDiv("tc-section-body tc-feat-body tc-setting-card");
+}
+
+export function renderOutliner(
+  pane: HTMLElement,
+  s: TegenlichtSettings,
+  onChange: () => Promise<void>,
+): void {
+  pane.createEl("h3", { cls: "tc-leftrail-sechead", text: "Outliner" });
+  pane.createEl("p", { cls: "tc-leftrail-secdesc",
+    text: "File tree (nav-files) rendering — type icons, folder glyphs, vault-title styling, plus AnuPuccin-style rainbow folder modes." });
 
   // ── File tree cluster — three toggles for how nav-files pane renders ─
-  const fileTreeCluster = buildCluster(outlinerBody, "File tree");
+  const fileTreeCluster = buildPrettyAccordion(pane, "app-filetree", "File tree", true, s.accordionStyle);
 
   new Setting(fileTreeCluster)
     .setName("File type icons")
@@ -521,7 +458,7 @@ export function build(
   // collapsed by default, hidden entirely when mode === 'off'. Mode
   // change repopulates the Advanced body in place but preserves the
   // user's open/closed choice.
-  const rainbowCluster = buildCluster(outlinerBody, "Rainbow folders");
+  const rainbowCluster = buildPrettyAccordion(pane, "app-rainbow", "Rainbow folders", true, s.accordionStyle);
 
   const computedMode = (() => {
     if ((s.rainbowStyle ?? 'off') === 'off' && s.rainbowFileBrowser) return 'full';
@@ -577,58 +514,58 @@ export function build(
     advanced.style.display = mode === "off" ? "none" : "";
     if (mode === "simple") {
       new Setting(advBody)
-        .setName("Recolour folder titles")
-        .setDesc("Folder name text takes the rotating hue")
+        .setName("Tint folder names")
+        .setDesc("Folder title text picks up the rotating hue. Subtle — reads as a coloured label without painting the whole row.")
         .addToggle(t => t
           .setValue(s.rainbowSimpleTitle)
           .onChange(async v => { s.rainbowSimpleTitle = v; await onChange(); })
         );
       new Setting(advBody)
-        .setName("Recolour collapse arrows")
-        .setDesc("The chevron / disclosure triangle takes the folder's hue")
+        .setName("Tint chevrons")
+        .setDesc("Obsidian's native chevrons (and AnuPpuccin's folder glyphs when Folder display is set to Folders) take the folder's hue.")
         .addToggle(t => t
           .setValue(s.rainbowSimpleCollapseIcon)
           .onChange(async v => { s.rainbowSimpleCollapseIcon = v; await onChange(); })
         );
       new Setting(advBody)
-        .setName("Recolour indent guides")
-        .setDesc("Vertical indent lines under each folder take the hue")
+        .setName("Tint indent guides")
+        .setDesc("The thin vertical lines under each folder (shown when children are expanded) inherit the parent's hue.")
         .addToggle(t => t
           .setValue(s.rainbowSimpleIndent)
           .onChange(async v => { s.rainbowSimpleIndent = v; await onChange(); })
         );
       new Setting(advBody)
-        .setName("Show file dot")
-        .setDesc("Add a small coloured circle next to each file in a coloured folder")
+        .setName("Coloured file marker")
+        .setDesc("Paint a small coloured dot next to every file living inside a coloured folder — a trace of the parent's hue on each leaf.")
         .addToggle(t => t
           .setValue(s.rainbowSimpleFileIcon)
           .onChange(async v => { s.rainbowSimpleFileIcon = v; await onChange(); })
         );
     } else if (mode === "full") {
       new Setting(advBody)
-        .setName("Recolour files")
-        .setDesc("Tint files inside coloured folders to match their parent's hue")
+        .setName("Tint files inside")
+        .setDesc("Files living in a coloured folder pick up the parent's hue on their own row — extends the tint past the folder header.")
         .addToggle(t => t
           .setValue(s.rainbowFullFileRecolor)
           .onChange(async v => { s.rainbowFullFileRecolor = v; await onChange(); })
         );
       new Setting(advBody)
-        .setName("Invert title text — light mode")
-        .setDesc("Use the regular text colour for folder titles in light themes (better contrast)")
+        .setName("Readable titles — light mode")
+        .setDesc("Swap folder-name text to the regular text colour (not the folder hue) when the workspace is in a light theme — keeps contrast legible against the pale tint.")
         .addToggle(t => t
           .setValue(s.rainbowFullInvertLight)
           .onChange(async v => { s.rainbowFullInvertLight = v; await onChange(); })
         );
       new Setting(advBody)
-        .setName("Invert title text — dark mode")
-        .setDesc("Use the regular text colour for folder titles in dark themes (better contrast)")
+        .setName("Readable titles — dark mode")
+        .setDesc("Same contrast fix for dark workspaces — folder names paint in the regular text colour rather than the (dim) hue.")
         .addToggle(t => t
           .setValue(s.rainbowFullInvertDark)
           .onChange(async v => { s.rainbowFullInvertDark = v; await onChange(); })
         );
       new Setting(advBody)
-        .setName("Folder background opacity")
-        .setDesc("How much of the folder's hue shows through (0 = transparent, 100 = solid)")
+        .setName("Tint strength")
+        .setDesc("How much of the folder's hue fills its row background. 0 = transparent (no fill), 100 = solid hue at full saturation.")
         .addSlider(sl => sl
           .setLimits(0, 100, 1)
           .setValue(s.rainbowFullBgOpacity ?? 70)
@@ -639,12 +576,20 @@ export function build(
   };
   populateAdvanced(computedMode);
 
-  // ── Graph section ─────────────────────────────────────
-  containerEl.createEl("div", { cls: "tc-section-header", text: "Graph" });
-  const graphBody = containerEl.createDiv("tc-section-body tc-feat-body tc-setting-card");
+}
+
+export function renderGraph(
+  pane: HTMLElement,
+  s: TegenlichtSettings,
+  onChange: () => Promise<void>,
+  refresh: () => Promise<void>,
+): void {
+  pane.createEl("h3", { cls: "tc-leftrail-sechead", text: "Graph" });
+  pane.createEl("p", { cls: "tc-leftrail-secdesc",
+    text: "Graph view — colour mode for nodes and links, plus style tweaks (hover halo, node scale, link thickness)." });
 
   // ── Colour cluster ────────────────────────────────────
-  const graphColourCluster = buildCluster(graphBody, "Colour");
+  const graphColourCluster = buildPrettyAccordion(pane, "app-graphcolour", "Colour", true, s.accordionStyle);
   buildSegmentSetting(graphColourCluster,
     "Colour mode",
     "How nodes and links take their hue",
@@ -654,11 +599,11 @@ export function build(
       { label: "Folders", value: "folders" },
     ],
     s.graphColourMode,
-    async v => { s.graphColourMode = v; await refresh(); },
+    async v => { s.graphColourMode = v; await onChange(); },
   );
 
   // ── Style cluster ─────────────────────────────────────
-  const graphStyleCluster = buildCluster(graphBody, "Style");
+  const graphStyleCluster = buildPrettyAccordion(pane, "app-graphstyle", "Style", true, s.accordionStyle);
 
   new Setting(graphStyleCluster)
     .setName("Hover halo")
@@ -688,21 +633,31 @@ export function build(
       .onChange(async v => { s.graphLinkThickness = v; await onChange(); })
     );
 
-  // ── Workspace section ─────────────────────────────────
-  containerEl.createEl("div", { cls: "tc-section-header", text: "Workspace" });
-  const workspaceCard = containerEl.createDiv("tc-section-body tc-feat-body tc-setting-card");
+}
+
+export function renderWorkspace(
+  pane: HTMLElement,
+  s: TegenlichtSettings,
+  containerEl: HTMLElement,
+  onChange: () => Promise<void>,
+  refresh: () => Promise<void>,
+  pickrs: Pickr[],
+): void {
+  pane.createEl("h3", { cls: "tc-leftrail-sechead", text: "Workspace" });
+  pane.createEl("p", { cls: "tc-leftrail-secdesc",
+    text: "Sidebar treatment, canvas background + frost, surface grain, accent application (frame), editor accents (caret, selection, active line), and interface (tab style / spacing / active indicator)." });
 
   // ── Sidebar cluster ───────────────────────────────────
-  const sidebarCluster = buildCluster(workspaceCard, "Sidebar");
+  const sidebarCluster = buildPrettyAccordion(pane, "app-sidebar", "Sidebar", true, s.accordionStyle);
   buildDropdownSetting(sidebarCluster,
     "Sidebar style", "Visual treatment of the left and right sidebars",
     [{ label: "Flat", value: "flat" }, { label: "Bordered", value: "bordered" }, { label: "Cards", value: "cards" }],
     s.sidebarStyle,
-    async v => { s.sidebarStyle = v; await refresh(); },
+    async v => { s.sidebarStyle = v; await onChange(); },
   );
 
   // ── Canvas cluster — editor surface treatment ─────────
-  const canvasCluster = buildCluster(workspaceCard, "Canvas");
+  const canvasCluster = buildPrettyAccordion(pane, "app-canvas", "Canvas", true, s.accordionStyle);
 
   let frostSetting: Setting | null = null;
   buildDropdownSetting(canvasCluster,
@@ -712,7 +667,7 @@ export function build(
     async v => {
       s.backgroundStyle = v;
       if (frostSetting) frostSetting.settingEl.style.display = v === "frosted" ? "" : "none";
-      await refresh();
+      await onChange();
     },
   );
 
@@ -725,11 +680,11 @@ export function build(
     .setLimits(0, 100, 1)
     .setValue(s.frostDepth)
     .setDynamicTooltip()
-    .onChange(async v => { s.frostDepth = v; await refresh(); })
+    .onChange(async v => { s.frostDepth = v; await onChange(); })
   );
 
   // ── Surface cluster — grain texture knobs ─────────────
-  const surfaceCluster = buildCluster(workspaceCard, "Surface");
+  const surfaceCluster = buildPrettyAccordion(pane, "app-surface", "Surface", true, s.accordionStyle);
 
   // Forward-declared so the grain slider's onChange can toggle the
   // sub-dropdown's visibility when grain crosses zero.
@@ -767,7 +722,7 @@ export function build(
 
   // ── Accent application cluster — where the accent paints beyond
   //    the palette swatches (currently: window frame). ───────────
-  const accentAppCluster = buildCluster(workspaceCard, "Accent application");
+  const accentAppCluster = buildPrettyAccordion(pane, "app-accentapp", "Accent application", true, s.accordionStyle);
   new Setting(accentAppCluster)
     .setName("Colourful window frame")
     .setDesc("Tint Obsidian's window frame with the active flavour's accent")
@@ -780,7 +735,7 @@ export function build(
   //    section (Active line / Selection tint / Caret colour) into the
   //    Workspace section. Same three colour-picker-plus-toggle rows, new
   //    home. Pickr instances still registered for cleanup via `pickrs`.
-  const editorAccentsCluster = buildCluster(workspaceCard, "Editor accents");
+  const editorAccentsCluster = buildPrettyAccordion(pane, "app-editoraccents", "Editor accents", true, s.accordionStyle);
 
   pickrs.push(buildColorToggleRow(editorAccentsCluster,
     "Active line", "Highlight the current cursor line in the editor",
@@ -816,7 +771,7 @@ export function build(
   //    loadSettings. Until Task 5 ships the matching CSS, the picker
   //    renders but the visual effect on the tab bar only lands with
   //    that later commit.
-  const interfaceCluster = buildCluster(workspaceCard, "Interface");
+  const interfaceCluster = buildPrettyAccordion(pane, "app-interface", "Interface", true, s.accordionStyle);
 
   buildSegmentSetting(interfaceCluster,
     "Tab style",
@@ -828,7 +783,46 @@ export function build(
       { label: "Ghost",     value: "ghost"        },
     ],
     s.tabBarStyle,
-    async v => { s.tabBarStyle = v; await refresh(); },
+    async v => { s.tabBarStyle = v; await onChange(); },
+  );
+
+  // Active-tab indicator paint — Glow (radial accent gradient only),
+  // Glow B (radial glow + persistent currentColor border on every
+  // tab, accent ring on active), or Pill (solid accent fill + ring,
+  // fully rounded, inactive tabs also framed). Body class flip in
+  // applier.ts; CSS branches under .tc-tabs-active-{glow|glow-b|pill}.
+  buildSegmentSetting(interfaceCluster,
+    "Tab active style",
+    "How the active tab indicator paints",
+    [
+      { label: "Glow",   value: "glow"   },
+      { label: "Glow B", value: "glow-b" },
+      { label: "Pill",   value: "pill"   },
+    ],
+    s.tabActiveStyle,
+    async v => { s.tabActiveStyle = v; await onChange(); },
+  );
+
+  // Accordion paint — applies to every foldable accordion rendered
+  // via `buildPrettyAccordion` (Typography panes + Appearance
+  // clusters). Dropdown (not segment) because 8 options don't fit
+  // a pill row. The body-class change cascades to every accordion
+  // via CSS; no redisplay needed.
+  buildDropdownSetting(interfaceCluster,
+    "Accordion style",
+    "Paint applied to every foldable cluster across Typography + Appearance",
+    [
+      { label: "Pretty",    value: "pretty"   },
+      { label: "Gutter",    value: "gutter"   },
+      { label: "Ghost",     value: "ghost"    },
+      { label: "Two-tone",  value: "twotone"  },
+      { label: "Halo",      value: "halo"     },
+      { label: "Folio",     value: "filed"    },
+      { label: "Bloc",      value: "bloc"     },
+      { label: "Dashed",    value: "subdued"  },
+    ],
+    s.accordionStyle,
+    async v => { s.accordionStyle = v; await onChange(); },
   );
 
   new Setting(interfaceCluster)
@@ -838,8 +832,43 @@ export function build(
       .setLimits(0, 16, 1)
       .setValue(s.tabBarSpacing ?? 6)
       .setDynamicTooltip()
-      .onChange(async v => { s.tabBarSpacing = v; await refresh(); })
+      .onChange(async v => { s.tabBarSpacing = v; await onChange(); })
     );
+}
 
-  return () => pickrs.forEach(p => { try { p.destroyAndRemove(); } catch(_) {} });
+/** Main build — wires the left-rail shell with the four section
+ *  renderers. Pickr instances are registered into a shared array so
+ *  they can be cleaned up on tab teardown. */
+export function build(
+  containerEl: HTMLElement,
+  plugin: TegenlichtControlsPlugin,
+  onChange: () => Promise<void>,
+  redisplay?: () => void,
+): () => void {
+  const s = plugin.settings;
+  const pickrs: Pickr[] = [];
+  const refresh = async () => {
+    await onChange();
+    redisplay?.();
+  };
+
+  const wrap = containerEl.createDiv("tc-appearance-wrap");
+
+  const sections: LeftRailSection[] = [
+    { id: "theme",     label: "Theme",          count: 3,
+      render: pane => renderTheme(pane, s, containerEl, onChange, refresh, pickrs) },
+    { id: "outliner",  label: "Outliner",       count: 2,
+      render: pane => renderOutliner(pane, s, onChange) },
+    { id: "graph",     label: "Graph",          count: 2,
+      render: pane => renderGraph(pane, s, onChange, refresh) },
+    { id: "workspace", label: "Workspace",      count: 6,
+      render: pane => renderWorkspace(pane, s, containerEl, onChange, refresh, pickrs) },
+  ];
+
+  const shellCleanup = buildLeftRailShell(wrap, sections, "appearance");
+
+  return () => {
+    shellCleanup();
+    pickrs.forEach(p => { try { p.destroyAndRemove(); } catch(_) {} });
+  };
 }

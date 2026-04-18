@@ -60,6 +60,12 @@ const ALL_TAB_CLASSES = [
   'anp-alternate-tab-toggle', 'anp-safari-tab-toggle',
 ];
 
+// Plugin settings-tab active-indicator variants. Mutually exclusive
+// — the picker in Appearance → Workspace → Interface chooses one.
+const ALL_TAB_ACTIVE_CLASSES = [
+  'tc-tabs-active-glow', 'tc-tabs-active-glow-b', 'tc-tabs-active-pill',
+];
+
 const ALL_BG_EFFECT_CLASSES   = [
   'tc-bg-effect-solid', 'tc-bg-effect-frosted', 'tc-bg-effect-glass',
   // Legacy classes from pre-0.6 naming — cleaned up at apply() so old
@@ -69,7 +75,7 @@ const ALL_BG_EFFECT_CLASSES   = [
 const ALL_DENSITY_CLASSES     = ['tc-density-compact', 'tc-density-comfortable', 'tc-density-spacious'];
 const ALL_SIDEBAR_CLASSES  = ['tc-sidebar-flat', 'tc-sidebar-bordered', 'tc-sidebar-cards'];
 const ALL_BG_CLASSES       = ['tc-bg-solid', 'tc-bg-frosted', 'tc-bg-gradient'];
-const ALL_ICON_STROKE_CLASSES = ['tc-icon-stroke-thin', 'tc-icon-stroke-regular', 'tc-icon-stroke-bold'];
+const ALL_ICON_STROKE_CLASSES = ['tc-icon-stroke-hair', 'tc-icon-stroke-thin', 'tc-icon-stroke-regular', 'tc-icon-stroke-bold'];
 const ALL_RADIUS_CLASSES      = ['tc-radius-sharp', 'tc-radius-subtle', 'tc-radius-rounded', 'tc-radius-pill'];
 const ALL_BORDER_CLASSES      = ['tc-borders-none', 'tc-borders-whisper', 'tc-borders-subtle', 'tc-borders-ligne-claire'];
 const ALL_MOOD_CLASSES        = ['tc-mood-minimal', 'tc-mood-warm', 'tc-mood-cool'];
@@ -199,16 +205,41 @@ function cls(c: string, active: boolean): void {
   document.body.classList.toggle(c, active);
 }
 
+/** The 14 Catppuccin colour names AnuPpuccin exposes for H1–H6 + bold
+ *  + italic + highlight class-selects. Shared so the applier + the UI
+ *  (Wave 3) pull from one list. Order matches the YAML. */
+export const CATPPUCCIN_COLOURS = [
+  "rosewater", "flamingo", "pink", "mauve", "red", "maroon", "peach",
+  "yellow", "green", "teal", "sky", "sapphire", "blue", "lavender",
+] as const;
+
+/** For one of the class-select settings whose classes all share a prefix
+ *  (e.g. `anp-h1-`, `anp-bold-`): clear every possible colour class,
+ *  then add the single chosen one if non-empty. */
+function applyColourClassSelect(prefix: string, chosen: string): void {
+  CATPPUCCIN_COLOURS.forEach(name => {
+    document.body.classList.remove(`${prefix}${name}`);
+  });
+  if (chosen) document.body.classList.add(`${prefix}${chosen}`);
+}
+
 export function apply(s: TegenlichtSettings): void {
   const el = getOrCreateStyleEl();
 
-  // Resolve 'auto' accent from the currently active flavour's entry
+  // Resolve accent. Precedence:
+  //   1. In light mode, if `lightAccentColour` is a hex (not 'auto'),
+  //      use it — lets the user pick independent light / dark accents.
+  //   2. Otherwise fall back to `accentColour`. If that's 'auto', use
+  //      the active flavour's built-in accent.
   const isDarkMode = document.body.classList.contains('theme-dark');
   const activeFlavourCls = isDarkMode ? s.darkFlavour : s.lightFlavour;
   const activeFlavour = ALL_FLAVOURS.find(f => f.cls === activeFlavourCls);
-  const resolvedAccent = s.accentColour === 'auto'
-    ? (activeFlavour?.accent ?? '#e5b32a')
-    : s.accentColour;
+  const lightOverrideActive = !isDarkMode && s.lightAccentColour && s.lightAccentColour !== 'auto';
+  const resolvedAccent = lightOverrideActive
+    ? s.lightAccentColour
+    : (s.accentColour === 'auto'
+        ? (activeFlavour?.accent ?? '#e5b32a')
+        : s.accentColour);
   const accent        = sanitizeHex(resolvedAccent);
   const activeLineClr = sanitizeHex(s.activeLineColour ?? '#e5b32a');
   const selClr        = sanitizeHex(s.selectionTintColour ?? '#89b4fa');
@@ -260,6 +291,58 @@ export function apply(s: TegenlichtSettings): void {
   --tc-noise-opacity: ${((s.noiseAmount ?? 0) * 0.007).toFixed(4)};
   --tc-graph-node-scale: ${s.graphNodeScale ?? 1.0};
   --tc-graph-link-thickness: ${s.graphLinkThickness ?? 1.0};
+  /* Wave 2 — tag pill shape + embed ceiling */
+  --tag-border-width: ${s.tagBorderWidth ?? 0}px;
+  --tag-radius: ${(s.tagRadius ?? 2).toFixed(2)}em;
+  --embed-max-height: ${s.embedMaxHeight ?? 200}px;
+  /* Wave 3 — heading margin scalar (only effective when the master
+     heading-margin toggle is on; value still written so flipping the
+     master picks up the chosen value immediately). */
+  --anp-header-margin-value: ${s.headingMargin ?? 15}px;
+  /* Wave 4 — per-heading weights + line-heights. Fonts handled below
+     as conditional writes (only if non-empty). */
+  --h1-weight: ${s.h1Weight ?? 700};
+  --h2-weight: ${s.h2Weight ?? 600};
+  --h3-weight: ${s.h3Weight ?? 600};
+  --h4-weight: ${s.h4Weight ?? 600};
+  --h5-weight: ${s.h5Weight ?? 600};
+  --h6-weight: ${s.h6Weight ?? 600};
+  --h1-line-height: ${s.h1LineHeight ?? 1.2};
+  --h2-line-height: ${s.h2LineHeight ?? 1.2};
+  --h3-line-height: ${s.h3LineHeight ?? 1.3};
+  --h4-line-height: ${s.h4LineHeight ?? 1.3};
+  --h5-line-height: ${s.h5LineHeight ?? 1.4};
+  --h6-line-height: ${s.h6LineHeight ?? 1.5};
+  /* Wave 4 — per-H font families (only written if user set one).
+     Empty string means inherit from the theme / plugin font picker. */
+  ${s.h1Font ? `--h1-font: ${s.h1Font};` : ''}
+  ${s.h2Font ? `--h2-font: ${s.h2Font};` : ''}
+  ${s.h3Font ? `--h3-font: ${s.h3Font};` : ''}
+  ${s.h4Font ? `--h4-font: ${s.h4Font};` : ''}
+  ${s.h5Font ? `--h5-font: ${s.h5Font};` : ''}
+  ${s.h6Font ? `--h6-font: ${s.h6Font};` : ''}
+  /* Wave 4 — global weight scalars (bold + 3 editor modes). */
+  --bold-weight: ${s.boldWeight ?? 600};
+  --anp-font-live-preview-wt: ${s.livePreviewWeight ?? 400};
+  --anp-font-preview-wt: ${s.readingWeight ?? 400};
+  --anp-font-editor-wt: ${s.sourceWeight ?? 400};
+  /* Wave 5 — LaTeX text colour (empty = theme default). */
+  ${s.latexColour ? `--anp-latex-color: ${s.latexColour};` : ''}
+  /* Wave 6 — list marker colour (empty = theme default) + colorful
+     frame opacity (only effective when colorful-frame toggle is on). */
+  ${s.listMarkerColour ? `--list-marker-color: ${s.listMarkerColour};` : ''}
+  --anp-colorful-frame-opacity: ${(s.colorfulFrameOpacity ?? 1).toFixed(2)};
+  /* Wave 6.5 — deferred scalars + selects. */
+  --anp-card-layout-padding: ${s.cardLayoutPadding ?? 10}px;
+  --anp-card-header-left-padding: ${s.cardHeaderLeftPadding ?? 20}px;
+  --anp-stacked-header-width: ${s.stackedHeaderWidth ?? 40}px;
+  --anp-tab-stacked-pane-width: ${s.tabStackedPaneWidth ?? 1};
+  --anp-file-label-align: ${s.fileLabelAlign === '1' ? '1' : '0'};
+  --list-numbered-style: ${s.orderedListStyle || 'decimal'};
+  /* Colorful frame custom colour — AnuPpuccin expects an
+     R, G, B triplet (format: rgb-values), wrapped in rgb()
+     at paint time. Empty string = theme default paints. */
+  ${s.colorfulFrameColour ? `--anp-colorful-frame-color: ${hexToRgbTriplet(s.colorfulFrameColour)};` : ''}
   /* Legacy — Callouts */
   --callout-radius: ${s.calloutRadius ?? 8}px;
   --callout-title-padding: ${s.calloutTitlePaddingX ?? 12}px;
@@ -359,6 +442,10 @@ ${s.caretColourEnabled ? `.cm-cursor { border-left-color: ${caretClr} !important
   ALL_TAB_CLASSES.forEach(c => document.body.classList.remove(c));
   document.body.classList.add((s.tabStyle?.trim() || 'anp-default-tab'));
 
+  // Plugin settings-tab active-indicator variant (glow | pill)
+  ALL_TAB_ACTIVE_CLASSES.forEach(c => document.body.classList.remove(c));
+  document.body.classList.add(`tc-tabs-active-${s.tabActiveStyle || 'glow-b'}`);
+
   // Rainbow folders — three modes mirroring AnuPuccin's Style Settings
   // dropdown (None / Full / Simple). Two layers of migration:
   //   1. Pre-0.7 boolean `rainbowFileBrowser` → 'full'.
@@ -407,6 +494,53 @@ ${s.caretColourEnabled ? `.cm-cursor { border-left-color: ${caretClr} !important
   cls('anp-codeblock-numbers',      s.codeblockLineNumbers);
   cls('anp-floating-header',        s.floatingTitle);
   cls('tc-fm-boxed',                s.propertiesBoxed);
+  // Wave 2 — simple class-toggles from AnuPpuccin @settings.
+  cls('anp-speech-bubble',          s.speechBubbles);
+  cls('anp-list-toggle',            s.listToggle);
+  cls('anp-print',                  s.printStyling);
+  // Wave 5 — PDF blend toggles (per theme mode).
+  cls('anp-pdf-blend-toggle-light', s.pdfBlendLight);
+  cls('anp-pdf-blend-toggle-dark',  s.pdfBlendDark);
+  // Wave 6 — workspace mop-up class-toggles.
+  cls('anp-decoration-toggle',      s.decorationsEnabled);
+  cls('anp-toggle-preview',         s.customPreviewMargins);
+  cls('anp-canvas-dark-bg',         s.canvasDarkBg);
+  cls('anp-bg-fix',                 s.bgFix);
+  cls('anp-hide-borders',           s.hideBorders);
+  cls('anp-card-shadows',           s.cardShadows);
+  // Wave 6.5 — colorful frame invert + card layout micro toggles.
+  cls('anp-colorful-frame-icon-toggle-light', s.colorfulFrameInvertLight);
+  cls('anp-colorful-frame-icon-toggle-dark',  s.colorfulFrameInvertDark);
+  cls('anp-card-layout-actions',    s.cardLayoutActions);
+  cls('anp-card-layout-filebrowser', s.cardLayoutFilebrowser);
+  // Wave 6.5 — status bar class-select (mutually exclusive classes).
+  ['anp-floating-status-bar', 'anp-fixed-status-bar'].forEach(c =>
+    document.body.classList.remove(c));
+  if (s.statusBarStyle && s.statusBarStyle !== 'none') {
+    document.body.classList.add(s.statusBarStyle);
+  }
+  // Wave 3 — heading master toggles + per-H divider toggles.
+  cls('anp-header-color-toggle',         s.headingColorsEnabled);
+  cls('anp-header-margin-toggle',        s.headingMarginsEnabled);
+  cls('anp-header-divider-color-toggle', s.headingDividerInherit);
+  cls('anp-h1-divider', s.h1Divider);
+  cls('anp-h2-divider', s.h2Divider);
+  cls('anp-h3-divider', s.h3Divider);
+  cls('anp-h4-divider', s.h4Divider);
+  cls('anp-h5-divider', s.h5Divider);
+  cls('anp-h6-divider', s.h6Divider);
+  // Wave 3 — per-H colour class-select. One of 14 Catppuccin colour
+  // classes or none (theme default). Clear all first, then add the
+  // chosen one if set.
+  applyColourClassSelect('anp-h1-', s.h1Color);
+  applyColourClassSelect('anp-h2-', s.h2Color);
+  applyColourClassSelect('anp-h3-', s.h3Color);
+  applyColourClassSelect('anp-h4-', s.h4Color);
+  applyColourClassSelect('anp-h5-', s.h5Color);
+  applyColourClassSelect('anp-h6-', s.h6Color);
+  applyColourClassSelect('anp-bold-',      s.boldColor);
+  applyColourClassSelect('anp-italic-',    s.italicColor);
+  applyColourClassSelect('anp-highlight-', s.highlightColor);
 
   // Inverted toggles (class present = hidden)
   cls('anp-toggle-scrollbars', !s.showScrollbars);
@@ -559,6 +693,7 @@ export function remove(): void {
   ALL_FLAVOUR_CLASSES.forEach(c => document.body.classList.remove(c));
   document.body.classList.remove(EXT_DARK, EXT_LIGHT);
   ALL_TAB_CLASSES.forEach(c => document.body.classList.remove(c));
+  ALL_TAB_ACTIVE_CLASSES.forEach(c => document.body.classList.remove(c));
   ALL_DENSITY_CLASSES.forEach(c => document.body.classList.remove(c));
   ALL_SIDEBAR_CLASSES.forEach(c => document.body.classList.remove(c));
   ALL_BG_CLASSES.forEach(c => document.body.classList.remove(c));
@@ -582,7 +717,33 @@ export function remove(): void {
    'anp-button-metadata-toggle', 'anp-codeblock-numbers', 'anp-floating-header',
    'anp-toggle-scrollbars', 'anp-hide-status-bar', 'tc-fm-boxed',
    'tc-tags-classic', 'tc-tags-ghost', 'tc-tags-solid',
+   // Wave 2 additions
+   'anp-speech-bubble', 'anp-list-toggle', 'anp-print',
+   // Wave 5 additions — PDF blend toggles
+   'anp-pdf-blend-toggle-light', 'anp-pdf-blend-toggle-dark',
+   // Wave 6 additions — workspace mop-up
+   'anp-decoration-toggle', 'anp-toggle-preview',
+   'anp-canvas-dark-bg', 'anp-bg-fix', 'anp-hide-borders',
+   'anp-card-shadows',
+   // Wave 6.5 — colorful frame invert + card layout + status bar
+   'anp-colorful-frame-icon-toggle-light',
+   'anp-colorful-frame-icon-toggle-dark',
+   'anp-card-layout-actions', 'anp-card-layout-filebrowser',
+   'anp-floating-status-bar', 'anp-fixed-status-bar',
+   // Wave 3 master toggles + per-H divider classes
+   'anp-header-color-toggle', 'anp-header-margin-toggle',
+   'anp-header-divider-color-toggle',
+   'anp-h1-divider', 'anp-h2-divider', 'anp-h3-divider',
+   'anp-h4-divider', 'anp-h5-divider', 'anp-h6-divider',
   ].forEach(c => document.body.classList.remove(c));
+  // Wave 3 — per-H + decoration colour class-selects (14 colours × 9
+  // prefixes = 126 possible classes). Nuke all so nothing leaks.
+  ['anp-h1-', 'anp-h2-', 'anp-h3-', 'anp-h4-', 'anp-h5-', 'anp-h6-',
+   'anp-bold-', 'anp-italic-', 'anp-highlight-'].forEach(prefix => {
+    CATPPUCCIN_COLOURS.forEach(name => {
+      document.body.classList.remove(`${prefix}${name}`);
+    });
+  });
   // Legacy — Callouts + Tables cleanup
   ALL_CALLOUT_STYLE_CLASSES.forEach(c => document.body.classList.remove(c));
   document.body.classList.remove('anp-callout-color-toggle');

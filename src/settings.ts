@@ -2,6 +2,28 @@ export interface TegenlichtSettings {
   // UI chrome
   tabBarStyle: string;   // 'pill' | 'underline' | 'segment'
   tabBarSpacing: number; // px gap between tab buttons
+  // Active-tab indicator paint. Drives body class
+  // tc-tabs-active-{glow|glow-b|pill}.
+  //   'glow'   — radial accent gradient, no tab borders.
+  //   'glow-b' — same radial glow PLUS a persistent currentColor
+  //              border ring on every tab; active tab swaps to an
+  //              accent-coloured ring. Current default.
+  //   'pill'   — solid 16% accent fill + 40% accent ring, fully
+  //              rounded. Inactive tabs get the currentColor ring
+  //              too (Pill B promoted).
+  tabActiveStyle: string; // 'glow' | 'glow-b' | 'pill'
+  // Accordion paint variant applied to every foldable accordion
+  // rendered through `buildPrettyAccordion` (Typography panes,
+  // Appearance clusters, etc.). One of the eight Lab-selected picks:
+  //   Pretty · Gutter · Ghost · Two-tone · Halo · Folio · Bloc · Dashed
+  accordionStyle: string; // 'pretty' | 'gutter' | 'ghost' | 'twotone' | 'halo' | 'filed' | 'bloc' | 'subdued'
+  // One-shot migration flag. When false on load, and tabActiveStyle
+  // is the prior default ('glow'), loadSettings promotes it to
+  // 'glow-b' and flips this to true. After that the user's explicit
+  // pick is respected (so they can flip back to 'glow' if they want).
+  tabActiveStyleMigratedV1: boolean;
+
+
 
   // Appearance — Colour scheme
   darkFlavour: string;
@@ -133,6 +155,132 @@ export interface TegenlichtSettings {
   kanban: boolean;
   calendar: boolean;
 
+  // AnuPpuccin port Wave 2 — single-class toggles + scalar vars.
+  // speechBubbles: task-list items become speech-bubble-styled blocks
+  //   (anp-speech-bubble body class).
+  // listToggle: anp-list-toggle body class; gates nested-bullet styling.
+  // tagBorderWidth: --tag-border-width px (0–4).
+  // tagRadius: --tag-radius em (0–2, step 0.1).
+  // embedMaxHeight: --embed-max-height px (120–1200).
+  // printStyling: anp-print body class; scopes print-only rendering.
+  speechBubbles: boolean;
+  listToggle: boolean;
+  tagBorderWidth: number;
+  tagRadius: number;
+  embedMaxHeight: number;
+  printStyling: boolean;
+
+  // AnuPpuccin port Wave 3 — heading colours, dividers, decoration.
+  // Master toggles gate everything below; without these on, the theme
+  // paints headings in its default colour. When a master toggle is on,
+  // the per-H colour / divider settings take effect.
+  //   headingColorsEnabled → anp-header-color-toggle
+  //   headingMarginsEnabled → anp-header-margin-toggle
+  //   headingDividerInherit → anp-header-divider-color-toggle
+  //   headingMargin → --anp-header-margin-value (0–30 px, step 2)
+  // Per-H colour values are one of the 14 Catppuccin colour names
+  // ('' = theme default), written to body as `anp-h{N}-{name}`.
+  // h{N}Divider → anp-h{N}-divider body class.
+  // Decoration settings mirror the heading colour pattern for bold,
+  // italic, and highlighted runs.
+  headingColorsEnabled: boolean;
+  headingMarginsEnabled: boolean;
+  headingDividerInherit: boolean;
+  headingMargin: number;
+  h1Color: string; h2Color: string; h3Color: string;
+  h4Color: string; h5Color: string; h6Color: string;
+  h1Divider: boolean; h2Divider: boolean; h3Divider: boolean;
+  h4Divider: boolean; h5Divider: boolean; h6Divider: boolean;
+  boldColor: string;
+  italicColor: string;
+  highlightColor: string;
+
+  // AnuPpuccin port Wave 4 — micro-typography.
+  // Per-heading font family / weight / line-height (6 × 3 = 18 vars).
+  // Font string '' means inherit from the theme / editor font picker;
+  // any other string is written to --h{N}-font verbatim.
+  // Weight 100–900 (step 100) → --h{N}-weight.
+  // Line-height 0.8–2.5 (step 0.05) → --h{N}-line-height.
+  // Plus 4 global weight scalars:
+  //   boldWeight → --bold-weight
+  //   livePreviewWeight → --anp-font-live-preview-wt
+  //   readingWeight → --anp-font-preview-wt
+  //   sourceWeight → --anp-font-editor-wt
+  h1Font: string; h2Font: string; h3Font: string;
+  h4Font: string; h5Font: string; h6Font: string;
+  h1Weight: number; h2Weight: number; h3Weight: number;
+  h4Weight: number; h5Weight: number; h6Weight: number;
+  h1LineHeight: number; h2LineHeight: number; h3LineHeight: number;
+  h4LineHeight: number; h5LineHeight: number; h6LineHeight: number;
+  boldWeight: number;
+  livePreviewWeight: number;
+  readingWeight: number;
+  sourceWeight: number;
+
+  // AnuPpuccin port Wave 5 — specialised single-setting ports.
+  //   lightAccentColour: 'auto' (use accentColour in both modes) OR a
+  //     hex string that overrides the accent when body is .theme-light.
+  //     Mirrors the darkFlavour/lightFlavour pattern for palette pick.
+  //   latexColour: '' (theme default) OR hex — written to --anp-latex-color
+  //     when non-empty. Covers LaTeX block text colour.
+  //   pdfBlendLight / pdfBlendDark: class-toggles that blend the PDF
+  //     viewer background with the editor background per theme mode.
+  lightAccentColour: string;
+  latexColour: string;
+  pdfBlendLight: boolean;
+  pdfBlendDark: boolean;
+
+  // AnuPpuccin port Wave 6 — workspace mop-up (highest-value subset).
+  // Prioritised picks from the inventory's ◯ Not yet column that are
+  // one-line class toggles, simple scalars, or natural masters for
+  // the Wave 3 colour work.
+  //   decorationsEnabled → anp-decoration-toggle; master that gates
+  //     whether the bold/italic/highlight colour picks actually paint.
+  //   listMarkerColour → --list-marker-color (themed hex; empty = theme).
+  //   customPreviewMargins → anp-toggle-preview; enables the
+  //     reading-view margin vars.
+  //   canvasDarkBg → anp-canvas-dark-bg; darker canvas backdrop.
+  //   bgFix → anp-bg-fix; workspace bg paint fix.
+  //   hideBorders → anp-hide-borders; kills the Obsidian internal
+  //     pane-frame borders.
+  //   cardShadows → anp-card-shadows (only effective with sidebarStyle
+  //     === 'cards'); drops shadow on card tiles.
+  //   colorfulFrameOpacity → --anp-colorful-frame-opacity (0–1, step
+  //     0.05); pairs with the existing `colorfulFrame` toggle.
+  decorationsEnabled: boolean;
+  listMarkerColour: string;
+  customPreviewMargins: boolean;
+  canvasDarkBg: boolean;
+  bgFix: boolean;
+  hideBorders: boolean;
+  cardShadows: boolean;
+  colorfulFrameOpacity: number;
+
+  // AnuPpuccin port Wave 6.5 — deferred items from Wave 6's "not
+  // worth the size" list. Grouped functionally:
+  //   Colorful frame micro: two invert toggles + custom colour var
+  //     (written as "r, g, b" triplet per theme's rgb-values format).
+  //   Card layout micro: padding + header-padding vars + two card-
+  //     format toggles (actions / filebrowser).
+  //   Stacked tabs micro: header width + pane-width multiplier vars.
+  //   File label alignment: variable-select "0" (left) | "1" (right).
+  //   Status bar style: class-select none | anp-floating-status-bar
+  //     | anp-fixed-status-bar.
+  //   Ordered list style: variable-select (17 CSS list-style-type
+  //     values, e.g. decimal / lower-roman / hiragana / etc.)
+  colorfulFrameInvertLight: boolean;
+  colorfulFrameInvertDark: boolean;
+  colorfulFrameColour: string;
+  cardLayoutPadding: number;
+  cardHeaderLeftPadding: number;
+  cardLayoutActions: boolean;
+  cardLayoutFilebrowser: boolean;
+  stackedHeaderWidth: number;
+  tabStackedPaneWidth: number;
+  fileLabelAlign: string;
+  statusBarStyle: string;
+  orderedListStyle: string;
+
   // Editing — Properties panel styling
   // Toggles an accent-gradient card wrapper around Obsidian's Properties
   // panel (.metadata-container). Same visual as the frontmatter-beauty.css
@@ -195,6 +343,9 @@ export interface TegenlichtSettings {
 export const DEFAULT_SETTINGS: TegenlichtSettings = {
   tabBarStyle: 'text',
   tabBarSpacing: 6,
+  tabActiveStyle: 'glow-b',
+  tabActiveStyleMigratedV1: false,
+  accordionStyle: 'pretty',
 
   darkFlavour: 'tc-maneblusser',
   lightFlavour: 'tc-mechelen',
@@ -299,6 +450,78 @@ export const DEFAULT_SETTINGS: TegenlichtSettings = {
   itsCallouts: true,
   kanban: false,
   calendar: false,
+
+  // Wave 2 defaults — match AnuPpuccin's own defaults so first-load
+  // behaviour is identical to the theme's defaults.
+  speechBubbles: false,
+  listToggle: false,
+  tagBorderWidth: 0,
+  tagRadius: 2,
+  embedMaxHeight: 200,
+  printStyling: false,
+
+  // Wave 3 defaults — all master toggles off = theme's own defaults
+  // remain in force until user opts in. Per-H / decoration colours
+  // default to '' (auto / theme default).
+  headingColorsEnabled: false,
+  headingMarginsEnabled: false,
+  headingDividerInherit: false,
+  headingMargin: 15,
+  h1Color: '', h2Color: '', h3Color: '',
+  h4Color: '', h5Color: '', h6Color: '',
+  h1Divider: false, h2Divider: false, h3Divider: false,
+  h4Divider: false, h5Divider: false, h6Divider: false,
+  boldColor: '',
+  italicColor: '',
+  highlightColor: '',
+
+  // Wave 4 defaults — font strings empty (theme / plugin font pick
+  // still drives), weight/line-height match AnuPpuccin's own YAML
+  // defaults so first load inherits the theme's baseline.
+  h1Font: '', h2Font: '', h3Font: '',
+  h4Font: '', h5Font: '', h6Font: '',
+  h1Weight: 700, h2Weight: 600, h3Weight: 600,
+  h4Weight: 600, h5Weight: 600, h6Weight: 600,
+  h1LineHeight: 1.2, h2LineHeight: 1.2, h3LineHeight: 1.3,
+  h4LineHeight: 1.3, h5LineHeight: 1.4, h6LineHeight: 1.5,
+  boldWeight: 600,
+  livePreviewWeight: 400,
+  readingWeight: 400,
+  sourceWeight: 400,
+
+  // Wave 5 defaults — auto = mirror darkAccent in light mode too
+  // (current behaviour); empty LaTeX colour = theme default paints;
+  // PDF blends off.
+  lightAccentColour: 'auto',
+  latexColour: '',
+  pdfBlendLight: false,
+  pdfBlendDark: false,
+
+  // Wave 6 defaults — all toggles off (theme defaults hold),
+  // listMarkerColour empty (theme paints), colorfulFrameOpacity 1.0
+  // (AnuPpuccin's own default when the colorful frame is on).
+  decorationsEnabled: false,
+  listMarkerColour: '',
+  customPreviewMargins: false,
+  canvasDarkBg: false,
+  bgFix: false,
+  hideBorders: false,
+  cardShadows: false,
+  colorfulFrameOpacity: 1.0,
+
+  // Wave 6.5 defaults — match AnuPpuccin's own YAML.
+  colorfulFrameInvertLight: false,
+  colorfulFrameInvertDark: false,
+  colorfulFrameColour: '',
+  cardLayoutPadding: 10,
+  cardHeaderLeftPadding: 20,
+  cardLayoutActions: false,
+  cardLayoutFilebrowser: false,
+  stackedHeaderWidth: 40,
+  tabStackedPaneWidth: 1,
+  fileLabelAlign: '0',
+  statusBarStyle: 'none',
+  orderedListStyle: 'decimal',
 
   propertiesBoxed: false,
 

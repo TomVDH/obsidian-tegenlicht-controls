@@ -1,7 +1,7 @@
 {
   "id": "tegenlicht-controls",
   "name": "Tegenlicht Controls",
-  "version": "0.7.7",
+  "version": "0.8.0",
   "minAppVersion": "1.6.0",
   "description": "Visual settings companion for the Tegenlicht theme — Low Countries flavour swatches, per-role font pickers with Google Fonts support, background effects (frosted glass / transparency), film-grain noise, heading-size sliders, and a live mini-Obsidian typography preview.",
   "author": "Tom",

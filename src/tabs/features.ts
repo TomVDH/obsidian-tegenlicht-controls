@@ -40,6 +40,15 @@ const GROUPS: FeatureGroup[] = [
       { key: "collapseFolderIcons",label: "Collapse folder icons",desc: "Custom icons for collapsed folders" },
       { key: "colorfulFrame",      label: "Colorful frame",       desc: "Accent-coloured window frame" },
       { key: "customVaultTitle",   label: "Custom vault title" },
+      {
+        kind: "select" as const,
+        key: "fileLabelAlign" as keyof TegenlichtSettings,
+        label: "File label alignment",
+        options: [
+          { label: "Left",  value: "0" },
+          { label: "Right", value: "1" },
+        ],
+      },
     ],
   },
   {
@@ -50,6 +59,20 @@ const GROUPS: FeatureGroup[] = [
       { key: "rainbowTags",      label: "Rainbow tags" },
       { key: "metadataButton",   label: "Metadata button" },
       { key: "metadataMods",     label: "Metadata mods",     desc: "Frontmatter display tweaks" },
+      { key: "speechBubbles",    label: "Speech bubbles",    desc: "Render task-list items as bubble-styled blocks" },
+      { key: "printStyling",     label: "Print styling",     desc: "Apply dedicated formatting for print / export" },
+      { key: "pdfBlendLight",    label: "PDF blend (light)", desc: "Blend PDF viewer background with the editor in light mode" },
+      { key: "pdfBlendDark",     label: "PDF blend (dark)",  desc: "Blend PDF viewer background with the editor in dark mode" },
+      // Wave 6 — workspace toggles.
+      { key: "canvasDarkBg",     label: "Darker canvas backdrop", desc: "Use a darker background for Obsidian canvases" },
+      { key: "bgFix",            label: "Workspace bg fix",  desc: "Repaint fix for translucent / colourful backdrops" },
+      { key: "hideBorders",      label: "Hide pane borders", desc: "Remove Obsidian's internal pane-frame borders" },
+      { key: "cardShadows",      label: "Card shadows",      desc: "Drop shadow on card tiles (requires Cards layout)" },
+      // Wave 6.5 — colorful frame icon invert + card-format toggles.
+      { key: "colorfulFrameInvertLight", label: "Colorful frame · invert icons (light)", desc: "Invert icon colours on the colorful frame in light mode" },
+      { key: "colorfulFrameInvertDark",  label: "Colorful frame · invert icons (dark)",  desc: "Invert icon colours on the colorful frame in dark mode" },
+      { key: "cardLayoutActions",    label: "Card format · actions",     desc: "Render action rows as cards (requires Cards layout)" },
+      { key: "cardLayoutFilebrowser", label: "Card format · file browser", desc: "Render the file browser as cards (requires Cards layout)" },
     ],
   },
   {
@@ -80,6 +103,16 @@ const GROUPS: FeatureGroup[] = [
       { key: "showScrollbars", label: "Scrollbars" },
       { key: "showStatusBar",  label: "Status bar" },
       { key: "showVaultName",  label: "Vault name" },
+      {
+        kind: "select" as const,
+        key: "statusBarStyle" as keyof TegenlichtSettings,
+        label: "Status bar style",
+        options: [
+          { label: "Default",  value: "none" },
+          { label: "Floating", value: "anp-floating-status-bar" },
+          { label: "Fixed",    value: "anp-fixed-status-bar" },
+        ],
+      },
     ],
   },
   {

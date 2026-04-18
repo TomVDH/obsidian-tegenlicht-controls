@@ -9,6 +9,15 @@ import {
   buildSegmentSetting,
   buildColorToggleRow,
 } from "./_shared";
+import {
+  buildTypographyPreview,
+  buildCalloutPreview,
+  buildEditingPreview,
+  buildFrontmatterPreview,
+  buildFrontmatterPreviewMinimal,
+  buildFrontmatterPreviewStriped,
+  buildFrontmatterPreviewAccentBar,
+} from "../preview-sample";
 
 /**
  * Lab tab — sandbox for experimenting with two-axis navigation.
@@ -44,8 +53,16 @@ export function build(
 
   const sections: LeftRailSection[] = [
     {
+      id: "previews", label: "Previews", count: 7,
+      render: pane => renderPreviews(pane),
+    },
+    {
       id: "tab-styles", label: "Tab styles", count: 12,
       render: pane => renderTabStyles(pane),
+    },
+    {
+      id: "accordion-styles", label: "Accordion styles", count: 8,
+      render: pane => renderAccordionStyles(pane),
     },
     {
       id: "switches", label: "Switches & inputs", count: 11,
@@ -105,7 +122,7 @@ export function build(
     },
   ];
 
-  const shellCleanup = buildLeftRailShell(containerEl, sections);
+  const shellCleanup = buildLeftRailShell(containerEl, sections, "lab");
   return () => {
     shellCleanup();
     pickrs.forEach(p => { try { p.destroyAndRemove(); } catch (_) { /* no-op */ } });
@@ -258,15 +275,43 @@ function dummyControlsClustered(
 //   - Segment    → all-tabs-in-track, active is filled
 //   - Cap        → small accent indicator above the active tab
 // ─────────────────────────────────────────────────────────────────────
+/** Lab → Previews — stack of every mini-Obsidian preview the plugin
+ *  renders elsewhere (Typography, Callouts, Editing). Quick reference
+ *  surface to compare them side-by-side and smoke-test new ones
+ *  without hunting them down across tabs. */
+function renderPreviews(pane: HTMLElement): void {
+  pane.createEl("h3", { cls: "tc-leftrail-sechead", text: "Previews" });
+  pane.createEl("p", { cls: "tc-leftrail-secdesc",
+    text: "Every mini-Obsidian preview the plugin ships, stacked for comparison. Re-uses the live build helpers — so changes to the preview content land here too." });
+
+  const specs: { label: string; build: (p: HTMLElement) => void }[] = [
+    { label: "Typography",                         build: buildTypographyPreview },
+    { label: "Callouts",                           build: buildCalloutPreview   },
+    { label: "Editing",                            build: buildEditingPreview   },
+    { label: "Frontmatter (default — boxed)",      build: buildFrontmatterPreview },
+    { label: "Frontmatter alt — Minimal",          build: buildFrontmatterPreviewMinimal },
+    { label: "Frontmatter alt — Striped",          build: buildFrontmatterPreviewStriped },
+    { label: "Frontmatter alt — Accent bar",       build: buildFrontmatterPreviewAccentBar },
+  ];
+  specs.forEach(spec => {
+    const slot = pane.createDiv("tc-mock-preview-slot");
+    slot.createSpan({ cls: "tc-mock-tab-label", text: spec.label });
+    const wrap = slot.createDiv("tc-mock-preview-wrap");
+    spec.build(wrap);
+  });
+}
+
 function renderTabStyles(pane: HTMLElement): void {
   pane.createEl("h3", { cls: "tc-leftrail-sechead", text: "Tab styles" });
   pane.createEl("p", { cls: "tc-leftrail-secdesc",
     text: "Visual sandbox for top-tab styling experiments. Each row is a click-through demo — try them, see which one feels right. Live tab style still configured in Appearance." });
 
-  // Existing five
+  // Existing five + B-variants experimenting with border treatments
   buildMockTabBar(pane, "Glow text",        "tc-mock--glow",       { glow: true });
+  buildMockTabBar(pane, "Glow text B",      "tc-mock--glow-b",     { glow: true });
   buildMockTabBar(pane, "Underline",        "tc-mock--underline",  {});
   buildMockTabBar(pane, "Pill",             "tc-mock--pill",       {});
+  buildMockTabBar(pane, "Pill B",           "tc-mock--pill-b",     {});
   buildMockTabBar(pane, "Segment",          "tc-mock--segment",    {});
   buildMockTabBar(pane, "Cap",              "tc-mock--cap",        {});
   // Container bloom + aura family
@@ -278,6 +323,108 @@ function renderTabStyles(pane: HTMLElement): void {
   buildMockTabBar(pane, "Dual line",        "tc-mock--dual",       {});
   buildMockTabBar(pane, "Notch",            "tc-mock--notch",      {});
   buildMockTabBar(pane, "Dot indicator",    "tc-mock--dot",        {});
+}
+
+// ─────────────────────────────────────────────────────────────────────
+// Accordion styles — 5 variants of the pretty-accordion shell, each
+// exploring a different header layout, font treatment, chevron glyph,
+// and accent-paint story (A/B/C accent-forward, C/D/E accent-free).
+// Dummy rows inside so header rhythm can be judged against real
+// content shape. Click headers to fold/unfold.
+// ─────────────────────────────────────────────────────────────────────
+function renderAccordionStyles(pane: HTMLElement): void {
+  pane.createEl("h3", { cls: "tc-leftrail-sechead", text: "Accordion styles" });
+  pane.createEl("p", { cls: "tc-leftrail-secdesc",
+    text: "Selected picks — eight accordion variants across Pretty (accent-forward) and Simple (neutral / mono). Scrapped: Slab / Bookmark / Ring / Float / Editorial / Marker / Hairline / Ledger / Compact." });
+
+  // ── Pretty — accent-forward ──────────────────────────────
+  pane.createEl("h4", { cls: "tc-lab-subhead", text: "Pretty" });
+
+  buildMockAccordion(pane, {
+    variant: "tc-mock-acc--pretty",
+    title: "Pretty",
+    quip: "Accent gradient fill + 1px accent border. All-caps subtitle, triangle chevron that rotates 90° on open. The baseline.",
+  });
+
+  buildMockAccordion(pane, {
+    variant: "tc-mock-acc--gutter",
+    title: "Gutter",
+    quip: "3px accent stripe runs down the left edge. Near-neutral card, small-caps title, + / − glyph chevron. Accent reduced to a trim.",
+  });
+
+  buildMockAccordion(pane, {
+    variant: "tc-mock-acc--ghost",
+    title: "Ghost",
+    quip: "Invisible at rest. A soft accent radial blooms behind the header on hover or when open; muted text lifts to full colour.",
+  });
+
+  buildMockAccordion(pane, {
+    variant: "tc-mock-acc--twotone",
+    title: "Two-tone",
+    quip: "Accent-tinted header strip above a neutral body. Two surfaces stack — header carries the accent, body reads as a nested inset.",
+  });
+
+  buildMockAccordion(pane, {
+    variant: "tc-mock-acc--halo",
+    title: "Halo",
+    quip: "Pretty default at rest. On hover or when open, a large blurred accent halo blooms OUTSIDE the card perimeter — the whole card haloes.",
+  });
+
+  // ── Simple — neutral / mono ──────────────────────────────
+  pane.createEl("h4", { cls: "tc-lab-subhead", text: "Simple" });
+
+  buildMockAccordion(pane, {
+    variant: "tc-mock-acc--filed",
+    title: "Folio",
+    quip: "Title sits in a chip protruding above the card top edge — like a file folder's tab. Neutral chrome, circular ↑ / ↓ chevron.",
+  });
+
+  buildMockAccordion(pane, {
+    variant: "tc-mock-acc--bloc",
+    title: "Bloc",
+    quip: "Neutral card with a small-caps kicker stacked above the title. Circular + / − disc chevron. Pure mono — no accent anywhere.",
+    kicker: "SECTION",
+  });
+
+  buildMockAccordion(pane, {
+    variant: "tc-mock-acc--subdued",
+    title: "Dashed",
+    quip: "Faint neutral bg with a 1px dashed mono border. Italic muted title. Monospace +/− chevron — minimal, deliberate quietude.",
+  });
+}
+
+interface MockAccOpts {
+  variant: string;
+  title: string;    // the section title, integrated INSIDE the accordion header
+  quip: string;     // subquip description, stacked below the title in the header
+  kicker?: string;  // opt-in small-caps kicker (bloc variant)
+}
+
+/** Build one foldable mock accordion. Title + subquip live INSIDE
+ *  the accordion's header as a stacked group so they read as ONE
+ *  integrated unit with the variant chrome — no external h5/p
+ *  splitting the pair off above the card. Chevron stays right;
+ *  body is sample rows. */
+function buildMockAccordion(parent: HTMLElement, opts: MockAccOpts): void {
+  const acc = parent.createDiv("tc-mock-acc tc-mock-acc--open " + opts.variant);
+
+  const header = acc.createDiv("tc-mock-acc-header");
+  if (opts.kicker) header.createSpan({ cls: "tc-mock-acc-kicker", text: opts.kicker });
+  const group = header.createDiv("tc-mock-acc-titlegroup");
+  group.createSpan({ cls: "tc-mock-acc-title", text: opts.title });
+  group.createSpan({ cls: "tc-mock-acc-quip", text: opts.quip });
+  header.createSpan({ cls: "tc-mock-acc-chev" });
+
+  const body = acc.createDiv("tc-mock-acc-body");
+  ["Sample setting A", "Sample setting B", "Sample setting C"].forEach(label => {
+    const row = body.createDiv("tc-mock-acc-row");
+    row.createSpan({ cls: "tc-mock-acc-row-label", text: label });
+    row.createDiv("tc-mock-acc-row-ctl");
+  });
+
+  header.addEventListener("click", () => {
+    acc.toggleClass("tc-mock-acc--open", !acc.hasClass("tc-mock-acc--open"));
+  });
 }
 
 const MOCK_TAB_LABELS = ["Appearance", "Typography", "Editing", "Layout"];

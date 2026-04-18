@@ -481,48 +481,57 @@ interface PropertyRow {
   build: (valueEl: HTMLElement) => void;
 }
 
+/** Text-style property value. Obsidian renders these as plain text in
+ *  `.metadata-input-longtext` — NOT contenteditable until the user
+ *  actually clicks the row. Skipping the `contenteditable` attribute
+ *  here keeps the static preview reading as clean label-text, not an
+ *  obvious editable box with a blinking cursor. */
+function buildTextValue(v: HTMLElement, text: string): HTMLElement {
+  const input = v.createDiv("metadata-input-longtext");
+  input.setText(text);
+  return input;
+}
+
 const EDITING_PROPERTY_ROWS: PropertyRow[] = [
   {
     type: "text", icon: "text", key: "title",
-    build: v => v.setText("Lorem ipsum dolor sit amet"),
+    build: v => { buildTextValue(v, "Lorem ipsum dolor sit amet"); },
+  },
+  {
+    type: "multitext", icon: "lucide-list", key: "aliases",
+    build: v => buildMultiSelect(v, ["Short title", "Working name"]),
   },
   {
     type: "multitext", icon: "tags", key: "tags",
-    build: v => {
-      // Real-Obsidian multi-select structure: container → pills with
-      // `.multi-select-pill-content` + Lucide-X remove button. Using
-      // Obsidian's own classes means `body.tc-tags-{style}` paints these
-      // pills identically to real note-body tags.
-      const container = v.createDiv("multi-select-container");
-      ["typography", "flavour", "preview"].forEach(t => {
-        const pill = container.createDiv({
-          cls: "multi-select-pill",
-          attr: { tabindex: "0" },
-        });
-        const pillContent = pill.createDiv("multi-select-pill-content");
-        pillContent.createSpan({ text: t });
-        const removeBtn = pill.createDiv("multi-select-pill-remove-button");
-        setIcon(removeBtn, "x");
-      });
-    },
+    build: v => buildMultiSelect(v, ["typography", "flavour", "preview"]),
   },
   {
     type: "date", icon: "calendar-days", key: "created",
-    build: v => v.setText("2026-04-14"),
+    // Date values render as flat text in .metadata-input-date. Real
+    // Obsidian stamps a small calendar glyph before the date via
+    // ::before or a prefix element — we match that with an inline
+    // icon span so the preview visually reads "📅 2026-04-14" like
+    // the live panel.
+    build: v => {
+      const wrap = v.createDiv("metadata-input-date");
+      const glyph = wrap.createSpan({ cls: "metadata-input-date-icon" });
+      setIcon(glyph, "calendar");
+      wrap.createSpan({ cls: "metadata-input-date-text", text: "2026-04-14" });
+    },
   },
   {
     type: "text", icon: "text", key: "status",
-    build: v => v.setText("draft"),
+    build: v => { buildTextValue(v, "draft"); },
   },
   {
     type: "number", icon: "binary", key: "priority",
-    build: v => v.setText("3"),
+    build: v => {
+      v.createDiv({ cls: "metadata-input-number", text: "3" });
+    },
   },
   {
     type: "checkbox", icon: "check-square", key: "done",
     build: v => {
-      // Obsidian renders boolean properties as a checkbox <input> — match
-      // that so its native styling (and our tc-fm-boxed overrides) reach it.
       const input = v.createEl("input", {
         cls: "metadata-input-checkbox",
         attr: { type: "checkbox" },
@@ -531,10 +540,38 @@ const EDITING_PROPERTY_ROWS: PropertyRow[] = [
     },
   },
   {
-    type: "link", icon: "link", key: "banner",
-    build: v => v.setText("[[images/mountain]]"),
+    type: "text", icon: "link", key: "banner",
+    // Wikilink frontmatter text — painted inline via cm-* link classes
+    // the way Live Preview renders it. No contenteditable; same
+    // reasoning as buildTextValue above.
+    build: v => {
+      const input = v.createDiv("metadata-input-longtext");
+      input.createSpan({ text: "[[", cls: "cm-formatting cm-formatting-link" });
+      input.createSpan({ text: "images/mountain", cls: "cm-hmd-internal-link" });
+      input.createSpan({ text: "]]", cls: "cm-formatting cm-formatting-link" });
+    },
   },
 ];
+
+/** Multi-select pill container + pills. NO trailing `.multi-select-input`
+ *  in the static preview — real Obsidian has the input there in the
+ *  DOM but styles it invisible / zero-width until the row is clicked.
+ *  Rendering it here as a visible empty box was the main "weird text
+ *  box" the preview was sprouting, so it's omitted entirely. Pills
+ *  alone read identically to the unfocused live panel. */
+function buildMultiSelect(v: HTMLElement, values: string[]): void {
+  const container = v.createDiv("multi-select-container");
+  values.forEach(t => {
+    const pill = container.createDiv({
+      cls: "multi-select-pill",
+      attr: { tabindex: "0" },
+    });
+    const pillContent = pill.createDiv("multi-select-pill-content");
+    pillContent.createSpan({ text: t });
+    const removeBtn = pill.createDiv("multi-select-pill-remove-button");
+    setIcon(removeBtn, "x");
+  });
+}
 
 /** Builds the full mini-Obsidian editing preview into `parent`.
  *  Uses Obsidian's setIcon() via dynamic import so the preview-sample
@@ -584,20 +621,34 @@ export function buildEditingPreview(parent: HTMLElement): HTMLElement {
   tabs.createDiv({ text: "Style Kitchen Sink", cls: "mini-tab active" });
   tabs.createDiv({ text: "Reading list",      cls: "mini-tab" });
 
-  // Properties panel — uses Obsidian's REAL class names throughout so
-  // the preview literally IS a Properties panel as Obsidian would render
-  // it. The `.mini-fm` class stays on the outer div for scope-targeted
-  // sizing/layout in the settings pane; every inner class is Obsidian's
-  // own, which means boxed-Properties CSS, tag-style CSS, and Obsidian's
-  // own metadata CSS all paint the preview exactly as they'd paint a
-  // note. Change a setting → the preview updates in lockstep with what
-  // you'll see in real notes.
-  const fm = main.createDiv("metadata-container mini-fm");
+  // Properties panel DOM built by the shared helper below — reused by
+  // buildFrontmatterPreview so there's one DOM shape maintained.
+  buildFrontmatterDom(main);
 
-  // Heading — `.metadata-properties-heading` with a `.collapse-indicator`
-  // containing the chevron (the plugin's boxed CSS hides this in boxed
-  // mode and stamps its own via ::after; in non-boxed mode the native
-  // chevron shows normally).
+  // Note body — H1 + a short lede so the panel-to-body transition reads.
+  main.createEl("h1", { text: "Lorem ipsum dolor sit amet" });
+  main.createEl("p", {
+    text: "A short lede paragraph to show where the note body begins. " +
+          "The Properties panel above sits exactly where real Obsidian " +
+          "places it — between the tab strip and the first heading of " +
+          "the note.",
+  });
+
+  setupPreviewModeToggle(preview);
+  return preview;
+}
+
+/** Builds the .metadata-container DOM (AKA the frontmatter / Properties
+ *  panel) into `parent`. Uses Obsidian's real class names throughout so
+ *  the plugin's `tc-fm-boxed` rules + tag-style rules + Obsidian's own
+ *  metadata CSS paint it identically to a live note's Properties panel.
+ *
+ *  Shared between buildEditingPreview (full mini-Obsidian shell) and
+ *  buildFrontmatterPreview (focused, chrome-less). Interactive: clicking
+ *  the heading collapses / expands the panel exactly as Obsidian does. */
+function buildFrontmatterDom(parent: HTMLElement): HTMLElement {
+  const fm = parent.createDiv("metadata-container mini-fm");
+
   const fmHeader = fm.createDiv("metadata-properties-heading");
   fmHeader.setAttribute("tabindex", "0");
   fmHeader.setAttribute("aria-expanded", "true");
@@ -612,51 +663,96 @@ export function buildEditingPreview(parent: HTMLElement): HTMLElement {
     fmHeader.setAttribute("aria-expanded", collapsed ? "false" : "true");
   });
 
-  // Content wrapper + properties grid — matches Obsidian's real structure.
   const content = fm.createDiv("metadata-content");
   const props = content.createDiv("metadata-properties");
   EDITING_PROPERTY_ROWS.forEach(row => {
+    // No tabindex here — the live Obsidian panel doesn't focus rows on
+    // mount, so adding tabindex: 0 sprouts a stray focus ring on the
+    // first interactive row of the static preview. Kept the
+    // data-property-* attrs since body.tc-fm-boxed rules read them for
+    // type-specific styling.
     const propEl = props.createDiv({
       cls: "metadata-property",
       attr: {
         "data-property-key": row.key,
         "data-property-type": row.type,
-        tabindex: "0",
       },
     });
-    // Key = icon + readonly input (real Obsidian uses an <input>).
     const keyWrap = propEl.createDiv("metadata-property-key");
     const iconSpan = keyWrap.createSpan({ cls: "metadata-property-icon" });
     setIcon(iconSpan, row.icon);
-    const keyInput = keyWrap.createEl("input", {
+    // Key text rendered as a plain div (NOT an <input>). Real Obsidian
+    // does use an input here that's styled flat via CSS, but the
+    // browser's default input chrome (border, padding, font-family)
+    // leaks through in our unscoped preview and shows as an obvious
+    // boxed text input. Using a div avoids the chrome entirely and
+    // matches the visual of the live unfocused panel exactly.
+    keyWrap.createDiv({
       cls: "metadata-property-key-input",
-      attr: { type: "text", value: row.key, spellcheck: "false" },
+      text: row.key,
     });
-    keyInput.readOnly = true;
 
-    // Value — delegated to the row.build(). Real Obsidian nests a
-    // typed value wrapper inside `.metadata-property-value`; we give
-    // build() the outer div and let it shape the inside.
     const valueEl = propEl.createDiv({ cls: "metadata-property-value" });
     row.build(valueEl);
   });
 
-  // "Add property" button — complete the real-Obsidian shape. Purely
-  // visual in the preview; no click handler.
   const addBtn = content.createDiv("metadata-add-button");
   const addIcon = addBtn.createSpan({ cls: "metadata-add-button-icon" });
   setIcon(addIcon, "plus");
   addBtn.createSpan({ text: "Add property" });
 
-  // Note body — H1 + a short lede so the panel-to-body transition reads.
-  main.createEl("h1", { text: "Lorem ipsum dolor sit amet" });
-  main.createEl("p", {
-    text: "A short lede paragraph to show where the note body begins. " +
-          "The Properties panel above sits exactly where real Obsidian " +
-          "places it — between the tab strip and the first heading of " +
-          "the note.",
-  });
-
-  setupPreviewModeToggle(preview);
-  return preview;
+  return fm;
 }
+
+/** Focused preview of the frontmatter / Properties panel in its PRETTY
+ *  boxed treatment.
+ *
+ *  Wrapped in `.tc-fm-preview-forced` so the plugin's boxed CSS rules
+ *  — originally scoped to `body.tc-fm-boxed`, extended via
+ *  `:is(body.tc-fm-boxed, .tc-fm-preview-forced)` — cascade in. No
+ *  `tc-mini-obsidian` class here: that scope adds its own compacting
+ *  rules (smaller font, tighter row heights, shrunken pills) that were
+ *  making the preview diverge visually from the live panel. The live
+ *  panel's only styling comes from the boxed-fm rules, so the preview
+ *  carries the SAME single class and renders identically to what the
+ *  user sees in a real note. */
+export function buildFrontmatterPreview(parent: HTMLElement): HTMLElement {
+  const wrap = parent.createDiv("tc-fm-preview-forced");
+  buildFrontmatterDom(wrap);
+  return wrap;
+}
+
+// ───────────────────────────────────────────────────────────────
+// ALTERNATIVE Properties panel designs. Each wraps the same DOM
+// in a different scope class so the visual treatment diverges —
+// but they're VISUAL MOCKS ONLY. No body-class toggle, no setting.
+// Tom picks one later and we wire it up then. Same click-to-
+// collapse interaction, same icons, same data.
+// ───────────────────────────────────────────────────────────────
+
+/** Minimal — no outer box, no gradient, just rows separated by a
+ *  dashed hairline. The Properties panel as reading rhythm, not
+ *  card chrome. */
+export function buildFrontmatterPreviewMinimal(parent: HTMLElement): HTMLElement {
+  const wrap = parent.createDiv("tc-fm-alt tc-fm-alt--minimal");
+  buildFrontmatterDom(wrap);
+  return wrap;
+}
+
+/** Striped — alternating row backgrounds for a data-table feel.
+ *  Clean neutral card, subtle zebra stripes. */
+export function buildFrontmatterPreviewStriped(parent: HTMLElement): HTMLElement {
+  const wrap = parent.createDiv("tc-fm-alt tc-fm-alt--striped");
+  buildFrontmatterDom(wrap);
+  return wrap;
+}
+
+/** Accent bar — no outer box, left-edge accent stripe marks the
+ *  panel. Rows flow open on the right, the coloured bar does the
+ *  framing work. Quiet + accent-forward. */
+export function buildFrontmatterPreviewAccentBar(parent: HTMLElement): HTMLElement {
+  const wrap = parent.createDiv("tc-fm-alt tc-fm-alt--accentbar");
+  buildFrontmatterDom(wrap);
+  return wrap;
+}
+

@@ -1,4 +1,4 @@
-import { Setting } from "obsidian";
+import { Setting, setIcon } from "obsidian";
 import Pickr from "@simonwep/pickr";
 
 /**
@@ -11,6 +11,51 @@ import Pickr from "@simonwep/pickr";
  * Lifted out of appearance.ts so the Lab tab (and any future surface)
  * can build the same row without duplicating Pickr boilerplate.
  */
+/**
+ * Colour-picker row WITHOUT a toggle — a Pickr swatch on its own.
+ * Clear button reverts to empty string (= CSS var not written, so
+ * the theme default paints). Returns the Pickr instance for the
+ * caller's disposer set.
+ */
+export function buildColourVarRow(
+  container: HTMLElement,
+  name: string,
+  desc: string,
+  getValue: () => string,
+  setValue: (v: string) => void,
+  onChange: () => Promise<void>,
+): Pickr {
+  const setting = new Setting(container).setName(name).setDesc(desc);
+  const pickerEl = setting.controlEl.createDiv("pickr");
+  const pickr = Pickr.create({
+    el: pickerEl,
+    container: container.closest('.modal-content') as HTMLElement ?? document.body,
+    theme: 'nano',
+    default: getValue() || '#000000',
+    lockOpacity: true,
+    position: 'left-middle',
+    components: {
+      preview: true,
+      hue: true,
+      opacity: false,
+      interaction: { hex: true, input: true, clear: true, save: true, cancel: true },
+    },
+  });
+  pickr.on('save', (color: Pickr.HSVaColor | null, instance: Pickr) => {
+    if (!color) return;
+    setValue(color.toHEXA().toString().slice(0, 7));
+    instance.hide();
+    onChange();
+  });
+  pickr.on('clear', (instance: Pickr) => {
+    setValue('');
+    instance.hide();
+    onChange();
+  });
+  pickr.on('cancel', (instance: Pickr) => instance.hide());
+  return pickr;
+}
+
 export function buildColorToggleRow(
   container: HTMLElement,
   name: string,
@@ -87,14 +132,34 @@ export function buildSegmentSetting(
 ): void {
   const setting = new Setting(container).setName(name).setDesc(desc);
   const group = setting.controlEl.createDiv("tc-seg");
+  // Sliding indicator — the frosted pill that slides between
+  // segments on selection. Paints are in styles.css (.tc-seg-slide-
+  // indicator). Appended first so it sits behind the buttons.
+  const slide = group.createDiv("tc-seg-slide-indicator");
   const buttons = new Map<string, HTMLElement>();
+
+  const updateSlide = (btn: HTMLElement) => {
+    requestAnimationFrame(() => {
+      const trackRect = group.getBoundingClientRect();
+      const btnRect   = btn.getBoundingClientRect();
+      if (!trackRect.width || !btnRect.width) return;
+      slide.style.setProperty("--tc-slide-x", `${btnRect.left - trackRect.left}px`);
+      slide.style.setProperty("--tc-slide-w", `${btnRect.width}px`);
+      slide.classList.add("tc-seg-slide-indicator--ready");
+    });
+  };
+
   options.forEach(o => {
     const btn = group.createEl("button", { text: o.label, cls: "tc-seg-btn" });
-    if (o.value === current) btn.addClass("tc-seg-btn--active");
+    if (o.value === current) {
+      btn.addClass("tc-seg-btn--active");
+      updateSlide(btn);
+    }
     btn.addEventListener("click", async () => {
       if (btn.hasClass("tc-seg-btn--active")) return;
       buttons.forEach(b => b.removeClass("tc-seg-btn--active"));
       btn.addClass("tc-seg-btn--active");
+      updateSlide(btn);
       await onChange(o.value);
     });
     buttons.set(o.value, btn);
@@ -109,24 +174,36 @@ export interface LeftRailSection {
 }
 
 /**
- * Left-rail navigation shell for dense-content tabs (used by Legacy).
+ * Left-rail navigation shell for dense-content tabs.
  *
- * Renders a 180px vertical rail of section labels + count badges on the
- * left, and a single content pane on the right. Clicking a rail item
- * swaps the content pane by calling that section's render() callback.
- * Only one section is visible at a time — no inner scrolling between
- * sections.
+ * Renders a vertical rail of section labels on the left and a single
+ * content pane on the right. Clicking a rail item swaps the content
+ * pane by calling that section's render() callback. Only one section
+ * is visible at a time.
  *
- * Active section state is transient (lives in closure, not saved to
- * settings). The tab always opens on the first section for a clean start.
+ * Active section state PERSISTS across redisplay() rebuilds via the
+ * module-level `leftRailActiveId` map, keyed by a caller-supplied
+ * `stateKey` (e.g. "appearance" / "typography"). Without the stateKey
+ * the shell falls back to the transient in-closure behaviour — first
+ * section active on every rebuild.
  *
- * Returns a cleanup function for any disposers registered by the content
- * pane (e.g. Pickr instances). The caller is responsible for invoking it
- * on tab teardown.
+ * Previously: flipping a setting triggered redisplay() which rebuilt
+ * the whole tab, and the rail snapped back to its first section
+ * because the active id only lived in the closure. User flow:
+ * navigate to Workspace → toggle anything → rail jumps to Theme &
+ * Colour. Fix threads the active id through the persisted map so
+ * the rail stays put.
+ *
+ * Returns a cleanup function for any disposers registered by the
+ * content pane (e.g. Pickr instances). The caller is responsible
+ * for invoking it on tab teardown.
  */
+const leftRailActiveId: Record<string, string> = {};
+
 export function buildLeftRailShell(
   container: HTMLElement,
   sections: LeftRailSection[],
+  stateKey?: string,
 ): () => void {
   const shell = container.createDiv("tc-leftrail-shell");
   const rail = shell.createDiv("tc-leftrail-rail");
@@ -135,7 +212,15 @@ export function buildLeftRailShell(
   const disposers: (() => void)[] = [];
   const railItems = new Map<string, HTMLElement>();
 
+  // Restore prior active section if the caller supplied a stateKey
+  // and the saved id still exists in the current sections list.
+  // Otherwise open on the first section (original behaviour).
   let activeId = sections[0]?.id ?? "";
+  if (stateKey) {
+    const saved = leftRailActiveId[stateKey];
+    if (saved && sections.some(s => s.id === saved)) activeId = saved;
+    leftRailActiveId[stateKey] = activeId;
+  }
 
   const renderActive = () => {
     pane.empty();
@@ -144,11 +229,11 @@ export function buildLeftRailShell(
     active.render(pane);
   };
 
-  // Rainbow flourish at the top of the rail — non-interactive visual
-  // marker. Sits squarely top-aligned, doesn't accept hover/active
-  // styling. Replaces the rainbow bar that used to live in the
-  // settings-panel header.
-  rail.createDiv("tc-leftrail-rainbow tc-color-bar");
+  // Rainbow flourish retired (2026-04-17) — the accent divider below
+  // the main tab bar already carries the "you're in the accent
+  // universe" cue, so a second colour element at the top of every
+  // rail was redundant. Leaving a little top padding via the rail
+  // container so the first nav item doesn't hug the divider.
 
   sections.forEach(section => {
     const item = rail.createDiv("tc-leftrail-item");
@@ -177,6 +262,7 @@ export function buildLeftRailShell(
       railItems.forEach(el => el.removeClass("tc-leftrail-item--active"));
       item.addClass("tc-leftrail-item--active");
       activeId = section.id;
+      if (stateKey) leftRailActiveId[stateKey] = activeId;
       renderActive();
     });
     railItems.set(section.id, item);
@@ -234,4 +320,112 @@ export function buildHorizontalTabs(parent: HTMLElement, tabs: HorizontalTab[]):
   });
 
   renderActive();
+}
+
+// ─── Pretty accordion + section preview helpers ────────────────────
+// Shared across any tab that needs the rail-pane pattern established
+// in Typography (Fonts / Rhythm): a foldable accent-painted card
+// labelled with an all-caps subtitle, optionally preceded by a
+// Callouts-style PREVIEW strip. Module-level open-state map keyed by
+// caller-supplied id so open/collapsed state survives rail switches
+// and redisplay() rebuilds. Use a tab-prefix to avoid key collisions
+// (e.g. "typo-fonts", "app-palette").
+
+const prettyAccordionOpen: Record<string, boolean> = {};
+
+/** Foldable accent-painted accordion. Accepts a `variant` name that
+ *  maps directly to the Lab → Accordion styles picks (pretty, gutter,
+ *  ghost, twotone, halo, filed, bloc, subdued).
+ *
+ *  Production accordions use the SAME class system as Lab mocks —
+ *  `.tc-mock-acc.tc-mock-acc--{variant}.tc-mock-acc--open?` — so every
+ *  Lab variant rule applies verbatim and production's legacy
+ *  `.tc-feat-group` base styles never compete. The ONLY production
+ *  class retained is `.tc-feat-body .tc-setting-card` on the body,
+ *  because the setting-item rendering rules (per-row padding,
+ *  transparent backgrounds, control alignment) are scoped to that
+ *  class set. Body show/hide is driven by `.tc-mock-acc--open` via
+ *  a dedicated rule in styles.css, not production's
+ *  `.tc-feat-group--open` toggle.
+ *
+ *  `defaultOpen` seeds the module-level map; subsequent visits
+ *  respect the user's toggle state. Chevron glyph comes from each
+ *  variant's `::before { content: … }` so the chevron span stays
+ *  empty — no inline character to clash with the variant's symbol. */
+export function buildPrettyAccordion(
+  container: HTMLElement,
+  key: string,
+  title: string,
+  defaultOpen = true,
+  variant: string = "pretty",
+): HTMLElement {
+  // Collapsible behaviour paused 2026-04-18 — accordions render as
+  // always-open framed cards. Chevron element retained for layout
+  // weight but hidden via styles.css (`.tc-mock-acc--no-fold
+  // .tc-mock-acc-chev { display: none }`) so the title and body
+  // keep their positions. The `defaultOpen` + module-level map are
+  // left in place so re-enabling collapse is one-line (drop
+  // `tc-mock-acc--no-fold` + re-attach the click handler below).
+  void defaultOpen; void prettyAccordionOpen[key];
+  const accordion = container.createDiv(
+    `tc-mock-acc tc-mock-acc--${variant} tc-mock-acc--open tc-mock-acc--no-fold`,
+  );
+  const header = accordion.createDiv("tc-mock-acc-header");
+  header.createSpan({ text: title, cls: "tc-mock-acc-title" });
+  header.createSpan({ cls: "tc-mock-acc-chev" });
+  return accordion.createDiv("tc-feat-body tc-setting-card");
+}
+
+/** Collapsible PREVIEW strip matching the Callouts section in
+ *  Legacy: [PREVIEW label] · [dashed connector] · [chevron button].
+ *  Content is built eagerly into the wrap so the first expand lands
+ *  without flicker. Accent sweep on hover/open lives in styles.css.
+ *
+ *  Open state persists via `sectionPreviewOpen` keyed by caller-
+ *  supplied id — so when a setting change triggers redisplay() and
+ *  the whole pane rebuilds, the preview that was expanded before
+ *  lands expanded again on the new DOM. Tab-prefix the id to avoid
+ *  collisions across tabs (e.g. "typo-fonts", "app-theme"). */
+const sectionPreviewOpen: Record<string, boolean> = {};
+
+export function buildSectionPreview(
+  pane: HTMLElement,
+  key: string,
+  buildContent: (wrap: HTMLElement) => void,
+): void {
+  const bar = pane.createDiv("tc-section-preview-bar");
+  bar.createSpan({ cls: "tc-section-preview-label", text: "PREVIEW" });
+  bar.createDiv("tc-section-preview-dash");
+  const btn = bar.createEl("button", {
+    cls: "tc-circle-btn tc-section-preview-btn",
+    attr: { "aria-label": "Toggle preview", title: "Toggle preview" },
+  });
+  setIcon(btn, "chevron-down");
+
+  const wrap = pane.createDiv("tc-section-preview-wrap");
+  buildContent(wrap);
+
+  // Seed local state from the module-level map. If the preview was
+  // expanded before a redisplay, re-open it on the new DOM — defer
+  // two frames so layout has settled and `scrollHeight` reads the
+  // true content size, not the 0 height the transition started at.
+  let open = sectionPreviewOpen[key] ?? false;
+  if (open) {
+    btn.addClass("tc-section-preview-btn--open");
+    requestAnimationFrame(() => requestAnimationFrame(() => {
+      wrap.style.maxHeight = wrap.scrollHeight + "px";
+    }));
+  }
+
+  btn.addEventListener("click", () => {
+    open = !open;
+    sectionPreviewOpen[key] = open;
+    if (open) {
+      wrap.style.maxHeight = wrap.scrollHeight + "px";
+      btn.addClass("tc-section-preview-btn--open");
+    } else {
+      wrap.style.maxHeight = "0px";
+      btn.removeClass("tc-section-preview-btn--open");
+    }
+  });
 }
