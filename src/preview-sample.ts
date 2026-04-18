@@ -481,48 +481,70 @@ interface PropertyRow {
   build: (valueEl: HTMLElement) => void;
 }
 
+/** Builds a text-style property value the way Obsidian actually does:
+ *  a `.metadata-input-longtext` div with `contenteditable="true"` and
+ *  `spellcheck="false"`. Tom's vault mostly renders through this DOM
+ *  shape for text / link properties, so the preview matches verbatim. */
+function buildTextValue(v: HTMLElement, text: string): HTMLElement {
+  const input = v.createDiv("metadata-input-longtext");
+  input.setAttribute("contenteditable", "true");
+  input.setAttribute("spellcheck", "false");
+  input.setText(text);
+  return input;
+}
+
 const EDITING_PROPERTY_ROWS: PropertyRow[] = [
   {
     type: "text", icon: "text", key: "title",
-    build: v => v.setText("Lorem ipsum dolor sit amet"),
+    build: v => { buildTextValue(v, "Lorem ipsum dolor sit amet"); },
+  },
+  {
+    type: "multitext", icon: "lucide-list", key: "aliases",
+    // Real-Obsidian multi-select structure: container → pills with
+    // `.multi-select-pill-content` + Lucide-X remove button + a trailing
+    // text-input slot for adding new pills. Matches the DOM shape
+    // tc-tags-* body classes + Obsidian's native .multi-select-pill
+    // rules cascade through.
+    build: v => buildMultiSelect(v, ["Short title", "Working name"]),
   },
   {
     type: "multitext", icon: "tags", key: "tags",
+    build: v => buildMultiSelect(v, ["typography", "flavour", "preview"]),
+  },
+  {
+    type: "date", icon: "calendar-days", key: "created",
     build: v => {
-      // Real-Obsidian multi-select structure: container → pills with
-      // `.multi-select-pill-content` + Lucide-X remove button. Using
-      // Obsidian's own classes means `body.tc-tags-{style}` paints these
-      // pills identically to real note-body tags.
-      const container = v.createDiv("multi-select-container");
-      ["typography", "flavour", "preview"].forEach(t => {
-        const pill = container.createDiv({
-          cls: "multi-select-pill",
-          attr: { tabindex: "0" },
-        });
-        const pillContent = pill.createDiv("multi-select-pill-content");
-        pillContent.createSpan({ text: t });
-        const removeBtn = pill.createDiv("multi-select-pill-remove-button");
-        setIcon(removeBtn, "x");
+      // Real Obsidian renders a native <input type="date"> here so the
+      // browser's calendar affordance matches what the user sees live.
+      // Wrapped in .metadata-input-date for Obsidian's own CSS scope.
+      const wrap = v.createDiv("metadata-input-date");
+      wrap.createEl("input", {
+        attr: { type: "date", value: "2026-04-14", spellcheck: "false" },
       });
     },
   },
   {
-    type: "date", icon: "calendar-days", key: "created",
-    build: v => v.setText("2026-04-14"),
-  },
-  {
     type: "text", icon: "text", key: "status",
-    build: v => v.setText("draft"),
+    build: v => { buildTextValue(v, "draft"); },
   },
   {
     type: "number", icon: "binary", key: "priority",
-    build: v => v.setText("3"),
+    build: v => {
+      // `<input type="number">` matches Obsidian's native renderer;
+      // .metadata-input-number wrapper picks up the tabular-num +
+      // accent colour styling from the boxed-fm scope.
+      const wrap = v.createDiv("metadata-input-number");
+      wrap.createEl("input", {
+        attr: { type: "number", value: "3", inputmode: "numeric", spellcheck: "false" },
+      });
+    },
   },
   {
     type: "checkbox", icon: "check-square", key: "done",
     build: v => {
-      // Obsidian renders boolean properties as a checkbox <input> — match
-      // that so its native styling (and our tc-fm-boxed overrides) reach it.
+      // Obsidian renders boolean properties as a raw <input type="checkbox">
+      // directly inside .metadata-property-value. Our boxed-fm rules
+      // already account for this.
       const input = v.createEl("input", {
         cls: "metadata-input-checkbox",
         attr: { type: "checkbox" },
@@ -531,10 +553,44 @@ const EDITING_PROPERTY_ROWS: PropertyRow[] = [
     },
   },
   {
-    type: "link", icon: "link", key: "banner",
-    build: v => v.setText("[[images/mountain]]"),
+    type: "text", icon: "link", key: "banner",
+    // Real Obsidian renders wikilink frontmatter values as text INSIDE
+    // the editable input, painted as a link-coloured span via the
+    // `.internal-link` / `.cm-hmd-internal-link` cascade. We fake that
+    // by rendering the `[[…]]` string inside the longtext container
+    // with the accent-coloured span nested for the interior filename.
+    build: v => {
+      const input = buildTextValue(v, "");
+      input.setText("");
+      input.createSpan({ text: "[[", cls: "cm-formatting cm-formatting-link" });
+      input.createSpan({ text: "images/mountain", cls: "cm-hmd-internal-link" });
+      input.createSpan({ text: "]]", cls: "cm-formatting cm-formatting-link" });
+    },
   },
 ];
+
+/** Multi-select pill container + pills + trailing edit slot — the
+ *  shape Obsidian's tag / alias / list-typed properties render as. */
+function buildMultiSelect(v: HTMLElement, values: string[]): void {
+  const container = v.createDiv("multi-select-container");
+  values.forEach(t => {
+    const pill = container.createDiv({
+      cls: "multi-select-pill",
+      attr: { tabindex: "0" },
+    });
+    const pillContent = pill.createDiv("multi-select-pill-content");
+    pillContent.createSpan({ text: t });
+    const removeBtn = pill.createDiv("multi-select-pill-remove-button");
+    setIcon(removeBtn, "x");
+  });
+  // Trailing input slot — the affordance for "type to add a new pill".
+  // Obsidian renders this at the end of every multi-select container,
+  // even when empty; faking it here keeps the preview one-for-one.
+  container.createEl("input", {
+    cls: "multi-select-input",
+    attr: { type: "text", placeholder: "", spellcheck: "false" },
+  });
+}
 
 /** Builds the full mini-Obsidian editing preview into `parent`.
  *  Uses Obsidian's setIcon() via dynamic import so the preview-sample
