@@ -1562,15 +1562,31 @@ body.tc-tabs-active-pill .tc-settings .tc-tab-slide-indicator {
   right: 10px !important;
   top: 50% !important;
   transform: translateY(-50%) rotate(0deg) !important;
-  width: 16px !important;
-  height: 16px !important;
-  background-color: var(--color-accent) !important;
-  -webkit-mask: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'><polyline points='6 9 12 15 18 9'/></svg>") no-repeat center / contain !important;
-          mask: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'><polyline points='6 9 12 15 18 9'/></svg>") no-repeat center / contain !important;
-  opacity: 1 !important;
+  /* Quieter chevron — 12px (was 16), muted colour, slightly
+     translucent. Reads as supporting chrome rather than a primary
+     affordance, matching Obsidian's native understated collapse
+     glyph. */
+  width: 12px !important;
+  height: 12px !important;
+  background-color: var(--text-muted) !important;
+  -webkit-mask: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><polyline points='6 9 12 15 18 9'/></svg>") no-repeat center / contain !important;
+          mask: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><polyline points='6 9 12 15 18 9'/></svg>") no-repeat center / contain !important;
+  opacity: 0.7 !important;
   visibility: visible !important;
-  transition: transform 0.18s ease !important;
+  transition: transform 0.18s ease, opacity 0.18s ease !important;
   pointer-events: none !important;
+}
+/* Hover lift — chevron snaps to full opacity so the affordance is
+   reachable on deliberate hover without shouting at rest. */
+:is(body.tc-fm-boxed, .tc-fm-preview-forced) .metadata-properties-heading:hover::after {
+  opacity: 1 !important;
+}
+/* Collapse actually hides content. Obsidian handles this natively in
+   real notes, but the standalone preview needs an explicit rule.
+   Toggle happens via the click handler in buildFrontmatterDom —
+   this rule just ensures the state is visible. */
+:is(body.tc-fm-boxed, .tc-fm-preview-forced) .metadata-container.is-collapsed .metadata-content {
+  display: none !important;
 }
 
 /* Rotate the stamped chevron based on collapsed state. Default
@@ -4504,6 +4520,212 @@ body.tc-graph-halo .workspace-leaf-content[data-type="graph"] .graph-view.color-
    this block) and nothing else. Divergence between preview and real
    panel kept us chasing row heights; removing the extra scope leaves
    one paint path, one truth. */
+
+/* ═══════════════════════════════════════════════════════════
+   Alternative Properties panel designs — VISUAL MOCKS ONLY.
+   Each `.tc-fm-alt--<variant>` wraps the same DOM that the boxed
+   preview uses; only the scope class differs. Gives Tom three
+   distinct treatments to compare against the boxed default
+   without any body-class wiring. Picking one later = just
+   replace the `.tc-fm-preview-forced` scope in the :is() rules
+   above with the winner.
+
+   Shared base (`.tc-fm-alt`) replicates the flex-row layout + row
+   density + pill shape that the boxed rules set up, so each
+   variant only needs to override its signature visual (box vs
+   stripe vs bar).
+   ═══════════════════════════════════════════════════════════ */
+.tc-settings .tc-fm-alt {
+  font-family: var(--font-interface, inherit);
+  font-size: 13px;
+  margin: 0;
+}
+.tc-settings .tc-fm-alt .metadata-properties-heading {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 8px;
+  color: var(--text-muted);
+  font-weight: 500;
+  cursor: pointer;
+}
+.tc-settings .tc-fm-alt .metadata-properties-heading > svg:first-child,
+.tc-settings .tc-fm-alt .metadata-properties-heading > .collapse-indicator,
+.tc-settings .tc-fm-alt .metadata-properties-heading > .collapse-icon {
+  display: none;
+}
+.tc-settings .tc-fm-alt .metadata-properties-heading::after {
+  content: "";
+  position: absolute;
+  right: 10px;
+  top: 50%;
+  transform: translateY(-50%) rotate(0deg);
+  width: 12px;
+  height: 12px;
+  background-color: var(--text-muted);
+  -webkit-mask: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><polyline points='6 9 12 15 18 9'/></svg>") no-repeat center / contain;
+          mask: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><polyline points='6 9 12 15 18 9'/></svg>") no-repeat center / contain;
+  opacity: 0.7;
+  transition: transform 0.18s ease;
+}
+.tc-settings .tc-fm-alt .metadata-container.is-collapsed .metadata-properties-heading::after {
+  transform: translateY(-50%) rotate(-90deg);
+}
+.tc-settings .tc-fm-alt .metadata-container.is-collapsed .metadata-content {
+  display: none;
+}
+.tc-settings .tc-fm-alt .metadata-property {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 3px 8px;
+  font-size: 13px;
+}
+.tc-settings .tc-fm-alt .metadata-property-key {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  width: 128px;
+  flex: 0 0 128px;
+  color: var(--text-muted);
+}
+.tc-settings .tc-fm-alt .metadata-property-icon {
+  display: inline-flex;
+  align-items: center;
+  color: var(--text-muted);
+}
+.tc-settings .tc-fm-alt .metadata-property-icon svg {
+  width: 14px;
+  height: 14px;
+}
+.tc-settings .tc-fm-alt .metadata-property-key-input {
+  background: transparent;
+  border: none;
+  padding: 0;
+  margin: 0;
+  font: inherit;
+  color: var(--text-muted);
+  cursor: text;
+  outline: none;
+}
+.tc-settings .tc-fm-alt .metadata-property-value {
+  flex: 1;
+  color: var(--text-normal);
+  line-height: 1.5;
+}
+.tc-settings .tc-fm-alt .multi-select-container {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+.tc-settings .tc-fm-alt .multi-select-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 0 6px;
+  background: var(--background-secondary);
+  border: 1px solid var(--background-modifier-border);
+  border-radius: 100px;
+  font-size: 11px;
+  line-height: 1.6;
+  color: var(--text-normal);
+  min-height: 0;
+}
+.tc-settings .tc-fm-alt .multi-select-pill-remove-button svg {
+  width: 11px;
+  height: 11px;
+  color: var(--text-muted);
+}
+.tc-settings .tc-fm-alt .metadata-add-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 8px 8px 2px;
+  font-size: 11px;
+  color: var(--text-faint);
+}
+.tc-settings .tc-fm-alt .metadata-add-button svg {
+  width: 12px;
+  height: 12px;
+}
+.tc-settings .tc-fm-alt .metadata-input-date,
+.tc-settings .tc-fm-alt .metadata-input-number,
+.tc-settings .tc-fm-alt .metadata-input-longtext {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: inherit;
+}
+.tc-settings .tc-fm-alt .metadata-input-date-icon {
+  display: inline-flex;
+  align-items: center;
+  color: var(--text-muted);
+  opacity: 0.75;
+}
+.tc-settings .tc-fm-alt .metadata-input-date-icon svg {
+  width: 13px;
+  height: 13px;
+}
+
+/* ── Variant 1: Minimal ──────────────────────────────────────
+   No box, no bg, no radius. Rows separated by dashed hairlines.
+   Properties as reading rhythm rather than card chrome. */
+.tc-settings .tc-fm-alt--minimal .metadata-container {
+  background: transparent;
+  border: none;
+  border-radius: 0;
+  box-shadow: none;
+  padding: 4px 0;
+}
+.tc-settings .tc-fm-alt--minimal .metadata-properties-heading {
+  border-bottom: 1px dashed rgba(var(--mono-rgb-100, 200, 200, 200), 0.22);
+}
+.tc-settings .tc-fm-alt--minimal .metadata-property {
+  border-top: 1px dashed rgba(var(--mono-rgb-100, 200, 200, 200), 0.12);
+}
+.tc-settings .tc-fm-alt--minimal .metadata-property:first-child {
+  border-top: none;
+}
+
+/* ── Variant 2: Striped ──────────────────────────────────────
+   Soft card with alternating row backgrounds. Zebra-stripe
+   rhythm. Neutral palette, no accent gradient. */
+.tc-settings .tc-fm-alt--striped .metadata-container {
+  background: var(--background-primary);
+  border: 1px solid var(--background-modifier-border);
+  border-radius: 6px;
+  padding: 2px 0 4px;
+}
+.tc-settings .tc-fm-alt--striped .metadata-properties-heading {
+  border-bottom: 1px solid var(--background-modifier-border);
+  margin-bottom: 2px;
+}
+.tc-settings .tc-fm-alt--striped .metadata-property {
+  border-radius: 0;
+  margin: 0;
+}
+.tc-settings .tc-fm-alt--striped .metadata-property:nth-of-type(even) {
+  background: rgba(var(--mono-rgb-100, 200, 200, 200), 0.06);
+}
+.tc-settings .tc-fm-alt--striped .metadata-add-button {
+  padding: 6px 8px;
+}
+
+/* ── Variant 3: Accent bar ───────────────────────────────────
+   No outer box, left-edge accent stripe does the framing.
+   Rows flow open on the right, 3px accent bar marks the panel. */
+.tc-settings .tc-fm-alt--accentbar .metadata-container {
+  background: transparent;
+  border: none;
+  border-left: 3px solid var(--color-accent);
+  border-radius: 0;
+  box-shadow: none;
+  padding: 4px 0 4px 14px;
+}
+.tc-settings .tc-fm-alt--accentbar .metadata-properties-heading {
+  padding-left: 0;
+}
 
 /* ═══════════════════════════════════════════════════════════
    Appearance 2 — stacked / no-rail variant. All four section

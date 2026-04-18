@@ -722,3 +722,37 @@ export function buildFrontmatterPreview(parent: HTMLElement): HTMLElement {
   return wrap;
 }
 
+// ───────────────────────────────────────────────────────────────
+// ALTERNATIVE Properties panel designs. Each wraps the same DOM
+// in a different scope class so the visual treatment diverges —
+// but they're VISUAL MOCKS ONLY. No body-class toggle, no setting.
+// Tom picks one later and we wire it up then. Same click-to-
+// collapse interaction, same icons, same data.
+// ───────────────────────────────────────────────────────────────
+
+/** Minimal — no outer box, no gradient, just rows separated by a
+ *  dashed hairline. The Properties panel as reading rhythm, not
+ *  card chrome. */
+export function buildFrontmatterPreviewMinimal(parent: HTMLElement): HTMLElement {
+  const wrap = parent.createDiv("tc-fm-alt tc-fm-alt--minimal");
+  buildFrontmatterDom(wrap);
+  return wrap;
+}
+
+/** Striped — alternating row backgrounds for a data-table feel.
+ *  Clean neutral card, subtle zebra stripes. */
+export function buildFrontmatterPreviewStriped(parent: HTMLElement): HTMLElement {
+  const wrap = parent.createDiv("tc-fm-alt tc-fm-alt--striped");
+  buildFrontmatterDom(wrap);
+  return wrap;
+}
+
+/** Accent bar — no outer box, left-edge accent stripe marks the
+ *  panel. Rows flow open on the right, the coloured bar does the
+ *  framing work. Quiet + accent-forward. */
+export function buildFrontmatterPreviewAccentBar(parent: HTMLElement): HTMLElement {
+  const wrap = parent.createDiv("tc-fm-alt tc-fm-alt--accentbar");
+  buildFrontmatterDom(wrap);
+  return wrap;
+}
+
