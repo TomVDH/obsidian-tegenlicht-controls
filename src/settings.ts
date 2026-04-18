@@ -195,6 +195,28 @@ export interface TegenlichtSettings {
   italicColor: string;
   highlightColor: string;
 
+  // AnuPpuccin port Wave 4 — micro-typography.
+  // Per-heading font family / weight / line-height (6 × 3 = 18 vars).
+  // Font string '' means inherit from the theme / editor font picker;
+  // any other string is written to --h{N}-font verbatim.
+  // Weight 100–900 (step 100) → --h{N}-weight.
+  // Line-height 0.8–2.5 (step 0.05) → --h{N}-line-height.
+  // Plus 4 global weight scalars:
+  //   boldWeight → --bold-weight
+  //   livePreviewWeight → --anp-font-live-preview-wt
+  //   readingWeight → --anp-font-preview-wt
+  //   sourceWeight → --anp-font-editor-wt
+  h1Font: string; h2Font: string; h3Font: string;
+  h4Font: string; h5Font: string; h6Font: string;
+  h1Weight: number; h2Weight: number; h3Weight: number;
+  h4Weight: number; h5Weight: number; h6Weight: number;
+  h1LineHeight: number; h2LineHeight: number; h3LineHeight: number;
+  h4LineHeight: number; h5LineHeight: number; h6LineHeight: number;
+  boldWeight: number;
+  livePreviewWeight: number;
+  readingWeight: number;
+  sourceWeight: number;
+
   // Editing — Properties panel styling
   // Toggles an accent-gradient card wrapper around Obsidian's Properties
   // panel (.metadata-container). Same visual as the frontmatter-beauty.css
@@ -388,6 +410,20 @@ export const DEFAULT_SETTINGS: TegenlichtSettings = {
   boldColor: '',
   italicColor: '',
   highlightColor: '',
+
+  // Wave 4 defaults — font strings empty (theme / plugin font pick
+  // still drives), weight/line-height match AnuPpuccin's own YAML
+  // defaults so first load inherits the theme's baseline.
+  h1Font: '', h2Font: '', h3Font: '',
+  h4Font: '', h5Font: '', h6Font: '',
+  h1Weight: 700, h2Weight: 600, h3Weight: 600,
+  h4Weight: 600, h5Weight: 600, h6Weight: 600,
+  h1LineHeight: 1.2, h2LineHeight: 1.2, h3LineHeight: 1.3,
+  h4LineHeight: 1.3, h5LineHeight: 1.4, h6LineHeight: 1.5,
+  boldWeight: 600,
+  livePreviewWeight: 400,
+  readingWeight: 400,
+  sourceWeight: 400,
 
   propertiesBoxed: false,
 

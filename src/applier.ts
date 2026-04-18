@@ -292,6 +292,33 @@ export function apply(s: TegenlichtSettings): void {
      heading-margin toggle is on; value still written so flipping the
      master picks up the chosen value immediately). */
   --anp-header-margin-value: ${s.headingMargin ?? 15}px;
+  /* Wave 4 — per-heading weights + line-heights. Fonts handled below
+     as conditional writes (only if non-empty). */
+  --h1-weight: ${s.h1Weight ?? 700};
+  --h2-weight: ${s.h2Weight ?? 600};
+  --h3-weight: ${s.h3Weight ?? 600};
+  --h4-weight: ${s.h4Weight ?? 600};
+  --h5-weight: ${s.h5Weight ?? 600};
+  --h6-weight: ${s.h6Weight ?? 600};
+  --h1-line-height: ${s.h1LineHeight ?? 1.2};
+  --h2-line-height: ${s.h2LineHeight ?? 1.2};
+  --h3-line-height: ${s.h3LineHeight ?? 1.3};
+  --h4-line-height: ${s.h4LineHeight ?? 1.3};
+  --h5-line-height: ${s.h5LineHeight ?? 1.4};
+  --h6-line-height: ${s.h6LineHeight ?? 1.5};
+  /* Wave 4 — per-H font families (only written if user set one).
+     Empty string means inherit from the theme / plugin font picker. */
+  ${s.h1Font ? `--h1-font: ${s.h1Font};` : ''}
+  ${s.h2Font ? `--h2-font: ${s.h2Font};` : ''}
+  ${s.h3Font ? `--h3-font: ${s.h3Font};` : ''}
+  ${s.h4Font ? `--h4-font: ${s.h4Font};` : ''}
+  ${s.h5Font ? `--h5-font: ${s.h5Font};` : ''}
+  ${s.h6Font ? `--h6-font: ${s.h6Font};` : ''}
+  /* Wave 4 — global weight scalars (bold + 3 editor modes). */
+  --bold-weight: ${s.boldWeight ?? 600};
+  --anp-font-live-preview-wt: ${s.livePreviewWeight ?? 400};
+  --anp-font-preview-wt: ${s.readingWeight ?? 400};
+  --anp-font-editor-wt: ${s.sourceWeight ?? 400};
   /* Legacy — Callouts */
   --callout-radius: ${s.calloutRadius ?? 8}px;
   --callout-title-padding: ${s.calloutTitlePaddingX ?? 12}px;

@@ -331,6 +331,125 @@ function renderHeadings(
   });
 }
 
+/** Wave 4 — micro-typography. Four sub-accordions:
+ *    1. Global weights (4 scalars: bold + live preview + reading + source)
+ *    2. Per-H weights (H1–H6)
+ *    3. Per-H line heights (H1–H6)
+ *    4. Per-H fonts (H1–H6 text inputs; empty = inherit)
+ *  All writes are pure CSS-var updates — no redisplay. */
+function renderWeightLeading(
+  pane: HTMLElement,
+  s: TegenlichtSettings,
+  onChange: () => Promise<void>,
+): void {
+  pane.createEl("h3", { cls: "tc-leftrail-sechead", text: "Weight & leading" });
+  pane.createEl("p", { cls: "tc-leftrail-secdesc",
+    text: "Per-heading font family, weight, and line-height — plus four global weight scalars covering bold runs and the three editor render modes." });
+
+  buildSectionPreview(pane, "typo-weight-preview", buildTypographyPreview);
+
+  // ── Global weights ─────────────────────────────────────────────
+  const global = buildPrettyAccordion(pane, "typo-weight-global",
+    "Global weights", true, s.accordionStyle);
+  global.addClass("tc-h-accordion-body");
+
+  const globals = [
+    { label: "Bold runs",         key: "boldWeight"        as keyof TegenlichtSettings, desc: "Weight applied to every **bold** run in body text" },
+    { label: "Live preview mode", key: "livePreviewWeight" as keyof TegenlichtSettings, desc: "Body weight while editing with live preview on" },
+    { label: "Reading mode",      key: "readingWeight"     as keyof TegenlichtSettings, desc: "Body weight in pure reading view" },
+    { label: "Source mode",       key: "sourceWeight"      as keyof TegenlichtSettings, desc: "Body weight in raw source editor" },
+  ];
+  globals.forEach(row => {
+    new Setting(global)
+      .setName(row.label)
+      .setDesc(row.desc)
+      .addSlider(sl => sl
+        .setLimits(100, 900, 100)
+        .setValue((s[row.key] as number) ?? 400)
+        .setDynamicTooltip()
+        .onChange(async v => {
+          (s as unknown as Record<string, unknown>)[row.key as string] = v;
+          await onChange();
+        }));
+  });
+
+  // ── Per-H weights ──────────────────────────────────────────────
+  const wtAcc = buildPrettyAccordion(pane, "typo-weight-perh",
+    "Per-heading weight", true, s.accordionStyle);
+  wtAcc.addClass("tc-h-accordion-body");
+  const wtKeys = [
+    { label: "H1", key: "h1Weight" as keyof TegenlichtSettings },
+    { label: "H2", key: "h2Weight" as keyof TegenlichtSettings },
+    { label: "H3", key: "h3Weight" as keyof TegenlichtSettings },
+    { label: "H4", key: "h4Weight" as keyof TegenlichtSettings },
+    { label: "H5", key: "h5Weight" as keyof TegenlichtSettings },
+    { label: "H6", key: "h6Weight" as keyof TegenlichtSettings },
+  ];
+  wtKeys.forEach(row => {
+    new Setting(wtAcc)
+      .setName(row.label)
+      .addSlider(sl => sl
+        .setLimits(100, 900, 100)
+        .setValue((s[row.key] as number) ?? 600)
+        .setDynamicTooltip()
+        .onChange(async v => {
+          (s as unknown as Record<string, unknown>)[row.key as string] = v;
+          await onChange();
+        }));
+  });
+
+  // ── Per-H line heights ─────────────────────────────────────────
+  const lhAcc = buildPrettyAccordion(pane, "typo-weight-perh-lh",
+    "Per-heading line height", false, s.accordionStyle);
+  lhAcc.addClass("tc-h-accordion-body");
+  const lhKeys = [
+    { label: "H1", key: "h1LineHeight" as keyof TegenlichtSettings, def: 1.2 },
+    { label: "H2", key: "h2LineHeight" as keyof TegenlichtSettings, def: 1.2 },
+    { label: "H3", key: "h3LineHeight" as keyof TegenlichtSettings, def: 1.3 },
+    { label: "H4", key: "h4LineHeight" as keyof TegenlichtSettings, def: 1.3 },
+    { label: "H5", key: "h5LineHeight" as keyof TegenlichtSettings, def: 1.4 },
+    { label: "H6", key: "h6LineHeight" as keyof TegenlichtSettings, def: 1.5 },
+  ];
+  lhKeys.forEach(row => {
+    new Setting(lhAcc)
+      .setName(row.label)
+      .addSlider(sl => sl
+        .setLimits(0.8, 2.5, 0.05)
+        .setValue((s[row.key] as number) ?? row.def)
+        .setDynamicTooltip()
+        .onChange(async v => {
+          (s as unknown as Record<string, unknown>)[row.key as string] = v;
+          await onChange();
+        }));
+  });
+
+  // ── Per-H fonts ────────────────────────────────────────────────
+  const fontAcc = buildPrettyAccordion(pane, "typo-weight-perh-font",
+    "Per-heading font family", false, s.accordionStyle);
+  fontAcc.addClass("tc-h-accordion-body");
+  fontAcc.createEl("p", { cls: "tc-empty-hint",
+    text: "Empty = inherit from the editor font pick above (Fonts section). Type any installed font family to override per heading." });
+  const fontKeys = [
+    { label: "H1", key: "h1Font" as keyof TegenlichtSettings },
+    { label: "H2", key: "h2Font" as keyof TegenlichtSettings },
+    { label: "H3", key: "h3Font" as keyof TegenlichtSettings },
+    { label: "H4", key: "h4Font" as keyof TegenlichtSettings },
+    { label: "H5", key: "h5Font" as keyof TegenlichtSettings },
+    { label: "H6", key: "h6Font" as keyof TegenlichtSettings },
+  ];
+  fontKeys.forEach(row => {
+    new Setting(fontAcc)
+      .setName(row.label)
+      .addText(t => t
+        .setPlaceholder("e.g. Noto Serif")
+        .setValue((s[row.key] as string) ?? "")
+        .onChange(async v => {
+          (s as unknown as Record<string, unknown>)[row.key as string] = v.trim();
+          await onChange();
+        }));
+  });
+}
+
 /** Wave 3 — bold / italic / highlight decoration colours. Same
  *  class-select shape as the per-H dropdowns; writes the chosen
  *  Catppuccin colour class to body. */
@@ -420,11 +539,8 @@ export function build(
     // the tab.
     { id: "headings", label: "Headings",        count: 16,
       render: pane => renderHeadings(pane, s, onChange) },
-    { id: "weight",   label: "Weight & leading", count: 0,
-      render: pane => renderPlaceholder(pane, "typo-weight", "Weight & leading",
-        "Per-heading font / weight / line-height plus global font weights.",
-        "Lands with Wave 4 — per-H font / weight / line-height plus global weight vars.",
-        s.accordionStyle) },
+    { id: "weight",   label: "Weight & leading", count: 22,
+      render: pane => renderWeightLeading(pane, s, onChange) },
     { id: "accents",  label: "Accents",         count: 3,
       render: pane => renderAccents(pane, s, onChange) },
   ];
