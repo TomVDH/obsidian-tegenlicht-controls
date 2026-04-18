@@ -507,14 +507,16 @@ const EDITING_PROPERTY_ROWS: PropertyRow[] = [
   },
   {
     type: "date", icon: "calendar-days", key: "created",
-    // Obsidian's Properties panel renders dates as plain text in a
-    // `.metadata-input-date` wrapper — NOT a native <input type="date">.
-    // Using the native type sprouts browser calendar chrome + spinners
-    // that don't appear in the real panel. Same for `type="number"`
-    // below. We render the formatted value as text and let Obsidian's
-    // CSS paint the tabular-num / accent colour styling.
+    // Date values render as flat text in .metadata-input-date. Real
+    // Obsidian stamps a small calendar glyph before the date via
+    // ::before or a prefix element — we match that with an inline
+    // icon span so the preview visually reads "📅 2026-04-14" like
+    // the live panel.
     build: v => {
-      v.createDiv({ cls: "metadata-input-date", text: "2026-04-14" });
+      const wrap = v.createDiv("metadata-input-date");
+      const glyph = wrap.createSpan({ cls: "metadata-input-date-icon" });
+      setIcon(glyph, "calendar");
+      wrap.createSpan({ cls: "metadata-input-date-text", text: "2026-04-14" });
     },
   },
   {
@@ -664,22 +666,31 @@ function buildFrontmatterDom(parent: HTMLElement): HTMLElement {
   const content = fm.createDiv("metadata-content");
   const props = content.createDiv("metadata-properties");
   EDITING_PROPERTY_ROWS.forEach(row => {
+    // No tabindex here — the live Obsidian panel doesn't focus rows on
+    // mount, so adding tabindex: 0 sprouts a stray focus ring on the
+    // first interactive row of the static preview. Kept the
+    // data-property-* attrs since body.tc-fm-boxed rules read them for
+    // type-specific styling.
     const propEl = props.createDiv({
       cls: "metadata-property",
       attr: {
         "data-property-key": row.key,
         "data-property-type": row.type,
-        tabindex: "0",
       },
     });
     const keyWrap = propEl.createDiv("metadata-property-key");
     const iconSpan = keyWrap.createSpan({ cls: "metadata-property-icon" });
     setIcon(iconSpan, row.icon);
-    const keyInput = keyWrap.createEl("input", {
+    // Key text rendered as a plain div (NOT an <input>). Real Obsidian
+    // does use an input here that's styled flat via CSS, but the
+    // browser's default input chrome (border, padding, font-family)
+    // leaks through in our unscoped preview and shows as an obvious
+    // boxed text input. Using a div avoids the chrome entirely and
+    // matches the visual of the live unfocused panel exactly.
+    keyWrap.createDiv({
       cls: "metadata-property-key-input",
-      attr: { type: "text", value: row.key, spellcheck: "false" },
+      text: row.key,
     });
-    keyInput.readOnly = true;
 
     const valueEl = propEl.createDiv({ cls: "metadata-property-value" });
     row.build(valueEl);

@@ -4420,6 +4420,46 @@ body.tc-graph-halo .workspace-leaf-content[data-type="graph"] .graph-view.color-
    to declare here — every pretty-boxed rule cascades onto the
    preview automatically. One modifier, same paint. */
 
+/* Properties preview — make the key div (which we substitute for the
+   real Obsidian <input>) render as clean plain text in both the
+   focused-boxed preview AND live notes. Real Obsidian styles its
+   <input class="metadata-property-key-input"> flat; our <div>
+   substitute needs the same flatness. */
+:is(body.tc-fm-boxed, .tc-fm-preview-forced) div.metadata-property-key-input {
+  background: transparent !important;
+  border: none !important;
+  padding: 0 !important;
+  margin: 0 !important;
+  font: inherit !important;
+  color: var(--text-muted) !important;
+  cursor: text;
+  /* Let the key text flow with the rest of the row — no artificial
+     width / ellipsis; the parent's grid layout handles alignment. */
+  width: auto !important;
+  min-width: 0 !important;
+  outline: none !important;
+  box-shadow: none !important;
+}
+
+/* Date value — leading calendar glyph + the date text. Icon is muted
+   so it reads as supporting chrome, not competing with the value. */
+:is(body.tc-fm-boxed, .tc-fm-preview-forced) .metadata-input-date {
+  display: inline-flex !important;
+  align-items: center;
+  gap: 6px;
+  color: inherit !important;
+}
+:is(body.tc-fm-boxed, .tc-fm-preview-forced) .metadata-input-date-icon {
+  display: inline-flex;
+  align-items: center;
+  color: var(--text-muted);
+  opacity: 0.75;
+}
+:is(body.tc-fm-boxed, .tc-fm-preview-forced) .metadata-input-date-icon svg {
+  width: 14px;
+  height: 14px;
+}
+
 /* ═══════════════════════════════════════════════════════════
    Appearance 2 — stacked / no-rail variant. All four section
    renderers run in one scrolling column; a generous bottom gap
