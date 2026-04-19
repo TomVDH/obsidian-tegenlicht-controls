@@ -3,6 +3,40 @@
 All notable changes to this project are documented in this file.
 Format loosely follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [0.9.0] — 2026-04-19 — codename "Reorg"
+
+Tab bar rewritten around semantic ownership. Every control now lives in exactly one obvious place; applier and setting keys untouched.
+
+### Tab structure
+
+Old (10 tabs): Appearance · Typography · Editing · Layout · Features · Legacy · Lab
+New (7 tabs): **Appearance · Reading · Editor · Workspace · Elements · Legacy · Lab**
+
+Retired: Typography (absorbed into Legacy as Reading-semantic staging), Editing, Layout, Features, Appearance 2.
+
+### Destination map
+
+- **A Appearance** — chrome-only. Theme · Canvas & Frame · Interface. Canvas & Frame absorbs `colorfulFrameInvertLight/Dark` (from Features), `lightAccentColour` + `colorfulFrameColour` (from Legacy → Frame & accents).
+- **B Reading** — how a note looks while being read. Typography pointer · Callouts (from Legacy) · Tables (from Legacy + `tableWidthPct` from Layout) · Codeblocks (from Legacy + `codeblockLineNumbers` from Editing + `latexColour`) · Embeds & PDF (`embedMaxHeight` from Layout, `printStyling`/`pdfBlend*` from Features).
+- **C Editor** — input-side surfaces. Accents (`activeLine`, `selectionTint`, `caret` moved out of Appearance) · Titles · Properties (incl. `metadataButton`, `metadataMods`) · Lists · Tabs (pane) (tabStyle + 9 Legacy → Tabs-deep tuning controls).
+- **D Workspace** — navigation & layout. File tree · Rainbow folders (full Advanced disclosure preserved) · Graph · Pane layout (every former Layout-tab slider).
+- **E Elements** — named features. Cards · Tags · Misc · Backdrop fixes · Show / Hide (merged with Legacy Show/Hide — `hideTitlebarAuto`, `uiPointerCursor`, `hideMetadata`, `hideTooltips`) · Plugin support.
+- **F Legacy** — pure Typography staging (Fonts · Rhythm · Headings · Weight & leading · Decoration) pending graduation into Reading.
+- **L Lab** — unchanged.
+
+### Polish
+
+- `saveSettings()` applies CSS vars **before** awaiting disk write — live accent / flavour / slider feedback no longer stalled by iCloud's slow `saveData`.
+- Accordion style live-swaps via `swapAccordionVariant()` — no redisplay needed; every `.tc-mock-acc` reacts to the class flip.
+- `markReloadRequired(setting)` + `.tc-reload-pip` helper for the rare settings that genuinely need a plugin reload.
+- Left-rail shell renders **all** panes up-front (inactive panes off-screen) so the per-tab CSS counter flows continuously across sub-tabs: A-1 → A-N across Theme + Canvas + Interface rather than restarting per section.
+- Per-tab counter prefixes: A Appearance, B Reading, C Editor, D Workspace, E Elements, F Legacy, L Lab.
+- Accordion vertical margin 32 → 20px throughout.
+
+### Implementation
+
+- 12-step atomic migration on branch `feature/settings-reorg`. Every commit left the UI functional. Plan lives at `docs/settings-reorg-plan.md`.
+
 ## [0.8.0] — 2026-04-17 — codename "Inventory"
 
 Major port round based on the AnuPpuccin inventory (`docs/anuppuccin-inventory.md`). Six waves, ~70 new settings ported into natural homes across the existing tab structure.

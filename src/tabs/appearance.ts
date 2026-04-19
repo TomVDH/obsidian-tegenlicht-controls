@@ -8,7 +8,7 @@ import {
   LIGHT_BASE, LIGHT_EXTENDED, LIGHT_EXTENDED_TC, LIGHT_EXTENDED_ANP,
 } from "../flavours";
 import {
-  buildSegmentSetting, buildColorToggleRow,
+  buildSegmentSetting, buildColourVarRow,
   buildLeftRailShell, LeftRailSection,
   buildPrettyAccordion, buildSectionPreview,
   swapAccordionVariant,
@@ -404,238 +404,6 @@ export function renderTheme(
 
 }
 
-export function renderOutliner(
-  pane: HTMLElement,
-  s: TegenlichtSettings,
-  onChange: () => Promise<void>,
-): void {
-  pane.createEl("h3", { cls: "tc-leftrail-sechead", text: "Outliner" });
-  pane.createEl("p", { cls: "tc-leftrail-secdesc",
-    text: "File tree (nav-files) rendering — type icons, folder glyphs, vault-title styling, plus AnuPuccin-style rainbow folder modes." });
-
-  // ── File tree cluster — three toggles for how nav-files pane renders ─
-  const fileTreeCluster = buildPrettyAccordion(pane, "app-filetree", "File tree", true, s.accordionStyle);
-
-  new Setting(fileTreeCluster)
-    .setName("File type icons")
-    .setDesc("Show a glyph next to each file in the tree based on its extension")
-    .addToggle(t => t
-      .setValue(s.fileIcons)
-      .onChange(async v => { s.fileIcons = v; await onChange(); })
-    );
-
-  // Folder display — segment picker (was a boolean toggle "Collapsed
-  // folder arrows"). Two states: Chevrons (collapseFolderIcons: false,
-  // Obsidian's native chevrons) or Folders (true, AnuPpuccin's folder
-  // icon glyphs via the anp-collapse-folders class). Default is now
-  // Chevrons; users opt in to Folders.
-  buildSegmentSetting(fileTreeCluster,
-    "Folder display",
-    "Show chevrons or folder glyphs in the file tree",
-    [
-      { label: "Chevrons", value: "chevrons" },
-      { label: "Folders",  value: "folders"  },
-    ],
-    s.collapseFolderIcons ? "folders" : "chevrons",
-    async v => { s.collapseFolderIcons = (v === "folders"); await onChange(); },
-  );
-
-  new Setting(fileTreeCluster)
-    .setName("Custom vault title")
-    .setDesc("Style the vault root entry — larger and set apart from the file tree")
-    .addToggle(t => t
-      .setValue(s.customVaultTitle)
-      .onChange(async v => { s.customVaultTitle = v; await onChange(); })
-    );
-
-  // ── Rainbow folders cluster ───────────────────────────
-  // Three modes mirroring AnuPuccin's Style Settings dropdown
-  //   Off    — no colouring
-  //   Simple — title + indent + file-icon take the hue (no bg fill)
-  //   Full   — folder background tinted
-  // `rainbowInherit` is the orthogonal "subfolders inherit parent"
-  // modifier. Per-mode sub-toggles live under a single foldable
-  // "Advanced" disclosure: integrated inline (no card-within-card),
-  // collapsed by default, hidden entirely when mode === 'off'. Mode
-  // change repopulates the Advanced body in place but preserves the
-  // user's open/closed choice.
-  const rainbowCluster = buildPrettyAccordion(pane, "app-rainbow", "Rainbow folders", true, s.accordionStyle);
-
-  const computedMode = (() => {
-    if ((s.rainbowStyle ?? 'off') === 'off' && s.rainbowFileBrowser) return 'full';
-    const v = s.rainbowStyle ?? 'off';
-    if (v === 'dot' || v === 'icon') return 'simple';
-    return v;
-  })();
-
-  // Forward-declared so the segment's onChange can repopulate the
-  // Advanced body when mode changes.
-  let populateAdvanced: (mode: string) => void = () => {};
-
-  buildSegmentSetting(rainbowCluster,
-    "Coloured folders",
-    "Full tints folder backgrounds, Simple tints titles + indents — matches AnuPuccin's Style Settings",
-    [
-      { label: "Off",    value: "off"    },
-      { label: "Simple", value: "simple" },
-      { label: "Full",   value: "full"   },
-    ],
-    computedMode,
-    async v => {
-      s.rainbowStyle = v;
-      // Also clear the legacy boolean so the migration doesn't re-fire
-      s.rainbowFileBrowser = v !== 'off' && s.rainbowFileBrowser;
-      populateAdvanced(v);
-      await onChange();
-    },
-  );
-
-  new Setting(rainbowCluster)
-    .setName("Subfolders inherit colour")
-    .setDesc("Child folders pick up their parent's hue instead of rolling through the rainbow themselves")
-    .addToggle(t => t
-      .setValue(s.rainbowInherit)
-      .onChange(async v => { s.rainbowInherit = v; await onChange(); })
-    );
-
-  // ── Advanced disclosure (integrated, collapsed by default) ──────
-  const advanced = rainbowCluster.createDiv("tc-advanced");
-  const advHeader = advanced.createDiv("tc-advanced-header");
-  advHeader.createSpan({ cls: "tc-advanced-chevron", text: "▶" });
-  advHeader.createSpan({ text: "Advanced" });
-  const advBody = advanced.createDiv("tc-advanced-body");
-  advHeader.addEventListener("click", () => {
-    advanced.toggleClass("tc-advanced--open", !advanced.hasClass("tc-advanced--open"));
-  });
-
-  populateAdvanced = (mode: string) => {
-    advBody.empty();
-    // Hide the whole disclosure when mode is off — no per-mode
-    // settings apply to "Off" so there's nothing to reveal.
-    advanced.style.display = mode === "off" ? "none" : "";
-    if (mode === "simple") {
-      new Setting(advBody)
-        .setName("Tint folder names")
-        .setDesc("Folder title text picks up the rotating hue. Subtle — reads as a coloured label without painting the whole row.")
-        .addToggle(t => t
-          .setValue(s.rainbowSimpleTitle)
-          .onChange(async v => { s.rainbowSimpleTitle = v; await onChange(); })
-        );
-      new Setting(advBody)
-        .setName("Tint chevrons")
-        .setDesc("Obsidian's native chevrons (and AnuPpuccin's folder glyphs when Folder display is set to Folders) take the folder's hue.")
-        .addToggle(t => t
-          .setValue(s.rainbowSimpleCollapseIcon)
-          .onChange(async v => { s.rainbowSimpleCollapseIcon = v; await onChange(); })
-        );
-      new Setting(advBody)
-        .setName("Tint indent guides")
-        .setDesc("The thin vertical lines under each folder (shown when children are expanded) inherit the parent's hue.")
-        .addToggle(t => t
-          .setValue(s.rainbowSimpleIndent)
-          .onChange(async v => { s.rainbowSimpleIndent = v; await onChange(); })
-        );
-      new Setting(advBody)
-        .setName("Coloured file marker")
-        .setDesc("Paint a small coloured dot next to every file living inside a coloured folder — a trace of the parent's hue on each leaf.")
-        .addToggle(t => t
-          .setValue(s.rainbowSimpleFileIcon)
-          .onChange(async v => { s.rainbowSimpleFileIcon = v; await onChange(); })
-        );
-    } else if (mode === "full") {
-      new Setting(advBody)
-        .setName("Tint files inside")
-        .setDesc("Files living in a coloured folder pick up the parent's hue on their own row — extends the tint past the folder header.")
-        .addToggle(t => t
-          .setValue(s.rainbowFullFileRecolor)
-          .onChange(async v => { s.rainbowFullFileRecolor = v; await onChange(); })
-        );
-      new Setting(advBody)
-        .setName("Readable titles — light mode")
-        .setDesc("Swap folder-name text to the regular text colour (not the folder hue) when the workspace is in a light theme — keeps contrast legible against the pale tint.")
-        .addToggle(t => t
-          .setValue(s.rainbowFullInvertLight)
-          .onChange(async v => { s.rainbowFullInvertLight = v; await onChange(); })
-        );
-      new Setting(advBody)
-        .setName("Readable titles — dark mode")
-        .setDesc("Same contrast fix for dark workspaces — folder names paint in the regular text colour rather than the (dim) hue.")
-        .addToggle(t => t
-          .setValue(s.rainbowFullInvertDark)
-          .onChange(async v => { s.rainbowFullInvertDark = v; await onChange(); })
-        );
-      new Setting(advBody)
-        .setName("Tint strength")
-        .setDesc("How much of the folder's hue fills its row background. 0 = transparent (no fill), 100 = solid hue at full saturation.")
-        .addSlider(sl => sl
-          .setLimits(0, 100, 1)
-          .setValue(s.rainbowFullBgOpacity ?? 70)
-          .setDynamicTooltip()
-          .onChange(async v => { s.rainbowFullBgOpacity = v; await onChange(); })
-        );
-    }
-  };
-  populateAdvanced(computedMode);
-
-}
-
-export function renderGraph(
-  pane: HTMLElement,
-  s: TegenlichtSettings,
-  onChange: () => Promise<void>,
-  refresh: () => Promise<void>,
-): void {
-  pane.createEl("h3", { cls: "tc-leftrail-sechead", text: "Graph" });
-  pane.createEl("p", { cls: "tc-leftrail-secdesc",
-    text: "Graph view — colour mode for nodes and links, plus style tweaks (hover halo, node scale, link thickness)." });
-
-  // ── Colour cluster ────────────────────────────────────
-  const graphColourCluster = buildPrettyAccordion(pane, "app-graphcolour", "Colour", true, s.accordionStyle);
-  buildSegmentSetting(graphColourCluster,
-    "Colour mode",
-    "How nodes and links take their hue",
-    [
-      { label: "Mono",    value: "mono"    },
-      { label: "Accent",  value: "accent"  },
-      { label: "Folders", value: "folders" },
-    ],
-    s.graphColourMode,
-    async v => { s.graphColourMode = v; await onChange(); },
-  );
-
-  // ── Style cluster ─────────────────────────────────────
-  const graphStyleCluster = buildPrettyAccordion(pane, "app-graphstyle", "Style", true, s.accordionStyle);
-
-  new Setting(graphStyleCluster)
-    .setName("Hover halo")
-    .setDesc("Soft accent glow under the node you're hovering")
-    .addToggle(t => t
-      .setValue(s.graphHalo)
-      .onChange(async v => { s.graphHalo = v; await onChange(); })
-    );
-
-  new Setting(graphStyleCluster)
-    .setName("Node scale")
-    .setDesc("Multiplies Obsidian's native node size (0.5× – 2×)")
-    .addSlider(sl => sl
-      .setLimits(0.5, 2.0, 0.1)
-      .setValue(s.graphNodeScale ?? 1.0)
-      .setDynamicTooltip()
-      .onChange(async v => { s.graphNodeScale = v; await onChange(); })
-    );
-
-  new Setting(graphStyleCluster)
-    .setName("Link thickness")
-    .setDesc("Stroke weight of connection lines (0.5× – 3×)")
-    .addSlider(sl => sl
-      .setLimits(0.5, 3.0, 0.1)
-      .setValue(s.graphLinkThickness ?? 1.0)
-      .setDynamicTooltip()
-      .onChange(async v => { s.graphLinkThickness = v; await onChange(); })
-    );
-
-}
-
 export function renderWorkspace(
   pane: HTMLElement,
   s: TegenlichtSettings,
@@ -732,38 +500,49 @@ export function renderWorkspace(
       .onChange(async v => { s.colorfulFrame = v; await onChange(); })
     );
 
-  // ── Editor accents cluster — consolidates the old Highlights & Tints
-  //    section (Active line / Selection tint / Caret colour) into the
-  //    Workspace section. Same three colour-picker-plus-toggle rows, new
-  //    home. Pickr instances still registered for cleanup via `pickrs`.
-  const editorAccentsCluster = buildPrettyAccordion(pane, "app-editoraccents", "Editor accents", true, s.accordionStyle);
+  // Icon-invert modifiers for the colourful frame — Wave 6.5 ports
+  // relocated from the retired Features tab. Only meaningful when
+  // Colourful window frame is on; kept visible so users can flip the
+  // modes without toggling the parent off and on.
+  new Setting(accentAppCluster)
+    .setName("Colourful frame · invert icons (light)")
+    .setDesc("Invert icon colours on the colourful frame in light mode")
+    .addToggle(t => t
+      .setValue(s.colorfulFrameInvertLight)
+      .onChange(async v => { s.colorfulFrameInvertLight = v; await onChange(); })
+    );
+  new Setting(accentAppCluster)
+    .setName("Colourful frame · invert icons (dark)")
+    .setDesc("Invert icon colours on the colourful frame in dark mode")
+    .addToggle(t => t
+      .setValue(s.colorfulFrameInvertDark)
+      .onChange(async v => { s.colorfulFrameInvertDark = v; await onChange(); })
+    );
 
-  pickrs.push(buildColorToggleRow(editorAccentsCluster,
-    "Active line", "Highlight the current cursor line in the editor",
-    () => s.activeLineColour,
-    v => { s.activeLineColour = v; },
-    () => s.activeLineHighlight,
-    v => { s.activeLineHighlight = v; },
-    refresh,
+  // Absorbed from Legacy → Frame & accents (Step 4). Light-mode accent
+  // override + custom frame colour sit alongside the frame toggles
+  // they modify — natural home now that Appearance Palette is already
+  // busy with dark-accent pips.
+  new Setting(accentAppCluster)
+    .setName("Light mode accent")
+    .setDesc("Override the accent when Obsidian is in light mode (auto = match the main Appearance pick)")
+    .addDropdown(dd => {
+      dd.addOption("auto", "Auto (match main accent)");
+      ACCENT_PRESETS.forEach(p => dd.addOption(p.hex, p.label));
+      dd.setValue(s.lightAccentColour || "auto");
+      dd.onChange(async v => { s.lightAccentColour = v; await onChange(); });
+    });
+
+  pickrs.push(buildColourVarRow(accentAppCluster,
+    "Colourful frame colour",
+    "Override the colourful-frame accent colour. Clear = theme default.",
+    () => s.colorfulFrameColour,
+    v => { s.colorfulFrameColour = v; },
+    onChange,
   ));
 
-  pickrs.push(buildColorToggleRow(editorAccentsCluster,
-    "Selection tint", "Colour overlay applied to selected text",
-    () => s.selectionTintColour,
-    v => { s.selectionTintColour = v; },
-    () => s.selectionTint,
-    v => { s.selectionTint = v; },
-    refresh,
-  ));
-
-  pickrs.push(buildColorToggleRow(editorAccentsCluster,
-    "Caret colour", "Colour of the text insertion cursor",
-    () => s.caretColour,
-    v => { s.caretColour = v; },
-    () => s.caretColourEnabled,
-    v => { s.caretColourEnabled = v; },
-    refresh,
-  ));
+  // Editor accents (active line / selection tint / caret) moved to the
+  // Editor tab → Accents section (Step 3c of settings-reorg-plan.md).
 
 }
 
@@ -870,11 +649,7 @@ export function build(
   const sections: LeftRailSection[] = [
     { id: "theme",     label: "Theme",          count: 3,
       render: pane => renderTheme(pane, s, containerEl, onChange, refresh, pickrs) },
-    { id: "outliner",  label: "Outliner",       count: 2,
-      render: pane => renderOutliner(pane, s, onChange) },
-    { id: "graph",     label: "Graph",          count: 2,
-      render: pane => renderGraph(pane, s, onChange, refresh) },
-    { id: "workspace", label: "Workspace",      count: 5,
+    { id: "workspace", label: "Canvas & Frame", count: 4,
       render: pane => renderWorkspace(pane, s, containerEl, onChange, refresh, pickrs) },
     { id: "interface", label: "Interface",      count: 1,
       render: pane => renderInterface(pane, s, onChange) },

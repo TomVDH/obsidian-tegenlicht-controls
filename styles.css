@@ -4803,13 +4803,65 @@ body.tc-graph-halo .workspace-leaf-content[data-type="graph"] .graph-view.color-
   margin-left: 6px;
   vertical-align: middle;
 }
+/* Final letter scheme (target tab layout):
+     A Appearance · B Reading · C Editor · D Workspace · E Elements ·
+     F Typography · G Legacy · L Lab
+   During migration, old tabs (Typography / Editing / Layout / Features)
+   keep placeholder letters that retire as the tabs retire. Since only
+   one tab's content renders at a time, overlaps in the letter space
+   never paint simultaneously. */
 .tc-settings .tc-content-appearance .setting-item .setting-item-name::after { content: "  A-" counter(tc-setting); }
-.tc-settings .tc-content-typography .setting-item .setting-item-name::after { content: "  B-" counter(tc-setting); }
-.tc-settings .tc-content-editing    .setting-item .setting-item-name::after { content: "  C-" counter(tc-setting); }
-.tc-settings .tc-content-layout     .setting-item .setting-item-name::after { content: "  D-" counter(tc-setting); }
-.tc-settings .tc-content-features   .setting-item .setting-item-name::after { content: "  E-" counter(tc-setting); }
+.tc-settings .tc-content-reading    .setting-item .setting-item-name::after { content: "  B-" counter(tc-setting); }
+.tc-settings .tc-content-editor     .setting-item .setting-item-name::after { content: "  C-" counter(tc-setting); }
+.tc-settings .tc-content-workspace  .setting-item .setting-item-name::after { content: "  D-" counter(tc-setting); }
+.tc-settings .tc-content-elements   .setting-item .setting-item-name::after { content: "  E-" counter(tc-setting); }
 .tc-settings .tc-content-legacy     .setting-item .setting-item-name::after { content: "  F-" counter(tc-setting); }
 .tc-settings .tc-content-lab        .setting-item .setting-item-name::after { content: "  L-" counter(tc-setting); }
+
+/* Reading → Typography pointer — sits in the Typography rail section
+   (which is a pointer-only section, no settings of its own) and
+   directs the reader to the top-level Typography tab. Subtle card,
+   matches the rail-section-header vocabulary. */
+.tc-settings .tc-reading-pointer {
+  margin-top: 14px;
+  padding: 14px 18px;
+  background: rgba(var(--mono-rgb-100, 200, 200, 200), 0.04);
+  border: 1px solid rgba(var(--mono-rgb-100, 200, 200, 200), 0.12);
+  border-radius: 8px;
+  font-size: 13px;
+  line-height: 1.55;
+  color: var(--text-muted);
+}
+.tc-settings .tc-reading-pointer code {
+  padding: 1px 6px;
+  background: rgba(var(--mono-rgb-100, 200, 200, 200), 0.12);
+  border-radius: 4px;
+  font-size: 12px;
+}
+.tc-settings .tc-reading-pointer-prefix {
+  opacity: 0.7;
+}
+
+/* Tab scaffold — "Coming soon" stub painted inside the four new
+   semantic tabs until their content migrates. Quiet, informational,
+   no chrome; same type vocabulary as rail-section headings. */
+.tc-settings .tc-tab-stub {
+  padding: 32px 24px;
+  max-width: 640px;
+}
+.tc-settings .tc-tab-stub-title {
+  font-size: 18px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  color: var(--text-normal);
+  margin: 0 0 8px 0;
+}
+.tc-settings .tc-tab-stub-body {
+  font-size: 13px;
+  line-height: 1.55;
+  color: var(--text-muted);
+  margin: 0;
+}
 
 /* ── Reload-required pip ─────────────────────────────────────────────
    Small "↻" marker appended to a Setting's name via markReloadRequired()

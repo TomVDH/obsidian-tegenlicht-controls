@@ -3,21 +3,28 @@ import TegenlichtControlsPlugin from "./main";
 import { DEFAULT_SETTINGS } from "./settings";
 import { TegenlichtAcknowledgementsModal } from "./acknowledgements-modal";
 import { build as buildAppearance }  from "./tabs/appearance";
-import { build as buildTypography }  from "./tabs/typography";
-import { build as buildEditing }     from "./tabs/editing";
-import { build as buildLayout }      from "./tabs/layout";
-import { build as buildFeatures }    from "./tabs/features";
+import { build as buildReading }     from "./tabs/reading";
+import { build as buildEditor }      from "./tabs/editor";
+import { build as buildWorkspace }   from "./tabs/workspace";
+import { build as buildElements }    from "./tabs/elements";
 import { build as buildLegacy }      from "./tabs/legacy";
 import { build as buildLab }         from "./tabs/lab";
 
-type Tab = "appearance" | "typography" | "editing" | "layout" | "features" | "legacy" | "lab";
+type Tab =
+  | "appearance" | "reading" | "editor" | "workspace" | "elements"
+  | "legacy" | "lab";
 
+// New semantic tabs (reading / editor / workspace / elements) sit
+// between Appearance and the legacy set during the migration. Per
+// docs/settings-reorg-plan.md, the old tabs (Typography / Editing /
+// Layout / Features) retire as their content moves; Legacy + Lab
+// survive the rearrangement.
 const TABS: { id: Tab; label: string }[] = [
   { id: "appearance",  label: "Appearance"   },
-  { id: "typography",  label: "Typography"   },
-  { id: "editing",     label: "Editing"      },
-  { id: "layout",      label: "Layout"       },
-  { id: "features",    label: "Features"     },
+  { id: "reading",     label: "Reading"      },
+  { id: "editor",      label: "Editor"       },
+  { id: "workspace",   label: "Workspace"    },
+  { id: "elements",    label: "Elements"     },
   { id: "legacy",      label: "Legacy"       },
   { id: "lab",         label: "Lab"          },
 ];
@@ -254,10 +261,10 @@ export class TegenlichtSettingsTab extends PluginSettingTab {
       case "appearance":
         this.cleanup = buildAppearance(this.contentEl, this.plugin, onChange, redisplay);
         break;
-      case "typography": this.cleanup = buildTypography(this.contentEl, this.plugin, onChange, redisplay); break;
-      case "editing":    buildEditing(this.contentEl, this.plugin, onChange);    break;
-      case "layout":     buildLayout(this.contentEl, this.plugin, onChange);     break;
-      case "features":   buildFeatures(this.contentEl, this.plugin, onChange);   break;
+      case "reading":    this.cleanup = buildReading(this.contentEl, this.plugin, onChange); break;
+      case "editor":     this.cleanup = buildEditor(this.contentEl, this.plugin, onChange, redisplay); break;
+      case "workspace":  this.cleanup = buildWorkspace(this.contentEl, this.plugin, onChange); break;
+      case "elements":   buildElements(this.contentEl, this.plugin, onChange);   break;
       case "legacy":     this.cleanup = buildLegacy(this.contentEl, this.plugin, onChange, redisplay); break;
       case "lab":        this.cleanup = buildLab(this.contentEl, this.plugin, onChange, redisplay); break;
     }

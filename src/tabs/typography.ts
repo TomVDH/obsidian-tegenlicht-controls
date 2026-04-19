@@ -5,7 +5,6 @@ import { buildFontCombobox } from "../font-combobox";
 import { buildTypographyPreview } from "../preview-sample";
 import { CATPPUCCIN_COLOURS } from "../applier";
 import {
-  buildLeftRailShell, LeftRailSection,
   buildPrettyAccordion, buildSectionPreview,
 } from "./_shared";
 
@@ -155,7 +154,7 @@ function buildSliderRow(
 // sidebar already labels the section; the accordion header labels
 // the content group (often a sub-topic of the rail item).
 
-function renderFonts(
+export function renderFonts(
   pane: HTMLElement,
   s: TegenlichtSettings,
   onChange: () => Promise<void>,
@@ -203,7 +202,7 @@ function renderFonts(
     async v => { s.fontSource = v; await onChange(); });
 }
 
-function renderRhythm(
+export function renderRhythm(
   pane: HTMLElement,
   s: TegenlichtSettings,
   onChange: () => Promise<void>,
@@ -250,7 +249,7 @@ function renderRhythm(
  *  all 14 classes for that prefix. Master toggles (anp-header-color-
  *  toggle / margin / divider-color-toggle) gate whether the chosen
  *  colours actually paint. */
-function renderHeadings(
+export function renderHeadings(
   pane: HTMLElement,
   s: TegenlichtSettings,
   onChange: () => Promise<void>,
@@ -337,7 +336,7 @@ function renderHeadings(
  *    3. Per-H line heights (H1–H6)
  *    4. Per-H fonts (H1–H6 text inputs; empty = inherit)
  *  All writes are pure CSS-var updates — no redisplay. */
-function renderWeightLeading(
+export function renderWeightLeading(
   pane: HTMLElement,
   s: TegenlichtSettings,
   onChange: () => Promise<void>,
@@ -453,7 +452,7 @@ function renderWeightLeading(
 /** Wave 3 — bold / italic / highlight decoration colours. Same
  *  class-select shape as the per-H dropdowns; writes the chosen
  *  Catppuccin colour class to body. */
-function renderAccents(
+export function renderAccents(
   pane: HTMLElement,
   s: TegenlichtSettings,
   onChange: () => Promise<void>,
@@ -516,51 +515,8 @@ function renderPlaceholder(
   card.createEl("p", { cls: "tc-empty-hint", text: hint });
 }
 
-export function build(
-  containerEl: HTMLElement,
-  plugin: TegenlichtControlsPlugin,
-  onChange: () => Promise<void>,
-  redisplay?: () => void,
-): () => void {
-  const s = plugin.settings;
-
-  /** Change handlers that need the tab re-rendered (to refresh preset
-   *  pills, descriptions, show/hide rows) use refresh(); pure value
-   *  changes use onChange() directly so sliders don't flash-rebuild. */
-  const refresh = async () => {
-    await onChange();
-    redisplay?.();
-  };
-
-  // Left-rail shell wraps the controls; preview lives outside the
-  // shell so it stays visible across section switches. The top
-  // accent divider bar was retired per user directive — the rail
-  // already frames the Typography tab; no extra chrome needed.
-  const wrap = containerEl.createDiv("tc-typo-wrap");
-
-  const sections: LeftRailSection[] = [
-    { id: "fonts",    label: "Fonts",           count: 4,
-      render: pane => renderFonts(pane, s, onChange, refresh) },
-    { id: "rhythm",   label: "Rhythm",          count: 8,
-      render: pane => renderRhythm(pane, s, onChange) },
-    // Placeholder sections — content lands with the AnuPpuccin port
-    // waves. Rail structure fixed now so future fills don't reshape
-    // the tab.
-    { id: "headings", label: "Headings",        count: 16,
-      render: pane => renderHeadings(pane, s, onChange) },
-    { id: "weight",   label: "Weight & leading", count: 22,
-      render: pane => renderWeightLeading(pane, s, onChange) },
-    { id: "accents",  label: "Accents",         count: 3,
-      render: pane => renderAccents(pane, s, onChange) },
-  ];
-
-  const shellCleanup = buildLeftRailShell(wrap, sections, "typography");
-
-  // Dynamic preview now lives INSIDE each rail section (Fonts,
-  // Rhythm) via buildSectionPreview — same Callouts-style PREVIEW
-  // strip with a chevron toggle. The always-visible preview that
-  // used to sit below the rail has been retired since every
-  // relevant section now has its own contextual preview.
-
-  return shellCleanup;
-}
+// Typography tab was retired in Step 3e (settings-reorg-plan.md).
+// The five renderers above are now consumed by Legacy's rail so
+// all font / rhythm / heading / weight / accent controls stay
+// reachable under the catch-all staging tab until a future pass
+// decides whether Reading should absorb them inline.
